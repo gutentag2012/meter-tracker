@@ -1,0 +1,54 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+hide circle
+hide empty members
+
+class Meter {
+   name: string
+   identification: string
+
+   'Configuration
+   digits: int
+   unit: string
+   areValuesIncreasing: boolean
+   isActive: boolean
+
+   'Foreign keys
+   contract: Contract
+}
+
+class Contract {
+   name: string
+   identification: string
+   pricePerUnit: double
+}
+
+Meter "*" -- "1" Contract
+
+class Measurement {
+   value: double
+   timestamp: Date
+
+   'Foreign keys
+   meter: Meter
+}
+
+Meter "1" -- "*" Measurement
+
+class Settings {
+   databaseVersion: int
+
+   shouldRemindUser: boolean
+   reminderInterval: "daily" | "weekly" | "monthly"
+   reminderTime: {hour: int, minute: int} | {hour: int, minute: int, day: int} | {hour: int, minute: int, day: int, week: int}
+
+   shouldSendBackupMail: boolean
+   backupMailAddress: string
+   everyXMonths: int
+   mailDay: int
+   mailHour: int
+   mailMinute: int
+}
+
+@enduml
