@@ -11,11 +11,12 @@ import { useMemo } from 'react'
 import { ColorSchemeName, Pressable } from 'react-native'
 import { Colors } from 'react-native-ui-lib'
 import HomeScreen from '../screens/HomeScreen'
+import AddMeterModal from '../screens/modals/AddMeterModal'
 
-import ModalScreen from '../screens/ModalScreen'
 import NotFoundScreen from '../screens/NotFoundScreen'
 import type { RootStackParamList, RootStackScreenProps } from '../types'
 import LinkingConfiguration from './LinkingConfiguration'
+
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const theme = useMemo(() => ({
@@ -55,12 +56,11 @@ function RootNavigator() {
       <Stack.Screen
         name='Root'
         component={ HomeScreen }
-        options={ ({ navigation }: RootStackScreenProps<'Root'>) => ({
+        options={ ({ /*navigation*/ }: RootStackScreenProps<'Root'>) => ({
           title: 'Tab One',
-          headerShown: false,
           headerRight: () => (
             <Pressable
-              onPress={ () => navigation.navigate('Modal') }
+              onPress={ () => console.log("navigation.navigate('settings')") }
               style={ ({ pressed }) => ({
                 opacity: pressed ? 0.5 : 1,
               }) }
@@ -84,8 +84,9 @@ function RootNavigator() {
 
       <Stack.Group screenOptions={ { presentation: 'modal' } }>
         <Stack.Screen
-          name='Modal'
-          component={ ModalScreen }
+          name='AddMeterModal'
+          component={ AddMeterModal }
+          options={{ headerShown: false, animation: "slide_from_bottom" }}
         />
       </Stack.Group>
     </Stack.Navigator>

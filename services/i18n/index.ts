@@ -2,6 +2,7 @@ import i18next, { Module } from 'i18next'
 import { I18nManager as RNI18nManager } from 'react-native'
 import * as config from '../../config/i18n'
 import { supportedLocales } from '../../config/i18n'
+import { LangKey } from '../../lang/en'
 import date from './date'
 import languageDetector from './language-detector'
 import translationLoader from './translation-loader'
@@ -79,7 +80,7 @@ const i18n = {
     return map[key]
   },
 }
-export const t = (key: string) => {
+export const t = (key: LangKey) => {
   return i18n.t(key)
 }
 export default i18n

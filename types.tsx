@@ -13,7 +13,7 @@ declare global {
 
 export type RootStackParamList = {
   Root: undefined;
-  Modal: undefined;
+  AddMeterModal: undefined;
   NotFound: undefined;
 };
 

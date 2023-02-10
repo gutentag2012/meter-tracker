@@ -10,6 +10,7 @@ import Contract from '../services/database/entities/contract'
 import Meter from '../services/database/entities/meter'
 import GenericRepository from '../services/database/GenericRepository'
 import { t } from '../services/i18n'
+import { RootStackScreenProps } from '../types'
 
 const { TextField } = Incubator
 
@@ -24,7 +25,7 @@ Notifications.setNotificationHandler({
 const MeterRepository = new GenericRepository(Meter as any)
 const ContractRepository = new GenericRepository(Contract as any)
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }: RootStackScreenProps<'Root'>) {
   const [visible, setVisible] = useState(false)
 
   // Set visible after 2 seconds using the useEffect hook
@@ -35,8 +36,10 @@ export default function HomeScreen() {
       const insertedContract = await ContractRepository.insertData(contract)
       await MeterRepository.insertData(new Meter("Test", 2, "kWh", insertedContract.id!))
       await MeterRepository.getAllData().then(ms => ms.forEach(m => console.log(m)))
+
+      navigation.navigate("AddMeterModal")
     }, 2000)
-  }, [])
+  }, [navigation])
 
   return (
     <SafeAreaView

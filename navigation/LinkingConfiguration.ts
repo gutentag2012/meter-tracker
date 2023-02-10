@@ -14,7 +14,7 @@ const linking: LinkingOptions<RootStackParamList> = {
   config: {
     screens: {
       Root: 'root', // TODO Also implement linking for sub screens
-      Modal: 'modal',
+      AddMeterModal: 'add-meter',
       NotFound: '*',
     },
   },
