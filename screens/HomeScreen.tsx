@@ -1,12 +1,21 @@
 import * as Notifications from 'expo-notifications'
-import { useEffect, useState } from 'react'
+import * as React from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { StyleSheet } from 'react-native'
-import Ripple from 'react-native-material-ripple'
-import { Bar as ProgressBar } from 'react-native-progress'
+import { RefreshControl, ScrollView } from 'react-native-gesture-handler'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Button, Colors, Incubator, Modal, Text, Typography, View } from 'react-native-ui-lib'
-import { ThemeColors } from '../constants/Theme'
+import { Colors, Incubator, Text } from 'react-native-ui-lib'
+import { AppBar } from '../components/AppBar'
+import { Button } from '../components/Button'
+import { ContractListEntry } from '../components/contracts/ContractListEntry'
+import { FloatingActionButton } from '../components/FloatingActionButton'
+import { IconButton } from '../components/IconButton'
+import { AddIcon } from '../components/icons/AddIcon'
+import { SettingsIcon } from '../components/icons/SettingsIcon'
+import { MeterListEntry } from '../components/meters/MeterListEntry'
+import { Typography } from '../constants/Theme'
 import Contract from '../services/database/entities/contract'
+import Measurement from '../services/database/entities/measurement'
 import Meter from '../services/database/entities/meter'
 import GenericRepository from '../services/database/GenericRepository'
 import { t } from '../services/i18n'
@@ -22,81 +31,95 @@ Notifications.setNotificationHandler({
   }),
 })
 
-const MeterRepository = new GenericRepository(Meter as any)
-const ContractRepository = new GenericRepository(Contract as any)
-
 export default function HomeScreen({ navigation }: RootStackScreenProps<'Root'>) {
-  const [visible, setVisible] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  // Set visible after 2 seconds using the useEffect hook
-  useEffect(() => {
-    setTimeout(async () => {
-      setVisible(true)
-      const contract = new Contract("CONTRACT", 5)
-      const insertedContract = await ContractRepository.insertData(contract)
-      await MeterRepository.insertData(new Meter("Test", 2, "kWh", insertedContract.id!))
-      await MeterRepository.getAllData().then(ms => ms.forEach(m => console.log(m)))
+  const [meters, setMeters] = useState<Array<Meter>>([])
+  const [contracts, setContracts] = useState<Array<Contract>>([])
 
-      navigation.navigate("AddMeterModal")
-    }, 2000)
-  }, [navigation])
+  const loadData = useCallback(() => {
+      setLoading(true)
+      const metersRequest = GenericRepository.getAllData<Meter>(Meter as any)
+      const contractsRequest = GenericRepository.getAllData<Contract>(Contract as any)
+
+      Promise.all([metersRequest, contractsRequest])
+        .then(([meters, contracts]) => {
+          setMeters(meters)
+          setContracts(contracts)
+          setLoading(false)
+        })
+    }, [],
+  )
+
+  useEffect(() => loadData(), [loadData])
 
   return (
     <SafeAreaView
       style={ styles.container }
       bg-backgroundColor
     >
-      <Modal visible={false} overlayBackgroundColor={Colors.background}>
-      <Modal.TopBar title={"Add Measurement"} titleStyle={{color: Colors.onBackground, marginRight: "auto", marginLeft: -16}} doneButtonProps={{color: Colors.primary, disabled: false}} onDone={() => console.log("Save")} onCancel={() => console.log("CanceL")}/>
-      </Modal>
-      <View style={{width: "100%"}}>
-      <ProgressBar borderRadius={0} progress={0.3} width={null} indeterminate borderWidth={0} unfilledColor={(Colors as ThemeColors).primaryContainer} color={Colors.onPrimaryContainer} />
-      </View>
-      <Text>{ t('common:app_name') }</Text>
-      <Text style={ styles.title }>Tab One</Text>
-      <View style={ styles.separator } />
-      <View>
-        <Text>Home Screen</Text>
-        <Ripple rippleColor={(Colors as ThemeColors).onPrimary}>
-          <Button
-            label='Next'
-            onPress={ () => console.log('clicked') }
+      <AppBar
+        title={ t('home_screen:title') }
+        actions={ <>
+          <IconButton
+            getIcon={ () => <SettingsIcon color={ Colors.onBackground } /> }
+            onClick={ () => console.log('Navigate to settings') }
           />
-        </Ripple>
-        <Ripple rippleColor={(Colors as ThemeColors).primary} rippleDuration={500} rippleContainerBorderRadius={1000}>
-          <Button
-            outline
-            label='Next'
-            onPress={ () => console.log('clicked') }
-          />
-        </Ripple>
+        </> }
+      />
+      <ScrollView
+        refreshControl={ <RefreshControl
+          refreshing={ loading }
+          onRefresh={ loadData }
+          tintColor={ Colors.onSecondaryContainer }
+          progressBackgroundColor={ Colors.secondaryContainer }
+          colors={ [Colors.onSecondaryContainer] }
+        /> }
+      >
+        <Text
+          style={ styles.sectionTitle }
+          onSurfaceVariant
+        >
+          { t('home_screen:meters_section_title') }
+        </Text>
+        {
+          meters.map(meter => <MeterListEntry
+            key={ meter.id }
+            meter={ meter }
+          />)
+        }
         <Button
-          outline
-          outlineWidth={ -1 }
-          label='Next'
-          onPress={ () => console.log('clicked') }
+          style={ styles.button }
+          label={ t('home_screen:add_new_meter') }
+          icon={ AddIcon }
         />
-        <TextField
-          placeholder='Floating placeholder'
-          floatingPlaceholder
-          floatingPlaceholderStyle={ Typography.text90B }
-          style={ Typography.text60 }
-          enableErrors
-          validate={ ['required', 'email'] }
-          validateionMessage='This field is required'
-          validateOnBlur
-          showCharCounter
+
+        <Text
+          style={ styles.sectionTitle }
+          onSurfaceVariant
+        >
+          { t('home_screen:contracts_section_title') }
+        </Text>
+        {
+          contracts.map(contract => <ContractListEntry
+            key={ contract.id }
+            contract={ contract }
+          />)
+        }
+        <Button
+          style={ styles.button }
+          label={ t('home_screen:add_new_contract') }
+          icon={ AddIcon }
         />
-      </View>
-      <Incubator.Toast
-        visible={ visible }
-        backgroundColor={ Colors.surface }
-        iconColor={ Colors.error }
-        position='bottom'
-        action={ { label: 'Dismiss' } }
-        enableHapticFeedback
-        message='This is a toast message'
-        preset='failure'
+      </ScrollView>
+      <FloatingActionButton
+        icon={ AddIcon }
+        onClick={ async () => {
+          const contract = await GenericRepository.insertData(Contract as any, new Contract('Contract', 5.4))
+          const meter = await GenericRepository.insertData(Meter as any, new Meter('Meter', Math.round(Math.random() * 4), 'kWh', contract.id))
+          const date = Date.now() - (1000 * 60 * 60 * 24 * Math.random() * 30)
+          await GenericRepository.insertData(Measurement as any, new Measurement(Math.random() * 1000, meter.id!, date))
+        } }
       />
     </SafeAreaView>
   )
@@ -105,15 +128,15 @@ export default function HomeScreen({ navigation }: RootStackScreenProps<'Root'>)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  sectionTitle: {
+    ...Typography.LabelSmall,
+    textAlignVertical: 'center',
+    marginHorizontal: 16,
+    marginVertical: 8,
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  button: {
+    marginHorizontal: 16,
+    marginVertical: 8,
   },
 })

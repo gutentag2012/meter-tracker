@@ -20,6 +20,8 @@ export const defaultNamespace: keyof Language = 'common'
 
 export const namespaces: (keyof Language)[] = [
   'common',
-  'add_meter_modal',
+  'home_screen',
+  'meter',
+  'contract',
   'utils',
 ]

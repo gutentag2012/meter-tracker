@@ -3,20 +3,18 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import { FontAwesome } from '@expo/vector-icons'
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import * as React from 'react'
 import { useMemo } from 'react'
-import { ColorSchemeName, Pressable } from 'react-native'
+import { ColorSchemeName } from 'react-native'
 import { Colors } from 'react-native-ui-lib'
 import HomeScreen from '../screens/HomeScreen'
 import AddMeterModal from '../screens/modals/AddMeterModal'
 
 import NotFoundScreen from '../screens/NotFoundScreen'
-import type { RootStackParamList, RootStackScreenProps } from '../types'
+import type { RootStackParamList } from '../types'
 import LinkingConfiguration from './LinkingConfiguration'
-
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const theme = useMemo(() => ({
@@ -56,24 +54,7 @@ function RootNavigator() {
       <Stack.Screen
         name='Root'
         component={ HomeScreen }
-        options={ ({ /*navigation*/ }: RootStackScreenProps<'Root'>) => ({
-          title: 'Tab One',
-          headerRight: () => (
-            <Pressable
-              onPress={ () => console.log("navigation.navigate('settings')") }
-              style={ ({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              }) }
-            >
-              <FontAwesome
-                name='info-circle'
-                size={ 25 }
-                color={ Colors.$textDefault }
-                style={ { marginRight: 15 } }
-              />
-            </Pressable>
-          ),
-        }) }
+        options={ { headerShown: false } }
       />
 
       <Stack.Screen
@@ -86,7 +67,10 @@ function RootNavigator() {
         <Stack.Screen
           name='AddMeterModal'
           component={ AddMeterModal }
-          options={{ headerShown: false, animation: "slide_from_bottom" }}
+          options={ {
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          } }
         />
       </Stack.Group>
     </Stack.Navigator>

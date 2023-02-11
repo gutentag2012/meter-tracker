@@ -45,7 +45,8 @@ const i18n = {
    * @param {Object} options
    * @returns {string}
    */
-  t: (key: string, options?: any) => i18next.t(key, options),
+  // @ts-ignore
+  t: (key: string, options?: any): string => i18next.t(key, options) as string,
   /**
    * @returns {string}
    */
@@ -80,7 +81,7 @@ const i18n = {
     return map[key]
   },
 }
-export const t = (key: LangKey) => {
-  return i18n.t(key)
+export const t = (key: LangKey, options?: any): string => {
+  return i18n.t(key, options)
 }
 export default i18n

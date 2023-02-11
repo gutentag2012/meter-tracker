@@ -1,3 +1,4 @@
+import { TextStyle } from 'react-native'
 import { Colors } from 'react-native-ui-lib'
 
 export const customColors = {
@@ -151,6 +152,46 @@ export const customThemes = {
 
     outline: Colors.neutralVariant60,
   },
+}
+
+// TODO Use actual font / better font
+export const Typography = {
+  TitleLarge: {
+    lineHeight: 28,
+    fontSize: 22,
+    fontWeight: '400',
+    fontFamily: "mona-regular"
+  } as TextStyle,
+  TitleSmall: {
+    lineHeight: 20,
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: "mona-medium"
+  } as TextStyle,
+  LabelLarge: {
+    lineHeight: 20,
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: "mona-semiBold"
+  } as TextStyle,
+  LabelSmall: {
+    lineHeight: 16,
+    fontSize: 11,
+    fontWeight: '500',
+    fontFamily: "mona-medium"
+  } as TextStyle,
+  BodyLarge: {
+    lineHeight: 24,
+    fontSize: 16,
+    fontWeight: '400',
+    fontFamily: "mona-regular"
+  } as TextStyle,
+  BodySmall: {
+    lineHeight: 16,
+    fontSize: 12,
+    fontWeight: '400',
+    fontFamily: "mona-regular"
+  } as TextStyle,
 }
 
 export type CustomThemes = typeof customThemes.light;
