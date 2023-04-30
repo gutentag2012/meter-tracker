@@ -3,10 +3,14 @@ import { StyleSheet } from 'react-native'
 import { Bar as ProgressBar } from 'react-native-progress'
 import { Colors, Text, View } from 'react-native-ui-lib'
 import { Typography } from '../constants/Theme'
+import { IconButton } from './IconButton'
+import { BackIcon } from './icons/BackIcon'
+import { CloseIcon } from './icons/CloseIcon'
 
 interface AppBarProps {
   title: string,
   actions?: ReactElement,
+  leftAction?: ReactElement,
   loading?: boolean,
 }
 
@@ -16,6 +20,7 @@ export const AppBar: FunctionComponent<Props> = ({
                                                    title,
                                                    actions,
                                                    loading,
+  leftAction
                                                  }) => {
   return <View marginB-16>
     <View
@@ -24,12 +29,18 @@ export const AppBar: FunctionComponent<Props> = ({
       spread
       centerV
     >
-      <Text
-        style={ styles.title }
-        onBackground
-      >
-        { title }
-      </Text>
+      <View row centerV>
+        {
+          leftAction
+        }
+        <Text
+          style={ styles.title }
+          onBackground
+        >
+          { title }
+        </Text>
+      </View>
+
       <View style={ styles.buttonContainer }>
         { actions }
       </View>
@@ -56,9 +67,8 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
   },
   title: {
-    ...Typography.TitleLarge
+    ...Typography.TitleMedium
   },
 })

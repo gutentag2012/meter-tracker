@@ -6,7 +6,7 @@ import { Colors } from 'react-native-ui-lib'
 interface ButtonProps {
   icon: FunctionComponent,
   style?: StyleProp<ViewStyle>,
-  onClick?: () => void,
+  onPress?: () => void,
 }
 
 type Props = ButtonProps
@@ -14,14 +14,14 @@ type Props = ButtonProps
 export const FloatingActionButton: FunctionComponent<Props> = ({
                                                                  icon,
                                                                  style,
-                                                                 onClick,
+                                                                 onPress,
                                                                }) => {
 
   return <Ripple
     rippleContainerBorderRadius={ 16 }
     rippleColor={ Colors.onPrimaryContainer }
     style={ [styles.container, style] }
-    onPress={ onClick }
+    onPress={ onPress }
   >
     { icon({ color: Colors.onPrimaryContainer }) }
   </Ripple>

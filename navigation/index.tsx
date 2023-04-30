@@ -10,10 +10,12 @@ import { useMemo } from 'react'
 import { ColorSchemeName } from 'react-native'
 import { Colors } from 'react-native-ui-lib'
 import HomeScreen from '../screens/HomeScreen'
+import AddContractModal from '../screens/modals/AddContractModal'
+import AddMeasurementModal from '../screens/modals/AddMeasurementModal'
 import AddMeterModal from '../screens/modals/AddMeterModal'
 
 import NotFoundScreen from '../screens/NotFoundScreen'
-import type { RootStackParamList } from '../types'
+import type { HomeStackParamList, RootStackParamList } from '../types'
 import LinkingConfiguration from './LinkingConfiguration'
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
@@ -53,7 +55,7 @@ function RootNavigator() {
     <Stack.Navigator>
       <Stack.Screen
         name='Root'
-        component={ HomeScreen }
+        component={ HomeNavigator }
         options={ { headerShown: false } }
       />
 
@@ -62,17 +64,41 @@ function RootNavigator() {
         component={ NotFoundScreen }
         options={ { title: 'Oops!' } }
       />
+    </Stack.Navigator>
+  )
+}
 
-      <Stack.Group screenOptions={ { presentation: 'modal' } }>
-        <Stack.Screen
+const HomeStack = createNativeStackNavigator<HomeStackParamList>()
+
+function HomeNavigator() {
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen
+        name='Home'
+        component={ HomeScreen }
+        options={ { headerShown: false } }
+      />
+
+      <HomeStack.Group
+        screenOptions={ {
+          presentation: 'modal',
+          headerShown: false,
+          animation: 'slide_from_bottom',
+        } }
+      >
+        <HomeStack.Screen
           name='AddMeterModal'
           component={ AddMeterModal }
-          options={ {
-            headerShown: false,
-            animation: 'slide_from_bottom',
-          } }
         />
-      </Stack.Group>
-    </Stack.Navigator>
+        <HomeStack.Screen
+          name='AddMeasurementModal'
+          component={ AddMeasurementModal }
+        />
+        <HomeStack.Screen
+          name='AddContractModal'
+          component={ AddContractModal }
+        />
+      </HomeStack.Group>
+    </HomeStack.Navigator>
   )
 }

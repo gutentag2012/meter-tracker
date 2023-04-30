@@ -20,7 +20,7 @@ interface ButtonProps {
   disabled?: boolean,
   label: string,
   icon?: FunctionComponent,
-  onClick?: () => void,
+  onPress?: () => void,
   style?: StyleProp<ViewStyle>
 }
 
@@ -31,7 +31,7 @@ export const Button: FunctionComponent<Props> = ({
                                                    disabled,
                                                    label,
                                                    icon,
-                                                   onClick,
+                                                   onPress,
                                                    style,
                                                  }) => {
   const colors = useMemo(() => Themes[color], [color, disabled, Themes])
@@ -42,7 +42,7 @@ export const Button: FunctionComponent<Props> = ({
     rippleContainerBorderRadius={ 100 }
     rippleColor={ colors.color }
     style={ [styles.container, style] }
-    onPress={ onClick }
+    onPress={ onPress }
   >
     { icon?.({ color: colors.color }) }
     <Text style={ styles.label }>{ label }</Text>

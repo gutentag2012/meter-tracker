@@ -24,4 +24,5 @@ export const namespaces: (keyof Language)[] = [
   'meter',
   'contract',
   'utils',
+  'validationMessage',
 ]

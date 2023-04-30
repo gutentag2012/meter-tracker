@@ -25,10 +25,110 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.gutentag2012.metertracker"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "./plugins/withAndroidStyles",
+        {
+          "AppTheme": {
+            "parent": "Theme.Material3.Light.NoActionBar",
+            "colorPrimary": "@color/colorPrimary",
+            "colorOnPrimary": "@color/onPrimary",
+            "colorPrimaryContainer": "@color/colorPrimaryContainer",
+            "colorOnPrimaryContainer": "@color/onPrimaryContainer",
+            "colorSecondary": "@color/secondary",
+            "colorOnSecondary": "@color/onSecondary",
+            "colorSecondaryContainer": "@color/secondaryContainer",
+            "colorOnSecondaryContainer": "@color/onSecondaryContainer",
+            "colorTertiary": "@color/tertiary",
+            "colorOnTertiary": "@color/onTertiary",
+            "colorTertiaryContainer": "@color/tertiaryContainer",
+            "colorOnTertiaryContainer": "@color/onTertiaryContainer",
+            "colorError": "@color/error",
+            "colorErrorContainer": "@color/onError",
+            "colorOnError": "@color/errorContainer",
+            "colorOnErrorContainer": "@color/onBackground",
+            "android:colorBackground": "@color/background",
+            "colorOnBackground": "@color/onBackground",
+            "colorSurface": "@color/surface",
+            "colorOnSurface": "@color/onSurface",
+            "colorOutline": "@color/outline",
+            "materialAlertDialogTheme": "@style/ThemeOverlay.App.MaterialAlertDialog"
+          },
+          "ThemeOverlay.App.MaterialAlertDialog": {
+            "parent": "MaterialAlertDialog.Material3",
+            "colorPrimary": "@color/colorPrimary",
+            "colorSecondary": "@color/secondary",
+            "colorSurface": "@color/surface",
+            "colorOnSurface": "@color/onSurface"
+          }
+        }
+      ],
+      [
+        "./plugins/withAndroidColors",
+        {
+          "colorPrimary": "#2E6B21",
+          "onPrimary": "#FFFFFF",
+          "colorPrimaryContainer": "#B0F499",
+          "onPrimaryContainer": "#012200",
+          "secondary": "#54634D",
+          "onSecondary": "#FFFFFF",
+          "secondaryContainer": "#D7E8CC",
+          "onSecondaryContainer": "#121F0E",
+          "tertiary": "#386668",
+          "onTertiary": "#FFFFFF",
+          "tertiaryContainer": "#BCEBEE",
+          "onTertiaryContainer": "#002021",
+          "error": "#BA1A1A",
+          "onError": "#FFFFFF",
+          "errorContainer": "#FFDAD6",
+          "onErrorContainer": "#410002",
+          "background": "#FCFDF6",
+          "onBackground": "#1A1C18",
+          "surface": "#f2f6eb",
+          "onSurface": "#1A1C18",
+          "outline": "#73796E"
+        }
+      ],
+      [
+        "./plugins/withAndroidColorsNight",
+        {
+          "colorPrimary": "#95D780",
+          "onPrimary": "#043900",
+          "colorPrimaryContainer": "#145209",
+          "onPrimaryContainer": "#B0F499",
+          "secondary": "#BBCBB1",
+          "onSecondary": "#273422",
+          "secondaryContainer": "#3D4B37",
+          "onSecondaryContainer": "#D7E8CC",
+          "tertiary": "#A0CFD1",
+          "onTertiary": "#003739",
+          "tertiaryContainer": "#1E4D50",
+          "onTertiaryContainer": "#BCEBEE",
+          "error": "#FFB4AB",
+          "onError": "#690005",
+          "errorContainer": "#93000A",
+          "onErrorContainer": "#FFDAD6",
+          "background": "#1A1C18",
+          "onBackground": "#E2E3DC",
+          "surface": "#20251d",
+          "onSurface": "#E2E3DC",
+          "outline": "#8D9387"
+        }
+      ],
+      [
+        "./plugins/withAndroidGradle"
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "20ea4956-3406-4d9a-aaa6-119902d70601"
+      }
     }
   }
 }

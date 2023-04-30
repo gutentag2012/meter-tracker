@@ -4,6 +4,7 @@
  */
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import Meter from './services/database/entities/meter'
 
 declare global {
   namespace ReactNavigation {
@@ -13,11 +14,24 @@ declare global {
 
 export type RootStackParamList = {
   Root: undefined;
-  AddMeterModal: undefined;
   NotFound: undefined;
+};
+
+export type HomeStackParamList = {
+  Home: undefined;
+  AddMeterModal: undefined;
+  AddMeasurementModal: {
+    meter?: Meter
+  };
+  AddContractModal: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<
   RootStackParamList,
+  Screen
+>;
+
+export type HomeStackScreenProps<Screen extends keyof HomeStackParamList> = NativeStackScreenProps<
+  HomeStackParamList,
   Screen
 >;

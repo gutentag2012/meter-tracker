@@ -162,6 +162,12 @@ export const Typography = {
     fontWeight: '400',
     fontFamily: "mona-regular"
   } as TextStyle,
+  TitleMedium: {
+    lineHeight: 24,
+    fontSize: 16,
+    fontWeight: '500',
+    fontFamily: "mona-medium"
+  } as TextStyle,
   TitleSmall: {
     lineHeight: 20,
     fontSize: 14,
@@ -170,9 +176,15 @@ export const Typography = {
   } as TextStyle,
   LabelLarge: {
     lineHeight: 20,
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: "mona-semiBold"
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: "mona-medium"
+  } as TextStyle,
+  LabelMedium: {
+    lineHeight: 16,
+    fontSize: 12,
+    fontWeight: '500',
+    fontFamily: "mona-medium"
   } as TextStyle,
   LabelSmall: {
     lineHeight: 16,
@@ -183,6 +195,12 @@ export const Typography = {
   BodyLarge: {
     lineHeight: 24,
     fontSize: 16,
+    fontWeight: '400',
+    fontFamily: "mona-regular"
+  } as TextStyle,
+  BodyMedium: {
+    lineHeight: 20,
+    fontSize: 14,
     fontWeight: '400',
     fontFamily: "mona-regular"
   } as TextStyle,

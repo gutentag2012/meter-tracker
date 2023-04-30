@@ -1,10 +1,9 @@
 import * as Notifications from 'expo-notifications'
 import * as React from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { StyleSheet } from 'react-native'
-import { RefreshControl, ScrollView } from 'react-native-gesture-handler'
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Colors, Incubator, Text } from 'react-native-ui-lib'
+import { Colors, Text } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
 import { Button } from '../components/Button'
 import { ContractListEntry } from '../components/contracts/ContractListEntry'
@@ -15,13 +14,12 @@ import { SettingsIcon } from '../components/icons/SettingsIcon'
 import { MeterListEntry } from '../components/meters/MeterListEntry'
 import { Typography } from '../constants/Theme'
 import Contract from '../services/database/entities/contract'
-import Measurement from '../services/database/entities/measurement'
 import Meter from '../services/database/entities/meter'
-import GenericRepository from '../services/database/GenericRepository'
+import { useUpdatedData } from '../services/database/GenericRepository'
+import ContractService from '../services/database/services/ContractService'
+import MeterService from '../services/database/services/MeterService'
 import { t } from '../services/i18n'
-import { RootStackScreenProps } from '../types'
-
-const { TextField } = Incubator
+import { HomeStackScreenProps } from '../types'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -31,27 +29,25 @@ Notifications.setNotificationHandler({
   }),
 })
 
-export default function HomeScreen({ navigation }: RootStackScreenProps<'Root'>) {
+export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>) {
   const [loading, setLoading] = useState(false)
 
-  const [meters, setMeters] = useState<Array<Meter>>([])
-  const [contracts, setContracts] = useState<Array<Contract>>([])
+  const [meters, reloadMeters] = useUpdatedData<Meter, MeterService>(MeterService)
+  const [contracts, reloadContracts, contractRepo] = useUpdatedData<Contract, ContractService>(ContractService)
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
       setLoading(true)
-      const metersRequest = GenericRepository.getAllData<Meter>(Meter as any)
-      const contractsRequest = GenericRepository.getAllData<Contract>(Contract as any)
-
-      Promise.all([metersRequest, contractsRequest])
-        .then(([meters, contracts]) => {
-          setMeters(meters)
-          setContracts(contracts)
-          setLoading(false)
-        })
-    }, [],
+      const p1 = reloadMeters()
+      const p2 = reloadContracts()
+      await Promise.all([p1, p2])
+      setLoading(false)
+    }, [reloadMeters, reloadContracts],
   )
 
-  useEffect(() => loadData(), [loadData])
+  useEffect(() => {
+    loadData()
+      .catch(console.error)
+  }, [loadData])
 
   return (
     <SafeAreaView
@@ -63,7 +59,7 @@ export default function HomeScreen({ navigation }: RootStackScreenProps<'Root'>)
         actions={ <>
           <IconButton
             getIcon={ () => <SettingsIcon color={ Colors.onBackground } /> }
-            onClick={ () => console.log('Navigate to settings') }
+            onPress={ () => console.log('Navigate to settings') }
           />
         </> }
       />
@@ -92,6 +88,7 @@ export default function HomeScreen({ navigation }: RootStackScreenProps<'Root'>)
           style={ styles.button }
           label={ t('home_screen:add_new_meter') }
           icon={ AddIcon }
+          onPress={ () => navigation.push('AddMeterModal') }
         />
 
         <Text
@@ -110,16 +107,12 @@ export default function HomeScreen({ navigation }: RootStackScreenProps<'Root'>)
           style={ styles.button }
           label={ t('home_screen:add_new_contract') }
           icon={ AddIcon }
+          onPress={ () => navigation.push('AddContractModal') }
         />
       </ScrollView>
       <FloatingActionButton
         icon={ AddIcon }
-        onClick={ async () => {
-          const contract = await GenericRepository.insertData(Contract as any, new Contract('Contract', 5.4))
-          const meter = await GenericRepository.insertData(Meter as any, new Meter('Meter', Math.round(Math.random() * 4), 'kWh', contract.id))
-          const date = Date.now() - (1000 * 60 * 60 * 24 * Math.random() * 30)
-          await GenericRepository.insertData(Measurement as any, new Measurement(Math.random() * 1000, meter.id!, date))
-        } }
+        onPress={ () => navigation.push('AddMeasurementModal', { meter: undefined }) }
       />
     </SafeAreaView>
   )

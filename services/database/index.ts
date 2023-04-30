@@ -3,6 +3,9 @@ import { openDatabase } from 'expo-sqlite'
 import Contract from './entities/contract'
 import Measurement from './entities/measurement'
 import Meter from './entities/meter'
+import ContractService from './services/ContractService'
+import MeasurementService from './services/MeasurementService'
+import MeterService from './services/MeterService'
 
 export const DEFAULT_DATABASE_NAME = 'meter_tracker.db' as const
 export const DATABASE_VERSION = 1
@@ -17,25 +20,25 @@ export async function setupDatabase() {
     return
   }
 
-  const EntityClasses = [Contract, Meter, Measurement]
+  const Services = [new ContractService(), new MeterService(), new MeasurementService()]
 
   if (DROP_TABLES) {
     db.transaction(tx => {
-      EntityClasses.forEach(entityClass => {
-        tx.executeSql(`DROP TABLE IF EXISTS ${ entityClass.TABLE_NAME }`)
+      Services.forEach(entityClass => {
+        tx.executeSql(`DROP TABLE IF EXISTS ${ entityClass.TableName }`)
       })
     })
   }
 
   db.transaction(tx => {
-    EntityClasses.forEach(entityClass => {
+    Services.forEach(entityClass => {
       tx.executeSql(
         entityClass.getMigrationStatement(currentDatabaseVersion, DATABASE_VERSION),
         [],
         () => console.log(
-          `Table ${ entityClass.TABLE_NAME } migrated from ${ currentDatabaseVersion } to ${ DATABASE_VERSION }`),
+          `Table ${ entityClass.TableName } migrated from ${ currentDatabaseVersion } to ${ DATABASE_VERSION }`),
         (_, error) => {
-          console.log(`Table ${ entityClass.TABLE_NAME } migration failed with error "${ error }"`, error)
+          console.log(`Table ${ entityClass.TableName } migration failed with error "${ error }"`, error)
           return true
         },
       )

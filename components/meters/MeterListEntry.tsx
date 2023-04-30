@@ -1,3 +1,4 @@
+import { getLocales } from 'expo-localization'
 import moment from 'moment'
 import React, { FunctionComponent, useMemo } from 'react'
 import { StyleSheet } from 'react-native'
@@ -6,7 +7,6 @@ import { Colors, Text, View } from 'react-native-ui-lib'
 import { Typography } from '../../constants/Theme'
 import Meter from '../../services/database/entities/meter'
 import { t } from '../../services/i18n'
-import { getLocales } from 'expo-localization';
 
 interface MeterListEntryProps {
   meter: Meter
@@ -26,7 +26,8 @@ export const MeterListEntry: FunctionComponent<Props> = ({ meter }) => {
   }, [meter.lastMeasurementDate])
 
   const formattedValue = useMemo(() => t('meter:reading_value', {
-    value: meter.lastMeasurementValue?.toFixed(meter.digits)?.replace('.', getLocales()[0].decimalSeparator ?? ","),
+    value: meter.lastMeasurementValue?.toFixed(meter.digits)
+      ?.replace('.', getLocales()[0].decimalSeparator ?? ','),
     unit: meter.unit,
   }), [meter])
 

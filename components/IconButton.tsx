@@ -6,7 +6,7 @@ import { Colors, View } from 'react-native-ui-lib'
 interface IconButtonProps {
   getIcon: () => ReactElement
   rippleColor?: string,
-  onClick?: () => void,
+  onPress?: () => void,
   style?: StyleProp<ViewStyle>
 }
 
@@ -15,7 +15,7 @@ type Props = IconButtonProps
 export const IconButton: FunctionComponent<Props> = ({
                                                        getIcon,
                                                        rippleColor,
-                                                       onClick,
+                                                       onPress,
                                                        style,
                                                      }) => {
   return <View style={ style }>
@@ -23,7 +23,7 @@ export const IconButton: FunctionComponent<Props> = ({
       rippleColor={ rippleColor ?? Colors.onBackground }
       rippleContainerBorderRadius={ 100 }
       rippleCentered
-      onPress={ onClick }
+      onPress={ onPress }
       style={ { padding: 8 } }
     >
       { getIcon() }
