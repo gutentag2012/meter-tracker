@@ -104,6 +104,7 @@ export const Input: FunctionComponent<Props> = React.forwardRef(({
       validationMessage={ validationMessages }
       validationMessageStyle={ {
         marginTop: 8,
+        color: Colors.error,
         ...Typography.BodySmall,
       } }
       cursorColor={ Colors.primary }

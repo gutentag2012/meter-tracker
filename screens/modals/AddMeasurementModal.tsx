@@ -5,17 +5,21 @@ import { Platform, StyleSheet } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import Ripple from 'react-native-material-ripple'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import Torch from 'react-native-torch'
 
 import { Colors, Text, View } from 'react-native-ui-lib'
 import { AppBar } from '../../components/AppBar'
 import { Button } from '../../components/Button'
 import { MeterSelectEntry } from '../../components/contracts/MeterSelectEntry'
 import { DateInput } from '../../components/DateInput'
+import { FloatingActionButton } from '../../components/FloatingActionButton'
 import { IconButton } from '../../components/IconButton'
 import { AddIcon } from '../../components/icons/AddIcon'
 import { CloseIcon } from '../../components/icons/CloseIcon'
+import { FlashIcon } from '../../components/icons/FlashIcon'
+import { FlashOffIcon } from '../../components/icons/FlashOffIcon'
 import { Input } from '../../components/Input'
-import { Typography } from '../../constants/Theme'
+import { ThemeColors, Typography } from '../../constants/Theme'
 import Measurement from '../../services/database/entities/measurement'
 import Meter from '../../services/database/entities/meter'
 import { useRepository, useUpdatedData } from '../../services/database/GenericRepository'
@@ -31,8 +35,10 @@ export default function AddMeasurementModal({
   const [repository, service] = useRepository<Measurement, MeasurementService>(MeasurementService)
   const [meters, , meterRepo] = useUpdatedData<Meter, MeterService>(MeterService)
 
+  const [isFlashOn, setIsFlashOn] = useState(false)
+
   const [loading, setLoading] = useState(false)
-  const [selectedMeter, setSelectedMeter] = useState(route.params.meter?.id)
+  const [selectedMeter, setSelectedMeter] = useState<Meter | undefined>(route.params.meter)
   const [lastMeasurement, setLastMeasurement] = useState<Measurement | undefined>(undefined)
 
   useEffect(() => {
@@ -41,7 +47,7 @@ export default function AddMeasurementModal({
       return
     }
 
-    repository.executeRaw<[Measurement]>(service.getLastMeasurementForMeter(selectedMeter))
+    repository.executeRaw<[Measurement]>(service.getLastMeasurementForMeter(selectedMeter.id!))
       .then((result) => setLastMeasurement(result?.[0]))
   }, [selectedMeter, repository, service])
 
@@ -84,7 +90,7 @@ export default function AddMeasurementModal({
 
     setLoading(true)
 
-    const measurement = new Measurement(floatValue, selectedMeter, date.current.getTime())
+    const measurement = new Measurement(floatValue, selectedMeter.id!, date.current.getTime())
     await repository.insertData(measurement)
 
     setLoading(false)
@@ -145,7 +151,9 @@ export default function AddMeasurementModal({
             validation={ ['required'] }
             validationMessages={ [t('validationMessage:required')] }
             onSubmit={ onSave }
-            hint={ lastMeasurement ? `Last value was: ${ lastMeasurement.value }` : 'No previous measurement found' }
+            hint={ lastMeasurement
+                   ? `Last value was: ${ lastMeasurement.value } ${ selectedMeter?.unit }`
+                   : 'No previous measurement found' }
           />
           <DateInput
             ref={ (ref: any) => textFieldRefs.current.date = ref }
@@ -161,7 +169,6 @@ export default function AddMeasurementModal({
         <View
           style={ {
             paddingHorizontal: 16,
-            marginTop: 8,
           } }
         >
           <Text
@@ -173,7 +180,16 @@ export default function AddMeasurementModal({
           >
             Meter
           </Text>
-          {errorState.meter && <Text style={{...Typography.BodySmall, color: Colors.error}}>{errorState.meter}</Text>}
+          {
+            errorState.meter && <Text
+              style={ {
+                ...Typography.BodySmall,
+                color: Colors.error,
+              } }
+          >
+            { errorState.meter }
+          </Text>
+          }
           {
             meters.map(meter => <MeterSelectEntry
               key={ meter.id }
@@ -190,6 +206,29 @@ export default function AddMeasurementModal({
           />
         </View>
       </ScrollView>
+
+
+      <FloatingActionButton
+        icon={ isFlashOn ? FlashOffIcon : FlashIcon }
+        onPress={ async () => {
+          setIsFlashOn(!isFlashOn)
+          if (Platform.OS === 'ios') {
+            Torch.switchState(!isFlashOn)
+            return
+          }
+
+          const cameraAllowed = await Torch.requestCameraPermission(
+            'Camera Permissions', // dialog title
+            'We require camera permissions to use the torch on the back of your phone.', // dialog body
+          )
+
+          if (!cameraAllowed) {
+            return
+          }
+
+          Torch.switchState(!isFlashOn)
+        } }
+      />
 
       {/* Use a light status bar on iOS to account for the black space above the modal */ }
       <StatusBar style={ Platform.OS === 'ios' ? 'light' : 'auto' } />

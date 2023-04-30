@@ -6,8 +6,8 @@ import Meter from '../../services/database/entities/meter'
 
 interface MeterListEntryProps {
   meter: Meter,
-  selectedMeter?: number,
-  setSelectedMeter?: (meterId?: number) => void,
+  selectedMeter?: Meter,
+  setSelectedMeter?: (meter?: Meter) => void,
 }
 
 type Props = MeterListEntryProps
@@ -19,7 +19,7 @@ export const MeterSelectEntry: FunctionComponent<Props> = ({
                                                            }) => {
   return <TouchableOpacity
     style={ styles.container }
-    onPress={ () => setSelectedMeter?.(selectedMeter !== meter.id ? meter.id : undefined) }
+    onPress={ () => setSelectedMeter?.(selectedMeter?.id !== meter.id ? meter : undefined) }
   >
     <View
       flex
@@ -27,8 +27,8 @@ export const MeterSelectEntry: FunctionComponent<Props> = ({
     >
       <Checkbox
         color={ Colors.primary }
-        value={ selectedMeter === meter.id }
-        onValueChange={ () => setSelectedMeter?.(selectedMeter !== meter.id ? meter.id : undefined) }
+        value={ selectedMeter?.id === meter.id }
+        onValueChange={ () => setSelectedMeter?.(selectedMeter?.id !== meter.id ? meter : undefined) }
       />
       <Text
         style={ styles.title }

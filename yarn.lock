@@ -2182,6 +2182,11 @@
     "@types/react" "*"
     "@types/react-native" "*"
 
+"@types/react-native-torch@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/react-native-torch/-/react-native-torch-1.1.0.tgz#3b24fe995b602eb7260b7e8721b59f87b61d69c2"
+  integrity sha512-GnMoDCbdnuDcbp7YLjV5SwF0X7W9sPNA1RDXegb9pb5+KeTb9EIeFKcyNa8LVXwI7eDMnetN1MrpLaFN33pYbw==
+
 "@types/react-native@*":
   version "0.71.2"
   resolved "https://registry.yarnpkg.com/@types/react-native/-/react-native-0.71.2.tgz#b8ba52c2fd07d3d64fa87ae5d9b4fbbd3b9cbffd"
@@ -7398,6 +7403,11 @@ react-native-text-size@4.0.0-rc.1:
   version "4.0.0-rc.1"
   resolved "https://registry.yarnpkg.com/react-native-text-size/-/react-native-text-size-4.0.0-rc.1.tgz#1e048d345dd6a5a8e1269e0585c1a5948c478da5"
   integrity sha512-CysqjU2jK6Yc+a+kEI222pUyTY2ywcU2HqbFqf1KHymW6OPTdvBBHqbEJKL0QiLhQaFYDbqicM+h990s9TP00g==
+
+react-native-torch@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-torch/-/react-native-torch-1.2.0.tgz#e83303cc1be35f009d50728f775be1ff5d786203"
+  integrity sha512-xyk6DC/JL/P8ozGZt+qXvfzK3QugxJjjPWZRUZ7xIfhbHxX44Kw0Afc9gxk9LhVKrAKfwtjGUJgcx9/4FNMGvA==
 
 react-native-ui-lib@^7.2.4:
   version "7.3.0"
