@@ -12,6 +12,12 @@ import Navigation from './navigation'
 import { setupDatabase } from './services/database'
 import i18n from './services/i18n'
 
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
+
 export default function App() {
   const isLoadingComplete = useCachedResources()
   const colorScheme = useColorScheme()

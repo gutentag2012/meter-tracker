@@ -21,7 +21,7 @@ import { useRepository, useUpdatedData } from '../../services/database/GenericRe
 import ContractService from '../../services/database/services/ContractService'
 import MeterService from '../../services/database/services/MeterService'
 import { t } from '../../services/i18n'
-import { HomeStackScreenProps } from '../../types'
+import { HomeStackScreenProps } from '../../navigation/types'
 
 export default function AddContractModal({ navigation }: HomeStackScreenProps<'AddContractModal'>) {
   const [repository] = useRepository<Contract, ContractService>(ContractService)

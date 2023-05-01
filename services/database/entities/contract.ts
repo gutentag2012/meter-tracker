@@ -22,4 +22,15 @@ export default class Contract extends Entity {
     return `("${ this.name }", ${ this.pricePerUnit }, ${ identification }, "${ moment(this.createdAt)
       .format('YYYY-MM-DD HH:mm') }")`
   }
+
+  public getUpdateStatement(): string {
+    return `
+UPDATE ${ Contract.TABLE_NAME } 
+SET 
+  name = "${ this.name }", 
+  pricePerUnit = ${ this.pricePerUnit }, 
+  identification = "${ this.identification ?? 'NULL' }", 
+  createdAt = "${ moment( this.createdAt ).format( 'YYYY-MM-DD HH:mm' ) }" 
+WHERE id = ${ this.id }`
+  }
 }

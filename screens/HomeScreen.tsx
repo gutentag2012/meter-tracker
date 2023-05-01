@@ -19,7 +19,7 @@ import { useUpdatedData } from '../services/database/GenericRepository'
 import ContractService from '../services/database/services/ContractService'
 import MeterService from '../services/database/services/MeterService'
 import { t } from '../services/i18n'
-import { HomeStackScreenProps } from '../types'
+import { HomeStackScreenProps } from '../navigation/types'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -82,6 +82,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
           meters.map(meter => <MeterListEntry
             key={ meter.id }
             meter={ meter }
+            onPress={ () => navigation.push('MeterSummaryScreen', { meter }) }
           />)
         }
         <Button

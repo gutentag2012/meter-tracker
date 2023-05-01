@@ -10,12 +10,13 @@ import { useMemo } from 'react'
 import { ColorSchemeName } from 'react-native'
 import { Colors } from 'react-native-ui-lib'
 import HomeScreen from '../screens/HomeScreen'
+import MeterSummaryScreen from '../screens/MeterSummaryScreen'
 import AddContractModal from '../screens/modals/AddContractModal'
 import AddMeasurementModal from '../screens/modals/AddMeasurementModal'
 import AddMeterModal from '../screens/modals/AddMeterModal'
 
 import NotFoundScreen from '../screens/NotFoundScreen'
-import type { HomeStackParamList, RootStackParamList } from '../types'
+import type { HomeStackParamList, RootStackParamList } from './types'
 import LinkingConfiguration from './LinkingConfiguration'
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
@@ -76,6 +77,11 @@ function HomeNavigator() {
       <HomeStack.Screen
         name='Home'
         component={ HomeScreen }
+        options={ { headerShown: false } }
+      />
+      <HomeStack.Screen
+        name='MeterSummaryScreen'
+        component={ MeterSummaryScreen }
         options={ { headerShown: false } }
       />
 

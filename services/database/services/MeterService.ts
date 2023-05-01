@@ -1,9 +1,9 @@
+import moment from 'moment'
 import { CONTRACT_TABLE_NAME, MEASUREMENT_TABLE_NAME, METER_TABLE_NAME } from '../entities'
 import Contract from '../entities/contract'
 import Meter from '../entities/meter'
 import ContractService from './ContractService'
 import { Service } from './service'
-import moment from 'moment'
 
 export default class MeterService extends Service {
 
@@ -42,20 +42,25 @@ FROM ${METER_TABLE_NAME} m
   }
 
   getRetrieveByIdStatement(id: number): string {
-    return `${this.getRetrieveAllStatement()} WHERE m.id = ${id}`
+    return `${ this.getRetrieveAllStatement() } WHERE m.id = ${ id }`
   }
 
   fromJSON(json: any): Meter {
     const contractJSON = Object.fromEntries(Object.entries(json)
-      .filter(([key]) => key.startsWith('contract_')))
+      .filter(([key]) => key.startsWith('contract_'))
+      .map(([key, value]) => [key.replace('contract_', ''), value]))
     const contract = this.contractService.fromJSON(contractJSON)
 
-    const lastMeasurementDate = json["last_measurement_date"] ? moment(json["last_measurement_date"], "YYYY-M-D HH:mm").toDate().getTime() : undefined
-    const lastMeasurementValue = json["last_measurement_value"]
+    const lastMeasurementDate = json['last_measurement_date'] ? moment(json['last_measurement_date'], 'YYYY-M-D HH:mm')
+      .toDate()
+      .getTime() : undefined
+    const lastMeasurementValue = json['last_measurement_value']
 
     return new Meter(
       json.name, json.digits, json.unit, json.contract_id, json.areValuesIncreasing, json.isActive, json.identification,
-      moment(json.createdAt, "YYYY-M-D HH:mm").toDate().getTime(), json.id, contract, lastMeasurementDate, lastMeasurementValue
+      moment(json.createdAt, 'YYYY-M-D HH:mm')
+        .toDate()
+        .getTime(), json.id, contract, lastMeasurementDate, lastMeasurementValue,
     )
   }
 

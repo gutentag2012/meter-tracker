@@ -4,5 +4,6 @@ export default abstract class Entity {
   }
 
   abstract getInsertionValues(): string;
+  abstract getUpdateStatement(): string;
 
 }

@@ -1,4 +1,3 @@
-import moment from 'moment'
 import React, { FunctionComponent, useMemo } from 'react'
 import { StyleSheet } from 'react-native'
 import Ripple from 'react-native-material-ripple'
@@ -6,11 +5,11 @@ import { Colors, Text, View } from 'react-native-ui-lib'
 import { Typography } from '../../constants/Theme'
 import Contract from '../../services/database/entities/contract'
 
-interface MeterListEntryProps {
+interface ContractListEntryProps {
   contract: Contract
 }
 
-type Props = MeterListEntryProps
+type Props = ContractListEntryProps
 
 export const ContractListEntry: FunctionComponent<Props> = ({ contract }) => {
   const subTitle = useMemo(() => {

@@ -16,6 +16,7 @@ interface InputProps {
   label?: string,
   onChange?: (text: string) => void,
   value?: string,
+  initialValue?: string,
   onChangeText?: (text: string) => void,
   validation?: Array<string | ((value: string) => boolean)>,
   validationMessages?: Array<string>,
@@ -34,6 +35,7 @@ export const Input: FunctionComponent<Props> = React.forwardRef(({
                                                                    label,
                                                                    onChange,
                                                                    value: givenValue,
+                                                                   initialValue,
                                                                    onChangeText,
                                                                    validation,
                                                                    validationMessages,
@@ -48,7 +50,7 @@ export const Input: FunctionComponent<Props> = React.forwardRef(({
   const firstRender = useRef(true)
 
   const [isFocussed, setIsFocussed] = useState(false)
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(initialValue ?? '')
 
   // It may not be valid from the start, but it is not checked from the start
   const [isValid, setIsValid] = useState(true)
@@ -81,6 +83,7 @@ export const Input: FunctionComponent<Props> = React.forwardRef(({
   return <View style={ outerContainerStyle }>
     <Incubator.TextField
       { ...textFieldProps }
+      defaultValue={ initialValue }
       ref={ inputRef as MutableRefObject<Component> }
       onChange={ onChange }
       { ...(givenValue ? { value: givenValue } : {}) }

@@ -1,8 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { openDatabase } from 'expo-sqlite'
-import Contract from './entities/contract'
-import Measurement from './entities/measurement'
-import Meter from './entities/meter'
 import ContractService from './services/ContractService'
 import MeasurementService from './services/MeasurementService'
 import MeterService from './services/MeterService'
@@ -15,7 +12,8 @@ const db = openDatabase(DEFAULT_DATABASE_NAME)
 
 export async function setupDatabase() {
   const currentDatabaseVersion = await AsyncStorage.getItem('databaseVersion')
-    .then(value => /*+value || */0)
+    .then(value => parseInt(value ?? '0'))
+
   if (currentDatabaseVersion === DATABASE_VERSION) {
     return
   }
@@ -38,7 +36,7 @@ export async function setupDatabase() {
         () => console.log(
           `Table ${ entityClass.TableName } migrated from ${ currentDatabaseVersion } to ${ DATABASE_VERSION }`),
         (_, error) => {
-          console.log(`Table ${ entityClass.TableName } migration failed with error "${ error }"`, error)
+          console.error(`Table ${ entityClass.TableName } migration failed with error "${ error }"`, error)
           return true
         },
       )

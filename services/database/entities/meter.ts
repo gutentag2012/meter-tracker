@@ -17,7 +17,7 @@ export default class Meter extends Entity {
     public identification?: string,
     public createdAt: number = Date.now(),
     public id?: number,
-    private _contract?: Contract,
+    public contract?: Contract,
     public lastMeasurementDate?: number,
     public lastMeasurementValue?: number,
   ) {
@@ -30,5 +30,20 @@ export default class Meter extends Entity {
     return `("${ this.name }", ${ this.digits }, "${ this.unit }", ${ this.contract_id ?? 'NULL' }, ${ this.areValuesIncreasing ?? 'NULL' }, ${ this.isActive ?? 'NULL' }, ${ identification }, "${ moment(
       this.createdAt)
       .format('YYYY-MM-DD HH:mm') }")`
+  }
+
+  public getUpdateStatement(): string {
+    return `
+UPDATE ${Meter.TABLE_NAME} 
+SET 
+  name = "${this.name}", 
+  digits = ${this.digits}, 
+  unit = "${this.unit}", 
+  contract_id = ${this.contract_id ?? 'NULL'}, 
+  areValuesIncreasing = ${this.areValuesIncreasing ?? 'NULL'}, 
+  isActive = ${this.isActive ?? 'NULL'}, 
+  identification = "${this.identification ?? 'NULL'}", 
+  createdAt = "${moment(this.createdAt).format('YYYY-MM-DD HH:mm')}" 
+WHERE id = ${this.id}`
   }
 }

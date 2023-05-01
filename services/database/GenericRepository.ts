@@ -19,13 +19,13 @@ export const useUpdatedData = <T extends Entity, S extends Service>(Service: (ne
 
   const reload = useCallback(async () => {
       const data = await repo.getAllData()
-    setData(data)
+      setData(data)
     }, [repo],
   )
 
   useEffect(() => {
     reload()
-      .catch((error) => console.log('Error while reloading data: ', error))
+      .catch((error) => console.error('Error while reloading data: ', error))
     const onUpdate = () => {
       setTimeout(() => reload(), 100) // Small Timer for other transactions to settle
     }
@@ -63,6 +63,27 @@ export default class GenericRepository<T extends Entity> {
       )
     }))
   }
+  updateData(data: T): Promise<T> {
+    return new Promise((resolve, reject) => db.transaction(tx => {
+      tx.executeSql(
+        data.getUpdateStatement(),
+        [],
+        async (_, rows) => {
+          const freshData = await this.getDataById<T>(data.id!)
+          if (!freshData) {
+            return
+          }
+
+          EventEmitter.emit(`data-inserted`, freshData)
+          resolve(freshData)
+        },
+        (_, error) => {
+          reject(error)
+          return true
+        },
+      )
+    }))
+  }
 
   getAllData(): Promise<Array<T>> {
     return new Promise((resolve, reject) => {
@@ -74,7 +95,7 @@ export default class GenericRepository<T extends Entity> {
             resolve(rows._array.map(this.service.fromJSON.bind(this.service)))
           },
           (_, error) => {
-            console.log(`Error while retrieving ${ this.service.TableName } entity: `, error)
+            console.error(`Error while retrieving ${ this.service.TableName } entity: `, error)
             reject(error)
             return true
           },
@@ -93,7 +114,7 @@ export default class GenericRepository<T extends Entity> {
             resolve(rows._array as R)
           },
           (_, error) => {
-            console.log(`Error while executing raw statement '${ statement }'`, error)
+            console.error(`Error while executing raw statement '${ statement }'`, error)
             reject(error)
             return true
           },
@@ -112,7 +133,7 @@ export default class GenericRepository<T extends Entity> {
             resolve(rows._array.length > 0 ? this.service.fromJSON(rows._array[0]) : undefined)
           },
           (_, error) => {
-            console.log(`Error while retrieving ${ this.service.TableName } entity: `, error)
+            console.error(`Error while retrieving ${ this.service.TableName } entity: `, error)
             reject(error)
             return true
           },

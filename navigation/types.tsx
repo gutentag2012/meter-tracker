@@ -4,7 +4,8 @@
  */
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
-import Meter from './services/database/entities/meter'
+import Measurement from '../services/database/entities/measurement'
+import Meter from '../services/database/entities/meter'
 
 declare global {
   namespace ReactNavigation {
@@ -19,9 +20,17 @@ export type RootStackParamList = {
 
 export type HomeStackParamList = {
   Home: undefined;
-  AddMeterModal: undefined;
+  MeterSummaryScreen: {
+    meter: Meter
+  };
+  AddMeterModal: {
+    editMeter?: Meter
+    onEndEditing?: () => void
+  };
   AddMeasurementModal: {
     meter?: Meter
+    editMeasurement?: Measurement
+    onEndEditing?: () => void
   };
   AddContractModal: undefined;
 };

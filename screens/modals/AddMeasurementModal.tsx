@@ -10,7 +10,6 @@ import Torch from 'react-native-torch'
 import { Colors, Text, View } from 'react-native-ui-lib'
 import { AppBar } from '../../components/AppBar'
 import { Button } from '../../components/Button'
-import { MeterSelectEntry } from '../../components/contracts/MeterSelectEntry'
 import { DateInput } from '../../components/DateInput'
 import { FloatingActionButton } from '../../components/FloatingActionButton'
 import { IconButton } from '../../components/IconButton'
@@ -19,28 +18,31 @@ import { CloseIcon } from '../../components/icons/CloseIcon'
 import { FlashIcon } from '../../components/icons/FlashIcon'
 import { FlashOffIcon } from '../../components/icons/FlashOffIcon'
 import { Input } from '../../components/Input'
-import { ThemeColors, Typography } from '../../constants/Theme'
+import { MeterSelectEntry } from '../../components/meters/MeterSelectEntry'
+import { Typography } from '../../constants/Theme'
+import { HomeStackScreenProps } from '../../navigation/types'
 import Measurement from '../../services/database/entities/measurement'
 import Meter from '../../services/database/entities/meter'
 import { useRepository, useUpdatedData } from '../../services/database/GenericRepository'
 import MeasurementService from '../../services/database/services/MeasurementService'
 import MeterService from '../../services/database/services/MeterService'
 import { t } from '../../services/i18n'
-import { HomeStackScreenProps } from '../../types'
 
 export default function AddMeasurementModal({
                                               navigation,
-                                              route,
+                                              route: {params: {meter, editMeasurement, onEndEditing}},
                                             }: HomeStackScreenProps<'AddMeasurementModal'>) {
   const [repository, service] = useRepository<Measurement, MeasurementService>(MeasurementService)
-  const [meters, , meterRepo] = useUpdatedData<Meter, MeterService>(MeterService)
+  const [meters] = useUpdatedData<Meter, MeterService>(MeterService)
 
   const [isFlashOn, setIsFlashOn] = useState(false)
 
   const [loading, setLoading] = useState(false)
-  const [selectedMeter, setSelectedMeter] = useState<Meter | undefined>(route.params.meter)
+  const [selectedMeter, setSelectedMeter] = useState<Meter | undefined>(meter)
   const [lastMeasurement, setLastMeasurement] = useState<Measurement | undefined>(undefined)
 
+
+  // TODO When editing, I could take the known previous value as the last value (might be unnecessary)
   useEffect(() => {
     if (!selectedMeter) {
       setLastMeasurement(undefined)
@@ -48,11 +50,11 @@ export default function AddMeasurementModal({
     }
 
     repository.executeRaw<[Measurement]>(service.getLastMeasurementForMeter(selectedMeter.id!))
-      .then((result) => setLastMeasurement(result?.[0]))
+      .then((result) => setLastMeasurement(service.fromJSON(result?.[0])))
   }, [selectedMeter, repository, service])
 
-  const value = useRef<string>('')
-  const date = useRef(new Date())
+  const value = useRef<string>(editMeasurement?.value?.toString() ?? '')
+  const date = useRef(editMeasurement?.createdAt ? new Date(editMeasurement?.createdAt) :  new Date())
 
   const textFieldRefs = useRef({
     value: undefined,
@@ -91,7 +93,13 @@ export default function AddMeasurementModal({
     setLoading(true)
 
     const measurement = new Measurement(floatValue, selectedMeter.id!, date.current.getTime())
-    await repository.insertData(measurement)
+    if(!editMeasurement) {
+      await repository.insertData(measurement)
+    } else {
+      measurement.id = editMeasurement.id
+      await repository.updateData(measurement)
+      onEndEditing?.()
+    }
 
     setLoading(false)
     navigation.pop()
@@ -151,6 +159,7 @@ export default function AddMeasurementModal({
             validation={ ['required'] }
             validationMessages={ [t('validationMessage:required')] }
             onSubmit={ onSave }
+            initialValue={ value.current }
             hint={ lastMeasurement
                    ? `Last value was: ${ lastMeasurement.value } ${ selectedMeter?.unit }`
                    : 'No previous measurement found' }
@@ -182,13 +191,13 @@ export default function AddMeasurementModal({
           </Text>
           {
             errorState.meter && <Text
-              style={ {
-                ...Typography.BodySmall,
-                color: Colors.error,
-              } }
-          >
-            { errorState.meter }
-          </Text>
+                  style={ {
+                    ...Typography.BodySmall,
+                    color: Colors.error,
+                  } }
+              >
+              { errorState.meter }
+              </Text>
           }
           {
             meters.map(meter => <MeterSelectEntry

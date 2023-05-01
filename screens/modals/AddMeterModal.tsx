@@ -15,25 +15,28 @@ import { AddIcon } from '../../components/icons/AddIcon'
 import { CloseIcon } from '../../components/icons/CloseIcon'
 import { Input } from '../../components/Input'
 import { Typography } from '../../constants/Theme'
+import { HomeStackScreenProps } from '../../navigation/types'
 import Contract from '../../services/database/entities/contract'
 import Meter from '../../services/database/entities/meter'
 import { useRepository, useUpdatedData } from '../../services/database/GenericRepository'
 import ContractService from '../../services/database/services/ContractService'
 import MeterService from '../../services/database/services/MeterService'
 import { t } from '../../services/i18n'
-import { HomeStackScreenProps } from '../../types'
 
-export default function AddMeterModal({ navigation }: HomeStackScreenProps<'AddMeterModal'>) {
+export default function AddMeterModal({
+                                        navigation,
+                                        route: { params: { editMeter, onEndEditing } },
+                                      }: HomeStackScreenProps<'AddMeterModal'>) {
   const [repository] = useRepository<Meter, MeterService>(MeterService)
-  const [contracts, _, contractRepo] = useUpdatedData<Contract, ContractService>(ContractService)
+  const [contracts] = useUpdatedData<Contract, ContractService>(ContractService)
 
   const [loading, setLoading] = useState(false)
-  const [selectedContract, setSelectedContract] = useState<number | undefined>(undefined)
+  const [selectedContract, setSelectedContract] = useState<number | undefined>(editMeter?.contract_id)
 
-  const name = useRef('')
-  const identificationNumber = useRef('')
-  const digits = useRef('')
-  const unit = useRef('')
+  const name = useRef(editMeter?.name ?? '')
+  const identificationNumber = useRef(editMeter?.identification ?? '')
+  const digits = useRef(editMeter?.digits.toString() ?? '')
+  const unit = useRef(editMeter?.unit ?? '')
 
   const textFieldRefs = useRef({
     name: undefined,
@@ -43,8 +46,8 @@ export default function AddMeterModal({ navigation }: HomeStackScreenProps<'AddM
   } as Record<string, any>)
 
   const [formBoolState, setFormBoolState] = useState({
-    valuesAreIncreasing: true,
-    isActive: true,
+    valuesAreIncreasing: editMeter?.areValuesIncreasing ?? true,
+    isActive: editMeter?.isActive ?? true,
   })
 
   const onSave = useCallback(async () => {
@@ -60,14 +63,26 @@ export default function AddMeterModal({ navigation }: HomeStackScreenProps<'AddM
       name.current, parseInt(digits.current), unit.current, selectedContract, formBoolState.valuesAreIncreasing,
       formBoolState.isActive, identificationNumber.current,
     )
-    await repository.insertData(meter)
+    if (!editMeter) {
+      await repository.insertData(meter)
+    } else {
+      meter.id = editMeter.id
+      await repository.updateData(meter)
+      onEndEditing?.()
+    }
 
     setLoading(false)
     navigation.pop()
-  }, [formBoolState])
+  }, [formBoolState, selectedContract])
 
   return (
-    <SafeAreaView style={{display: "flex", flexDirection: "column", height: "100%"}}>
+    <SafeAreaView
+      style={ {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      } }
+    >
       <AppBar
         loading={ loading }
         title={ t('home_screen:add_new_meter') }
@@ -98,7 +113,12 @@ export default function AddMeterModal({ navigation }: HomeStackScreenProps<'AddM
         </> }
       />
 
-      <ScrollView style={{flex: 1, marginBottom: 16}}>
+      <ScrollView
+        style={ {
+          flex: 1,
+          marginBottom: 16,
+        } }
+      >
         <View style={ { paddingHorizontal: 16 } }>
           <Input
             ref={ (ref: any) => textFieldRefs.current.name = ref }
@@ -107,12 +127,14 @@ export default function AddMeterModal({ navigation }: HomeStackScreenProps<'AddM
             validation={ ['required'] }
             validationMessages={ [t('validationMessage:required')] }
             onSubmit={ onSave }
+            initialValue={ name.current }
           />
           <Input
             ref={ (ref: any) => textFieldRefs.current.identificationNumber = ref }
             label={ t('meter:input_placeholder_identification') }
             onChangeText={ (value) => identificationNumber.current = value }
             onSubmit={ onSave }
+            initialValue={ identificationNumber.current }
           />
         </View>
 
@@ -147,6 +169,7 @@ export default function AddMeterModal({ navigation }: HomeStackScreenProps<'AddM
               inputType='numeric'
               validationMessages={ [t('validationMessage:required'), t('validationMessage:isNotANumber')] }
               onSubmit={ onSave }
+              initialValue={ digits.current }
             />
             <Input
               ref={ (ref: any) => textFieldRefs.current.unit = ref }
@@ -156,6 +179,7 @@ export default function AddMeterModal({ navigation }: HomeStackScreenProps<'AddM
               validation={ ['required'] }
               validationMessages={ [t('validationMessage:required')] }
               onSubmit={ onSave }
+              initialValue={ unit.current }
             />
           </View>
 
@@ -208,7 +232,7 @@ export default function AddMeterModal({ navigation }: HomeStackScreenProps<'AddM
           <Button
             label={ t('home_screen:add_new_contract') }
             icon={ AddIcon }
-            onPress={ () => navigation.navigate("AddContractModal") }
+            onPress={ () => navigation.navigate('AddContractModal') }
           />
         </View>
       </ScrollView>

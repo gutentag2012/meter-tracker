@@ -9,12 +9,13 @@ import Meter from '../../services/database/entities/meter'
 import { t } from '../../services/i18n'
 
 interface MeterListEntryProps {
-  meter: Meter
+  meter: Meter,
+  onPress?: (meter: Meter) => void,
 }
 
 type Props = MeterListEntryProps
 
-export const MeterListEntry: FunctionComponent<Props> = ({ meter }) => {
+export const MeterListEntry: FunctionComponent<Props> = ({ meter, onPress }) => {
   const subTitle = useMemo(() => {
     if (!meter.lastMeasurementDate) {
       return t('meter:no_previous_reading')
@@ -34,6 +35,7 @@ export const MeterListEntry: FunctionComponent<Props> = ({ meter }) => {
   return <Ripple
     style={ styles.container }
     rippleColor={ Colors.secondaryContainer }
+    onPress={() => onPress?.(meter)}
   >
     <View>
       <Text
