@@ -22,7 +22,7 @@ interface InputProps {
   validationMessages?: Array<string>,
   hint?: string,
   onSubmit?: () => void,
-  inputType?: 'default' | 'numeric',
+  inputType?: 'default' | 'numeric' | 'text' | 'email-address',
   outerContainerStyle?: StyleProp<ViewStyle>,
   innerContainerStyle?: StyleProp<ViewStyle>,
   ref?: ForwardedRef<any>,
@@ -77,7 +77,6 @@ export const Input: FunctionComponent<Props> = React.forwardRef(({
     },
     [],
   )
-
 
   // TODO Figure out how to hide the hint when there is a validation message shown
   return <View style={ outerContainerStyle }>

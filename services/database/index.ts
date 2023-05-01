@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { openDatabase } from 'expo-sqlite'
+import AsyncStorageKeys from '../../constants/AsyncStorageKeys'
 import ContractService from './services/ContractService'
 import MeasurementService from './services/MeasurementService'
 import MeterService from './services/MeterService'
@@ -11,7 +12,7 @@ const DROP_TABLES = true
 const db = openDatabase(DEFAULT_DATABASE_NAME)
 
 export async function setupDatabase() {
-  const currentDatabaseVersion = await AsyncStorage.getItem('databaseVersion')
+  const currentDatabaseVersion = await AsyncStorage.getItem(AsyncStorageKeys.DATABASE_VERSION)
     .then(value => parseInt(value ?? '0'))
 
   if (currentDatabaseVersion === DATABASE_VERSION) {

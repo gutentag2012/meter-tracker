@@ -115,7 +115,6 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
 
       </ScrollView>
 
-
       {/* Use a light status bar on iOS to account for the black space above the modal */ }
       <StatusBar style={ Platform.OS === 'ios' ? 'light' : 'auto' } />
     </SafeAreaView>

@@ -97,10 +97,10 @@ export const MeasurementListEntry: FunctionComponent<Props> = ({
       </Text> }
     </View>
     { percentileChange !== undefined && <Text
-        style={ [styles.value, { color: percentileChange >= 0 ? Colors.tertiary : Colors.error }] }
+        style={ [styles.value, { color: percentileChange >= 0 && measurement.meter?.areValuesIncreasing ? Colors.tertiary : Colors.error }] }
         onSurfaceVariant
     >
-      { percentileChange.toFixed(2) }%
+      {percentileChange >= 0 && measurement.meter?.areValuesIncreasing && "+"}{ percentileChange.toFixed(2) }%
     </Text> }
   </Ripple>
 }

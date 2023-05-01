@@ -16,6 +16,7 @@ import AddMeasurementModal from '../screens/modals/AddMeasurementModal'
 import AddMeterModal from '../screens/modals/AddMeterModal'
 
 import NotFoundScreen from '../screens/NotFoundScreen'
+import SettingsScreen from '../screens/SettingsScreen'
 import type { HomeStackParamList, RootStackParamList } from './types'
 import LinkingConfiguration from './LinkingConfiguration'
 
@@ -74,16 +75,25 @@ const HomeStack = createNativeStackNavigator<HomeStackParamList>()
 function HomeNavigator() {
   return (
     <HomeStack.Navigator>
+      <HomeStack.Group
+        screenOptions={ {
+          headerShown: false,
+          animation: 'slide_from_right',
+        } }
+      >
       <HomeStack.Screen
         name='Home'
         component={ HomeScreen }
-        options={ { headerShown: false } }
+      />
+      <HomeStack.Screen
+        name='SettingsScreen'
+        component={ SettingsScreen }
       />
       <HomeStack.Screen
         name='MeterSummaryScreen'
         component={ MeterSummaryScreen }
-        options={ { headerShown: false } }
       />
+      </HomeStack.Group>
 
       <HomeStack.Group
         screenOptions={ {

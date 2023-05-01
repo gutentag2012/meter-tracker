@@ -59,7 +59,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
         actions={ <>
           <IconButton
             getIcon={ () => <SettingsIcon color={ Colors.onBackground } /> }
-            onPress={ () => console.log('Navigate to settings') }
+            onPress={ () => navigation.push("SettingsScreen") }
           />
         </> }
       />
@@ -89,7 +89,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
           style={ styles.button }
           label={ t('home_screen:add_new_meter') }
           icon={ AddIcon }
-          onPress={ () => navigation.push('AddMeterModal') }
+          onPress={ () => navigation.push('AddMeterModal', {}) }
         />
 
         <Text

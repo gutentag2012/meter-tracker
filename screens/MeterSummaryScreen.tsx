@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Colors, Text } from 'react-native-ui-lib'
+import { Colors, Text, View } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
 import { FloatingActionButton } from '../components/FloatingActionButton'
 import { IconButton } from '../components/IconButton'
@@ -105,7 +105,7 @@ export default function MeterSummaryScreen({
           />
           <IconButton
             getIcon={ () => <SettingsIcon color={ Colors.onBackground } /> }
-            onPress={ () => console.log('Navigate to settings') }
+            onPress={ () => navigation.push("SettingsScreen") }
           />
         </> }
       />
@@ -123,18 +123,27 @@ export default function MeterSummaryScreen({
           .map(([year, measurements]) => <Fragment key={ year }>
             <Text style={ styles.sectionTitle }>History { year }</Text>
             {
-              measurements.map(([measurement, previousMeasurement, previousPreviousMeasurement]) =>
-                <MeasurementListEntry
-                  key={ measurement.id }
-                  measurement={ measurement }
-                  previousMeasurement={ previousMeasurement }
-                  previousPreviousMeasurement={ previousPreviousMeasurement }
-                  onPress={ () => navigation.push('AddMeasurementModal', {
-                    meter: measurement.meter,
-                    editMeasurement: measurement,
-                    onEndEditing: loadData,
-                  }) }
-                />,
+              measurements.map(([measurement, previousMeasurement, previousPreviousMeasurement], index) =>
+                <Fragment key={ measurement.id }>
+                  { !!index && <View
+                      style={ {
+                        flex: 1,
+                        height: 1,
+                        marginHorizontal: 8,
+                        backgroundColor: Colors.surfaceVariant,
+                      } }
+                  /> }
+                  <MeasurementListEntry
+                    measurement={ measurement }
+                    previousMeasurement={ previousMeasurement }
+                    previousPreviousMeasurement={ previousPreviousMeasurement }
+                    onPress={ () => navigation.push('AddMeasurementModal', {
+                      meter: measurement.meter,
+                      editMeasurement: measurement,
+                      onEndEditing: loadData,
+                    }) }
+                  />
+                </Fragment>,
               )
             }
           </Fragment>) }

@@ -87,7 +87,9 @@ export const customColors = {
   neutralVariant0: '#000000',
 
   surface1Light: "#f2f6eb",
+  surface5Light: "#DFE9D8",
   surface1Dark: "#20251d",
+  surface5Dark: "#2B3627",
 }
 
 export type CustomColors = typeof customColors;
@@ -119,9 +121,11 @@ export const customThemes = {
     onBackground: Colors.neutral10,
 
     surface: Colors.surface1Light,
+    surfaceHighest: Colors.surface5Light,
     onSurface: Colors.neutral10,
 
     outline: Colors.neutralVariant50,
+    overlay: Colors.error10
   },
   dark: {
     primary: Colors.primary80,
@@ -148,9 +152,11 @@ export const customThemes = {
     onBackground: Colors.neutral90,
 
     surface: Colors.surface1Dark,
+    surfaceHighest: Colors.surface5Dark,
     onSurface: Colors.neutral90,
 
     outline: Colors.neutralVariant60,
+    overlay: Colors.error10,
   },
 }
 

@@ -20,6 +20,7 @@ export type RootStackParamList = {
 
 export type HomeStackParamList = {
   Home: undefined;
+  SettingsScreen: undefined;
   MeterSummaryScreen: {
     meter: Meter
   };

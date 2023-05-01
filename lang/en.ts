@@ -26,7 +26,8 @@ const lang = {
   contract: {
     input_placeholder_price_per_unit: "Price per unit*",
   },
-  utils: {},
+  utils: {
+  },
   validationMessage: {
     required: 'This field is required',
     isNotANumber: 'This field must be a number',

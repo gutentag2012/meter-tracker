@@ -211,7 +211,7 @@ export default function AddMeasurementModal({
           <Button
             label={ 'Add Meter' }
             icon={ AddIcon }
-            onPress={ () => navigation.push('AddMeterModal') }
+            onPress={ () => navigation.push('AddMeterModal', {}) }
           />
         </View>
       </ScrollView>

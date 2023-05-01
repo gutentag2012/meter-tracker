@@ -16,6 +16,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       Root: {
         screens: {
           Home: 'Home',
+          SettingsScreen: 'SettingsScreen',
           MeterSummaryScreen: 'MeterSummaryScreen',
           AddMeterModal: 'AddMeterModal',
           AddMeasurementModal: 'AddMeasurementModal',

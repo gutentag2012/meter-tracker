@@ -232,11 +232,10 @@ export default function AddMeterModal({
           <Button
             label={ t('home_screen:add_new_contract') }
             icon={ AddIcon }
-            onPress={ () => navigation.navigate('AddContractModal') }
+            onPress={ () => navigation.push('AddContractModal') }
           />
         </View>
       </ScrollView>
-
 
       {/* Use a light status bar on iOS to account for the black space above the modal */ }
       <StatusBar style={ Platform.OS === 'ios' ? 'light' : 'auto' } />
