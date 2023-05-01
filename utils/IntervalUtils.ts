@@ -38,6 +38,7 @@ export const intervalToString = (interval: Interval) => {
       .format('dddd') }`
   }
   if (interval.type === 'Monthly') {
+    console.log("MONTHLY", interval)
     res += `  |  Day ${ interval.dayOfMonth.toString()
       .padStart(2, '0') }`
   }

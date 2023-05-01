@@ -2,9 +2,10 @@ import moment from 'moment/moment'
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
 import { StyleSheet } from 'react-native'
 import Ripple from 'react-native-material-ripple'
-import { Chip, Colors, Dialog, Text, View, WheelPicker } from 'react-native-ui-lib'
+import { Chip, Colors, Dialog, Text, View } from 'react-native-ui-lib'
 import { Input } from '../../components/Input'
 import { Typography } from '../../constants/Theme'
+import { t } from '../../services/i18n'
 import { DefaultIntervalSetting, Interval } from '../../utils/IntervalUtils'
 
 export interface IntervalDialogProps {
@@ -27,17 +28,31 @@ export const IntervalDialog: FunctionComponent<Props> = ({
                                                            isVisible,
                                                          }) => {
   const [value, setValue] = useState<Interval>(DefaultIntervalSetting)
+  const [errors, setErrors] = useState<Record<string, string>>({
+    dayOfWeek: '',
+    dayOfMonth: '',
+    monthOfYear: '',
+  })
 
   const textFieldValues = useRef({
     hour: '0',
     minute: '0',
+    dayOfMonth: '1',
   })
 
   useEffect(() => {
+    setErrors({
+      dayOfWeek: '',
+      dayOfMonth: '',
+      monthOfYear: '',
+    })
     setValue(initialValue ?? DefaultIntervalSetting)
     textFieldValues.current = {
       hour: initialValue?.hour.toString() ?? '0',
       minute: initialValue?.minute.toString() ?? '0',
+      dayOfMonth: initialValue?.type === 'Monthly' || initialValue?.type === 'Yearly'
+                  ? initialValue.dayOfMonth.toString()
+                  : '1',
     }
   }, [initialValue])
 
@@ -88,6 +103,7 @@ export const IntervalDialog: FunctionComponent<Props> = ({
       value.type === 'Weekly' &&
         <View>
             <Text style={ styles.sectionTitle }>Day of Week</Text>
+          { errors.dayOfWeek && <Text style={ styles.labelError }>{ errors.dayOfWeek }</Text> }
             <View
                 style={ {
                   display: 'flex',
@@ -122,6 +138,7 @@ export const IntervalDialog: FunctionComponent<Props> = ({
       value.type === 'Yearly' &&
         <View>
             <Text style={ styles.sectionTitle }>Month</Text>
+          { errors.monthOfYear && <Text style={ styles.labelError }>{ errors.monthOfYear }</Text> }
             <View
                 style={ {
                   display: 'flex',
@@ -152,42 +169,20 @@ export const IntervalDialog: FunctionComponent<Props> = ({
             </View>
         </View>
     }
+    { errors.dayOfMonth && <Text style={ styles.labelError }>{ errors.dayOfMonth }</Text> }
     {
       (value.type === 'Monthly' || value.type === 'Yearly') &&
-        <View>
-            <Text style={ styles.sectionTitle }>Day of Month</Text>
-            <WheelPicker
-                itemHeight={ 32 }
-                numberOfVisibleRows={ 3 }
-                items={ Array.from(Array(31)
-                    .keys())
-                  .map(i => ({
-                    label: i + 1,
-                    value: i + 1,
-                  })) }
-                initialValue={ value.dayOfMonth ?? 1 }
-                activeTextColor={ Colors.primary }
-                inactiveTextColor={ Colors.onBackground }
-                faderProps={ { visible: false } }
-                style={ { backgroundColor: Colors.surface } }
-                separatorsStyle={ { borderColor: Colors.outline } }
-                textStyle={ { ...Typography.LabelLarge } }
-                onChange={ (
-                  _: any,
-                  index: number,
-                ) => {
-                  const dayOfMonth = index + 1
-                  // If multiple elements are skipped, this is called in very fast succession
-                  if (dayOfMonth === value.dayOfMonth) {
-                    return
-                  }
-                  setValue({
-                    ...value,
-                    dayOfMonth,
-                  })
-                } }
-            />
-        </View>
+        <Input
+            outerContainerStyle={ {
+              paddingHorizontal: 16,
+            } }
+            label={ 'Day of Month' }
+            inputType={ 'numeric' }
+            initialValue={ initialValue?.type === 'Monthly' || initialValue?.type === 'Yearly'
+                           ? initialValue.dayOfMonth.toString()
+                           : '1' }
+            onChangeText={ text => textFieldValues.current.dayOfMonth = text }
+        />
     }
 
     <View
@@ -251,11 +246,38 @@ export const IntervalDialog: FunctionComponent<Props> = ({
         rippleContainerBorderRadius={ 100 }
         rippleCentered
         onPress={ () => setTimeout(() => {
-          onFinish?.({
-            ...value,
+          const interval = {
+            ...(value as any),
             hour: parseInt(textFieldValues.current.hour),
             minute: parseInt(textFieldValues.current.minute),
-          })
+            dayOfMonth: parseInt(textFieldValues.current.dayOfMonth),
+          }
+
+          const foundErrors = {} as Record<string, string>
+          if (interval.type === 'Weekly' && interval.dayOfWeek === undefined) {
+            foundErrors['dayOfWeek'] = t('validationMessage:required')
+          }
+
+          if ((interval.type === 'Monthly' || interval.type === 'Yearly') && interval.dayOfMonth === undefined) {
+            foundErrors['dayOfMonth'] = t('validationMessage:required')
+          }
+          if ((interval.type === 'Monthly' || interval.type === 'Yearly') && (interval.dayOfMonth < 1 || interval.dayOfMonth > 31)) {
+            foundErrors['dayOfMonth'] = "The day of month must be between 1 and 31"
+          }
+
+          if (interval.type === 'Yearly' && interval.monthOfYear === undefined) {
+            foundErrors['monthOfYear'] = t('validationMessage:required')
+          }
+          if (interval.type === 'Yearly' && (interval.monthOfYear < 1 || interval.monthOfYear > 12)) {
+            foundErrors['monthOfYear'] = "The month of year must be between 1 and 12"
+          }
+
+          if (Object.keys(foundErrors).length > 0) {
+            setErrors(foundErrors)
+            return
+          }
+
+          onFinish?.(interval)
           setValue(DefaultIntervalSetting)
           onDismiss()
         }, 100) }
@@ -297,6 +319,11 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     marginHorizontal: 16,
     marginVertical: 8,
+  },
+  labelError: {
+    ...Typography.BodySmall,
+    color: Colors.error,
+    paddingHorizontal: 16
   },
   titleDialog: {
     ...Typography.TitleSmall,

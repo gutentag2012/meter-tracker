@@ -18,6 +18,7 @@ import AsyncStorageKeys from '../constants/AsyncStorageKeys'
 import { Typography } from '../constants/Theme'
 import { HomeStackScreenProps } from '../navigation/types'
 import { DefaultIntervalSetting, intervalToString } from '../utils/IntervalUtils'
+import { scheduleReminderNotification } from '../utils/NotificationUtils'
 import { IntervalDialog, IntervalDialogProps } from './dialogs/IntervalDialog'
 import { SingleTextFieldDialog, SingleTextFieldDialogProps } from './dialogs/SingleTextFieldDialog'
 
@@ -50,8 +51,6 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
     const run = async () => {
       const enableReminderPromise = AsyncStorage.getItem(AsyncStorageKeys.ENABLE_REMINDER)
         .then(v => v ? JSON.parse(v) : false)
-      AsyncStorage.setItem(AsyncStorageKeys.REMINDER_INTERVAL, JSON.stringify(DefaultIntervalSetting))
-      AsyncStorage.setItem(AsyncStorageKeys.BACKUP_MAIL_INTERVAL, JSON.stringify(DefaultIntervalSetting))
       const reminderIntervalPromise = AsyncStorage.getItem(AsyncStorageKeys.REMINDER_INTERVAL)
         .then(v => v ? JSON.parse(v) : DefaultIntervalSetting)
       const enableBackupMailPromise = AsyncStorage.getItem(AsyncStorageKeys.ENABLE_BACKUP_MAIL)
@@ -157,8 +156,11 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
               isVisible: true,
               initialValue: values[AsyncStorageKeys.REMINDER_INTERVAL],
               title: 'Reminder Interval',
-              onFinish: (value) => {
+              onFinish: async (value) => {
                 setValue(AsyncStorageKeys.REMINDER_INTERVAL, value)
+                if (!!value) {
+                  await scheduleReminderNotification(value)
+                }
               },
             })
           } }

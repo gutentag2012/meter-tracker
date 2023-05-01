@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications'
 import * as React from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
+import { Platform, RefreshControl, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Text } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
@@ -13,13 +13,14 @@ import { AddIcon } from '../components/icons/AddIcon'
 import { SettingsIcon } from '../components/icons/SettingsIcon'
 import { MeterListEntry } from '../components/meters/MeterListEntry'
 import { Typography } from '../constants/Theme'
+import { HomeStackScreenProps } from '../navigation/types'
 import Contract from '../services/database/entities/contract'
 import Meter from '../services/database/entities/meter'
 import { useUpdatedData } from '../services/database/GenericRepository'
 import ContractService from '../services/database/services/ContractService'
 import MeterService from '../services/database/services/MeterService'
 import { t } from '../services/i18n'
-import { HomeStackScreenProps } from '../navigation/types'
+import { removeReminderNotification, scheduleReminderNotification } from '../utils/NotificationUtils'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -33,7 +34,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
   const [loading, setLoading] = useState(false)
 
   const [meters, reloadMeters] = useUpdatedData<Meter, MeterService>(MeterService)
-  const [contracts, reloadContracts, contractRepo] = useUpdatedData<Contract, ContractService>(ContractService)
+  const [contracts, reloadContracts] = useUpdatedData<Contract, ContractService>(ContractService)
 
   const loadData = useCallback(async () => {
       setLoading(true)
@@ -49,6 +50,11 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
       .catch(console.error)
   }, [loadData])
 
+  // Schedule Reminder Notification
+  useEffect(() => {
+    scheduleReminderNotification()
+  }, [])
+
   return (
     <SafeAreaView
       style={ styles.container }
@@ -59,7 +65,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
         actions={ <>
           <IconButton
             getIcon={ () => <SettingsIcon color={ Colors.onBackground } /> }
-            onPress={ () => navigation.push("SettingsScreen") }
+            onPress={ () => navigation.push('SettingsScreen') }
           />
         </> }
       />
