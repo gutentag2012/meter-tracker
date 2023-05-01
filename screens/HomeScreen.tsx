@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications'
 import * as React from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { Platform, RefreshControl, ScrollView, StyleSheet } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Text } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
@@ -20,7 +20,7 @@ import { useUpdatedData } from '../services/database/GenericRepository'
 import ContractService from '../services/database/services/ContractService'
 import MeterService from '../services/database/services/MeterService'
 import { t } from '../services/i18n'
-import { removeReminderNotification, scheduleReminderNotification } from '../utils/NotificationUtils'
+import { scheduleReminderNotification } from '../utils/NotificationUtils'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

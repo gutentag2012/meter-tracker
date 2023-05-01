@@ -45,7 +45,7 @@ export const intervalToString = (interval: Interval) => {
   if (interval.type === 'Yearly') {
     res += `  |  ${ interval.dayOfMonth.toString()
       .padStart(2, '0') }. ${ moment()
-      .month(interval.monthOfYear)
+      .month(interval.monthOfYear - 1)
       .format('MMMM') }`
   }
   res += `  |  ${ interval.hour.toString()

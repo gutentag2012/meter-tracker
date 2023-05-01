@@ -168,7 +168,8 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
           getSubTitle={ () => intervalToString(values[AsyncStorageKeys.REMINDER_INTERVAL]) }
         />
 
-        <Text style={ styles.sectionTitle }>Backup Mail</Text>
+        {/* TODO Add background tasks to send emails */}
+        {/*<Text style={ styles.sectionTitle }>Backup Mail</Text>
         <SettingsListEntry
           type='checkbox'
           value={ values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
@@ -211,7 +212,7 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
           } }
           title='Backup Interval'
           getSubTitle={ () => intervalToString(values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL]) }
-        />
+        />*/}
       </ScrollView>
 
       {/* Use a light status bar on iOS to account for the black space above the modal */ }
