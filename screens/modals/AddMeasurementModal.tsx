@@ -156,8 +156,8 @@ export default function AddMeasurementModal({
             inputType='numeric'
             label={ 'Value' }
             onChangeText={ (textValue) => value.current = textValue }
-            validation={ ['required'] }
-            validationMessages={ [t('validationMessage:required')] }
+            validation={ ['required', (value: string) => !isNaN(Number(value))] }
+            validationMessages={ [t('validationMessage:required'), t('validationMessage:isNotANumber')] }
             onSubmit={ onSave }
             initialValue={ value.current }
             hint={ lastMeasurement

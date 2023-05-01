@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS ${METER_TABLE_NAME} (
 
   getRetrieveAllStatement(): string {
     return `
-SELECT m.*, 
+SELECT 
+m.name as meter_name, m.digits as meter_digits, m.unit as meter_unit, m.contract_id as meter_contract_id, m.areValuesIncreasing as meter_areValuesIncreasing, m.isActive as meter_isActive, m.identification as meter_identification, m.createdAt as meter_createdAt, m.id as meter_id,
 c.id as contract_id, c.name as contract_name, c.pricePerUnit as contract_pricePerUnit, c.identification as contract_identification, c.createdAt as contract_createdAt,
 (SELECT createdAt FROM ${MEASUREMENT_TABLE_NAME} mm_j WHERE mm_j.meter_id = m.id ORDER BY mm_j.createdAt DESC LIMIT 1) as last_measurement_date,
 (SELECT value FROM ${MEASUREMENT_TABLE_NAME} mm_j WHERE mm_j.meter_id = m.id ORDER BY mm_j.createdAt DESC LIMIT 1) as last_measurement_value
@@ -46,10 +47,7 @@ FROM ${METER_TABLE_NAME} m
   }
 
   fromJSON(json: any): Meter {
-    const contractJSON = Object.fromEntries(Object.entries(json)
-      .filter(([key]) => key.startsWith('contract_'))
-      .map(([key, value]) => [key.replace('contract_', ''), value]))
-    const contract = this.contractService.fromJSON(contractJSON)
+    const contract = this.contractService.fromJSON(json)
 
     const lastMeasurementDate = json['last_measurement_date'] ? moment(json['last_measurement_date'], 'YYYY-M-D HH:mm')
       .toDate()
@@ -57,14 +55,40 @@ FROM ${METER_TABLE_NAME} m
     const lastMeasurementValue = json['last_measurement_value']
 
     return new Meter(
-      json.name, json.digits, json.unit, json.contract_id, json.areValuesIncreasing, json.isActive, json.identification,
-      moment(json.createdAt, 'YYYY-M-D HH:mm')
+      json.meter_name, json.meter_digits, json.meter_unit, json.meter_contract_id, json.meter_areValuesIncreasing,
+      json.meter_isActive, json.meter_identification,
+      typeof json.meter_createdAt === 'number' ? json.meter_createdAt : moment(json.meter_createdAt, 'YYYY-M-D HH:mm')
         .toDate()
-        .getTime(), json.id, contract, lastMeasurementDate, lastMeasurementValue,
+        .getTime(), json.meter_id, contract, lastMeasurementDate, lastMeasurementValue,
     )
   }
 
-  getInsertionHeader(): string {
-    return `INSERT INTO ${METER_TABLE_NAME} (name, digits, unit, contract_id, areValuesIncreasing, isActive, identification, createdAt) VALUES `
+  getInsertionHeader(forceId?: boolean): string {
+    return `INSERT INTO ${METER_TABLE_NAME} (name, digits, unit, contract_id, areValuesIncreasing, isActive, identification, createdAt${forceId ? ", id": ""}) VALUES `
+  }
+
+  public getCSVHeader(withChildren?: boolean): string {
+    const ownHeader = [
+      'meter_id',
+      'meter_contract_id',
+      'meter_name',
+      'meter_digits',
+      'meter_unit',
+      'meter_areValuesIncreasing',
+      'meter_isActive',
+      'meter_identification',
+      'meter_createdAt',
+    ].join(',')
+    if (!withChildren) {
+      return ownHeader
+    }
+    const contractHeader = [
+      'contract_id',
+      'contract_name',
+      'contract_pricePerUnit',
+      'contract_identification',
+      'contract_createdAt',
+    ].join(',')
+    return [ownHeader, contractHeader].join(',')
   }
 }

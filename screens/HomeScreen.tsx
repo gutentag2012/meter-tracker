@@ -20,6 +20,7 @@ import { useUpdatedData } from '../services/database/GenericRepository'
 import ContractService from '../services/database/services/ContractService'
 import MeterService from '../services/database/services/MeterService'
 import { t } from '../services/i18n'
+import { databaseFromCSV, databaseToCSVString, readCSVFile, shareCSVFile } from '../utils/DataUtils'
 import { scheduleReminderNotification } from '../utils/NotificationUtils'
 
 Notifications.setNotificationHandler({
@@ -52,6 +53,10 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
 
   // Schedule Reminder Notification
   useEffect(() => {
+    // databaseToCSVString().then(csv => {
+    //   shareCSVFile(csv)
+    // })
+    databaseFromCSV(undefined, true)
     scheduleReminderNotification()
   }, [])
 

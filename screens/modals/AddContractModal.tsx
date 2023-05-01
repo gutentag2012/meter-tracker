@@ -6,22 +6,17 @@ import { ScrollView } from 'react-native-gesture-handler'
 import Ripple from 'react-native-material-ripple'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { Checkbox, Colors, Text, View } from 'react-native-ui-lib'
+import { Colors, Text, View } from 'react-native-ui-lib'
 import { AppBar } from '../../components/AppBar'
-import { Button } from '../../components/Button'
-import { ContractSelectEntry } from '../../components/contracts/ContractSelectEntry'
 import { IconButton } from '../../components/IconButton'
-import { AddIcon } from '../../components/icons/AddIcon'
 import { CloseIcon } from '../../components/icons/CloseIcon'
 import { Input } from '../../components/Input'
 import { Typography } from '../../constants/Theme'
-import Contract from '../../services/database/entities/contract'
-import Meter from '../../services/database/entities/meter'
-import { useRepository, useUpdatedData } from '../../services/database/GenericRepository'
-import ContractService from '../../services/database/services/ContractService'
-import MeterService from '../../services/database/services/MeterService'
-import { t } from '../../services/i18n'
 import { HomeStackScreenProps } from '../../navigation/types'
+import Contract from '../../services/database/entities/contract'
+import { useRepository } from '../../services/database/GenericRepository'
+import ContractService from '../../services/database/services/ContractService'
+import { t } from '../../services/i18n'
 
 export default function AddContractModal({ navigation }: HomeStackScreenProps<'AddContractModal'>) {
   const [repository] = useRepository<Contract, ContractService>(ContractService)
@@ -55,7 +50,13 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
   }, [])
 
   return (
-    <SafeAreaView style={{display: "flex", flexDirection: "column", height: "100%"}}>
+    <SafeAreaView
+      style={ {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      } }
+    >
       <AppBar
         loading={ loading }
         title={ t('home_screen:add_new_contract') }
@@ -86,7 +87,12 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
         </> }
       />
 
-      <ScrollView style={{flex: 1, marginBottom: 16}}>
+      <ScrollView
+        style={ {
+          flex: 1,
+          marginBottom: 16,
+        } }
+      >
         <View style={ { paddingHorizontal: 16 } }>
           <Input
             ref={ (ref: any) => textFieldRefs.current.name = ref }
@@ -105,9 +111,10 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
           <Input
             ref={ (ref: any) => textFieldRefs.current.pricePerUnit = ref }
             label={ t('contract:input_placeholder_price_per_unit') }
+            inputType='numeric'
             onChangeText={ (value) => pricePerUnit.current = value }
-            validation={ ['required'] }
-            validationMessages={ [t('validationMessage:required')] }
+            validation={ ['required', (value: string) => !isNaN(Number(value))] }
+            validationMessages={ [t('validationMessage:required'), t('validationMessage:isNotANumber')] }
             onSubmit={ onSave }
             hint='in cents'
           />

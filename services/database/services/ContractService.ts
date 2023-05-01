@@ -23,13 +23,40 @@ CREATE TABLE IF NOT EXISTS ${CONTRACT_TABLE_NAME} (
     return ''
   }
 
-  fromJSON(json: any): Contract {
-    return new Contract(json.name, json.pricePerUnit, json.identification, moment(json.createdAt, 'YYYY-M-D HH:mm')
-      .toDate()
-      .getTime(), json.id)
+  public getRetrieveAllStatement(): string {
+    return `
+SELECT 
+  name as contract_name,
+  pricePerUnit as contract_pricePerUnit,
+  identification as contract_identification,
+  createdAt as contract_createdAt,
+  id as contract_id 
+FROM ${ this.TableName }`
   }
 
-  getInsertionHeader(): string {
-    return `INSERT INTO ${CONTRACT_TABLE_NAME} (name, pricePerUnit, identification, createdAt) VALUES `
+  fromJSON(json: any): Contract {
+    return new Contract(
+      json.contract_name, json.contract_pricePerUnit, json.contract_identification,
+      typeof json.contract_createdAt === 'number' ? json.contract_createdAt : moment(
+        json.contract_createdAt,
+        'YYYY-M-D HH:mm',
+      )
+        .toDate()
+        .getTime(), json.contract_id,
+    )
+  }
+
+  getInsertionHeader(forceId?: boolean): string {
+    return `INSERT INTO ${CONTRACT_TABLE_NAME} (name, pricePerUnit, identification, createdAt${forceId ? ", id": ""}) VALUES `
+  }
+
+  public getCSVHeader(withChildren?: boolean): string {
+    return [
+      'contract_id',
+      'contract_name',
+      'contract_pricePerUnit',
+      'contract_identification',
+      'contract_createdAt',
+    ].join(',')
   }
 }

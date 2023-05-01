@@ -17,10 +17,10 @@ export default class Measurement extends Entity {
     super(id)
   }
 
-  getInsertionValues(): string {
+  getInsertionValues(forceId?: boolean): string {
     // TODO Think about sanitizing the values
     return `(${ this.value }, ${ this.meter_id }, "${ moment(this.createdAt)
-      .format('YYYY-MM-DD HH:mm') }")`
+      .format('YYYY-MM-DD HH:mm') }"${ forceId ? `, ${ this.id }` : '' })`
   }
 
   public getUpdateStatement(): string {
@@ -31,5 +31,34 @@ SET
   meter_id = ${ this.meter_id }, 
   createdAt = "${ moment(this.createdAt).format('YYYY-MM-DD HH:mm') }"
 WHERE id = ${ this.id }`
+  }
+
+  public getCSVValues(withChildren?: boolean): string {
+    const ownHeader = [this.id, this.meter_id, this.value, this.createdAt].map(e => JSON.stringify(e))
+      .join(',')
+    if (!withChildren) {
+      return ownHeader
+    }
+    const meterHeader = [
+      this.meter?.id,
+      this.meter?.contract_id,
+      this.meter?.name,
+      this.meter?.digits,
+      this.meter?.unit,
+      this.meter?.areValuesIncreasing,
+      this.meter?.isActive,
+      this.meter?.identification,
+      this.meter?.createdAt,
+    ].map(e => JSON.stringify(e))
+      .join(',')
+    const contractHeader = [
+      this.meter?.contract?.id,
+      this.meter?.contract?.name,
+      this.meter?.contract?.pricePerUnit,
+      this.meter?.contract?.identification,
+      this.meter?.contract?.createdAt,
+    ].map(e => JSON.stringify(e))
+      .join(',')
+    return [ownHeader, meterHeader, contractHeader].join(',')
   }
 }

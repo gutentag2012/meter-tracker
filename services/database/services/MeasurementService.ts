@@ -27,11 +27,8 @@ CREATE TABLE IF NOT EXISTS ${MEASUREMENT_TABLE_NAME} (
   getRetrieveAllStatement(): string {
     return `
 SELECT 
-m.*, 
-mm.value as measurement_value, 
-mm.meter_id as measurement_meter_id, 
-mm.createdAt as measurement_createdAt, 
-mm.id as measurement_id, 
+m.name as meter_name, m.digits as meter_digits, m.unit as meter_unit, m.contract_id as meter_contract_id, m.areValuesIncreasing as meter_areValuesIncreasing, m.isActive as meter_isActive, m.identification as meter_identification, m.createdAt as meter_createdAt, m.id as meter_id,
+mm.value as measurement_value, mm.meter_id as measurement_meter_id, mm.createdAt as measurement_createdAt, mm.id as measurement_id, 
 c.id as contract_id, c.name as contract_name, c.pricePerUnit as contract_pricePerUnit, c.identification as contract_identification, c.createdAt as contract_createdAt 
 FROM ${MEASUREMENT_TABLE_NAME} mm 
   INNER JOIN ${METER_TABLE_NAME} m ON mm.meter_id = m.id 
@@ -51,12 +48,43 @@ FROM ${MEASUREMENT_TABLE_NAME} mm
   }
 
   fromJSON(json: any): Measurement {
-    return new Measurement(json.measurement_value, json.measurement_meter_id, moment(json.measurement_createdAt, 'YYYY-M-D HH:mm')
-      .toDate()
-      .getTime(), json.measurement_id, this.meterService.fromJSON(json))
+    return new Measurement(
+      json.measurement_value, json.measurement_meter_id,
+      typeof json.measurement_createdAt === 'number' ? json.measurement_createdAt : moment(json.measurement_createdAt,
+        'YYYY-M-D HH:mm',
+      )
+        .toDate()
+        .getTime(), json.measurement_id, this.meterService.fromJSON(json),
+    )
   }
 
-  getInsertionHeader(): string {
-    return `INSERT INTO ${MEASUREMENT_TABLE_NAME} (value, meter_id, createdAt) VALUES `
+  getInsertionHeader(forceId?: boolean): string {
+    return `INSERT INTO ${MEASUREMENT_TABLE_NAME} (value, meter_id, createdAt${forceId ? ", id": ""}) VALUES `
+  }
+
+  public getCSVHeader(withChildren?: boolean): string {
+    const ownHeader = ['measurement_id', 'measurement_meter_id', 'measurement_value', 'measurement_createdAt'].join(',')
+    if (!withChildren) {
+      return ownHeader
+    }
+    const meterHeader = [
+      'meter_id',
+      'meter_contract_id',
+      'meter_name',
+      'meter_digits',
+      'meter_unit',
+      'meter_areValuesIncreasing',
+      'meter_isActive',
+      'meter_identification',
+      'meter_createdAt',
+    ].join(',')
+    const contractHeader = [
+      'contract_id',
+      'contract_name',
+      'contract_pricePerUnit',
+      'contract_identification',
+      'contract_createdAt',
+    ].join(',')
+    return [ownHeader, meterHeader, contractHeader].join(',')
   }
 }

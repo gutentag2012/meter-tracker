@@ -33,6 +33,12 @@
     },
     "plugins": [
       [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      [
         "./plugins/withAndroidStyles",
         {
           "AppTheme": {

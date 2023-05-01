@@ -17,7 +17,9 @@ export abstract class Service {
     return `${ this.getRetrieveAllStatement() } WHERE ${ whereClause }`
   }
 
-  abstract getInsertionHeader(): string
+  abstract getCSVHeader(withChildren?: boolean): string
+
+  abstract getInsertionHeader(forceId?: boolean): string
 
   abstract getMigrationStatement(from?: number, to?: number): string
 

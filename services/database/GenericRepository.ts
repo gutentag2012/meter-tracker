@@ -42,10 +42,10 @@ export default class GenericRepository<T extends Entity> {
   constructor(private service: Service) {
   }
 
-  insertData(data: T): Promise<T> {
+  insertData(data: T, forceId=false): Promise<T> {
     return new Promise((resolve, reject) => db.transaction(tx => {
       tx.executeSql(
-        this.service.getInsertionHeader() + data.getInsertionValues(),
+        this.service.getInsertionHeader(forceId) + data.getInsertionValues(forceId),
         [],
         async (_, rows) => {
           const freshData = await this.getDataById<T>(rows.insertId!)

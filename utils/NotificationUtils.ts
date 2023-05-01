@@ -42,6 +42,14 @@ export const removeReminderNotification = async () => {
 }
 
 export const scheduleReminderNotification = async (interval?: Interval) => {
+  const shouldSchedule = await AsyncStorage.getItem(AsyncStorageKeys.ENABLE_REMINDER)
+    .then(res => res === 'true')
+  
+  if (!shouldSchedule) {
+    console.warn('Reminder is not enabled')
+    return
+  }
+
   if (!interval) {
     interval = await getReminderInterval()
   }

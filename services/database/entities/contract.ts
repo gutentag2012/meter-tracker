@@ -16,11 +16,11 @@ export default class Contract extends Entity {
     super(id)
   }
 
-  getInsertionValues(): string {
+  getInsertionValues(forceId?: boolean): string {
     // TODO Think about sanitizing the values
     const identification = this.identification ? `"${ this.identification }"` : 'NULL'
     return `("${ this.name }", ${ this.pricePerUnit }, ${ identification }, "${ moment(this.createdAt)
-      .format('YYYY-MM-DD HH:mm') }")`
+      .format('YYYY-MM-DD HH:mm') }"${ forceId ? `, ${ this.id }` : '' })`
   }
 
   public getUpdateStatement(): string {
@@ -32,5 +32,16 @@ SET
   identification = "${ this.identification ?? 'NULL' }", 
   createdAt = "${ moment( this.createdAt ).format( 'YYYY-MM-DD HH:mm' ) }" 
 WHERE id = ${ this.id }`
+  }
+
+  public getCSVValues(): string {
+    return [
+      this.id,
+      this.name,
+      this.pricePerUnit,
+      this.identification,
+      this.createdAt,
+    ].map(e => JSON.stringify(e))
+      .join(',')
   }
 }
