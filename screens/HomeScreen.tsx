@@ -53,10 +53,6 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
 
   // Schedule Reminder Notification
   useEffect(() => {
-    // databaseToCSVString().then(csv => {
-    //   shareCSVFile(csv)
-    // })
-    databaseFromCSV(undefined, true)
     scheduleReminderNotification()
   }, [])
 

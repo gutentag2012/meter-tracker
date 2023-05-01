@@ -11,12 +11,12 @@ import { IconButton } from '../components/IconButton'
 import { BackIcon } from '../components/icons/BackIcon'
 import { ExportIcon } from '../components/icons/ExportIcon'
 import { ImportIcon } from '../components/icons/ImportIcon'
-import { MailIcon } from '../components/icons/MailIcon'
 import { NotificationIcon } from '../components/icons/NotificationIcon'
 import { SettingsListEntry } from '../components/SettingsListEntry'
 import AsyncStorageKeys from '../constants/AsyncStorageKeys'
 import { Typography } from '../constants/Theme'
 import { HomeStackScreenProps } from '../navigation/types'
+import { databaseFromCSV, databaseToCSVString, shareCSVFile } from '../utils/DataUtils'
 import { DefaultIntervalSetting, intervalToString } from '../utils/IntervalUtils'
 import { scheduleReminderNotification } from '../utils/NotificationUtils'
 import { IntervalDialog, IntervalDialogProps } from './dialogs/IntervalDialog'
@@ -128,12 +128,17 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
         <SettingsListEntry
           type='custom'
           getIcon={ () => <ExportIcon /> }
+          onPress={ async () => {
+            await databaseToCSVString()
+              .then(shareCSVFile)
+          } }
           title='Export data'
           getSubTitle={ () => 'Export your data as a CSV' }
         />
         <SettingsListEntry
           type='custom'
           getIcon={ () => <ImportIcon /> }
+          onPress={ () => databaseFromCSV(undefined, true) }
           title='Import data'
           getSubTitle={ () => 'Import your data from a CSV' }
         />
@@ -168,51 +173,51 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
           getSubTitle={ () => intervalToString(values[AsyncStorageKeys.REMINDER_INTERVAL]) }
         />
 
-        {/* TODO Add background tasks to send emails */}
+        {/* TODO Add background tasks to send emails */ }
         {/*<Text style={ styles.sectionTitle }>Backup Mail</Text>
-        <SettingsListEntry
-          type='checkbox'
-          value={ values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
-          getIcon={ () => <MailIcon /> }
-          onPress={ () => setValue(AsyncStorageKeys.ENABLE_BACKUP_MAIL, !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL]) }
-          title='Enable Backup Mail'
-          getSubTitle={ () => 'Sends a regular mail with your values' }
-        />
-        <SettingsListEntry
-          type='email-address'
-          disabled={ !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
-          value={ values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER] }
-          onPress={ () => {
-            setSingleTextFieldDialogState({
-              isVisible: true,
-              initialValue: values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER],
-              inputType: 'email-address',
-              label: 'Receiver Address',
-              onFinish: (value) => {
-                setValue(AsyncStorageKeys.BACKUP_MAIL_RECEIVER, value)
-              },
-            })
-          } }
-          title='Receiver Address'
-          getSubTitle={ () => values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER] || 'No address found' }
-        />
-        <SettingsListEntry
-          type='custom'
-          disabled={ !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
-          value={ values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL] }
-          onPress={ () => {
-            setIntervalDialogState({
-              isVisible: true,
-              initialValue: values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL],
-              title: 'Backup Interval',
-              onFinish: (value) => {
-                setValue(AsyncStorageKeys.BACKUP_MAIL_INTERVAL, value)
-              },
-            })
-          } }
-          title='Backup Interval'
-          getSubTitle={ () => intervalToString(values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL]) }
-        />*/}
+         <SettingsListEntry
+         type='checkbox'
+         value={ values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
+         getIcon={ () => <MailIcon /> }
+         onPress={ () => setValue(AsyncStorageKeys.ENABLE_BACKUP_MAIL, !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL]) }
+         title='Enable Backup Mail'
+         getSubTitle={ () => 'Sends a regular mail with your values' }
+         />
+         <SettingsListEntry
+         type='email-address'
+         disabled={ !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
+         value={ values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER] }
+         onPress={ () => {
+         setSingleTextFieldDialogState({
+         isVisible: true,
+         initialValue: values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER],
+         inputType: 'email-address',
+         label: 'Receiver Address',
+         onFinish: (value) => {
+         setValue(AsyncStorageKeys.BACKUP_MAIL_RECEIVER, value)
+         },
+         })
+         } }
+         title='Receiver Address'
+         getSubTitle={ () => values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER] || 'No address found' }
+         />
+         <SettingsListEntry
+         type='custom'
+         disabled={ !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
+         value={ values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL] }
+         onPress={ () => {
+         setIntervalDialogState({
+         isVisible: true,
+         initialValue: values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL],
+         title: 'Backup Interval',
+         onFinish: (value) => {
+         setValue(AsyncStorageKeys.BACKUP_MAIL_INTERVAL, value)
+         },
+         })
+         } }
+         title='Backup Interval'
+         getSubTitle={ () => intervalToString(values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL]) }
+         />*/ }
       </ScrollView>
 
       {/* Use a light status bar on iOS to account for the black space above the modal */ }
