@@ -12,10 +12,11 @@ export default class Meter extends Entity {
     public digits: number,
     public unit: string,
     public contract_id?: number,
-    public areValuesIncreasing?: boolean,
+    public areValuesDepleting?: boolean,
     public isActive?: boolean,
     public identification?: string,
     public createdAt: number = Date.now(),
+    public order?: number,
     public id?: number,
     public contract?: Contract,
     public lastMeasurementDate?: number,
@@ -25,11 +26,8 @@ export default class Meter extends Entity {
   }
 
   getInsertionValues(forceId?: boolean): string {
-    // TODO Think about sanitizing the values
     const identification = this.identification ? `"${ this.identification }"` : 'NULL'
-    return `("${ this.name }", ${ this.digits }, "${ this.unit }", ${ this.contract_id ?? 'NULL' }, ${ this.areValuesIncreasing ?? 'NULL' }, ${ this.isActive ?? 'NULL' }, ${ identification }, "${ moment(
-      this.createdAt)
-      .format('YYYY-MM-DD HH:mm') }"${ forceId ? `, ${ this.id }` : '' })`
+    return `("${ this.name }", ${ this.digits }, "${ this.unit }", ${ this.contract_id ?? 'NULL' }, ${ this.areValuesDepleting ?? 'NULL' }, ${ this.isActive ?? 'NULL' }, ${ identification }, ${ this.createdAt }, ${ this.order ?? 0 }${ forceId ? `, ${ this.id }` : '' })`
   }
 
   public getUpdateStatement(): string {
@@ -40,10 +38,11 @@ SET
   digits = ${this.digits}, 
   unit = "${this.unit}", 
   contract_id = ${this.contract_id ?? 'NULL'}, 
-  areValuesIncreasing = ${this.areValuesIncreasing ?? 'NULL'}, 
+  areValuesDepleting = ${this.areValuesDepleting ?? 'NULL'}, 
   isActive = ${this.isActive ?? 'NULL'}, 
   identification = "${this.identification ?? 'NULL'}", 
-  createdAt = "${moment(this.createdAt).format('YYYY-MM-DD HH:mm')}" 
+  sortingOrder = ${this.order ?? 'NULL'}, 
+  createdAt = ${this.createdAt} 
 WHERE id = ${this.id}`
   }
 
@@ -54,10 +53,11 @@ WHERE id = ${this.id}`
       this.name,
       this.digits,
       this.unit,
-      this.areValuesIncreasing,
+      this.areValuesDepleting,
       this.isActive,
       this.identification,
       this.createdAt,
+      this.order,
     ].map(e => JSON.stringify(e))
       .join(',')
     if (!withChildren) {

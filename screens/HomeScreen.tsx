@@ -1,18 +1,20 @@
 import * as Notifications from 'expo-notifications'
 import * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { createRef, useCallback, useEffect, useState } from 'react'
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Text } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
 import { Button } from '../components/Button'
 import { ContractListEntry } from '../components/contracts/ContractListEntry'
 import { FloatingActionButton } from '../components/FloatingActionButton'
+import { GlobalToast } from '../components/GlobalToast'
 import { IconButton } from '../components/IconButton'
 import { AddIcon } from '../components/icons/AddIcon'
 import { SettingsIcon } from '../components/icons/SettingsIcon'
 import { MeterListEntry } from '../components/meters/MeterListEntry'
-import { Typography } from '../constants/Theme'
+import Layout from '../constants/Layout'
 import { HomeStackScreenProps } from '../navigation/types'
 import Contract from '../services/database/entities/contract'
 import Meter from '../services/database/entities/meter'
@@ -20,7 +22,7 @@ import { useUpdatedData } from '../services/database/GenericRepository'
 import ContractService from '../services/database/services/ContractService'
 import MeterService from '../services/database/services/MeterService'
 import { t } from '../services/i18n'
-import { databaseFromCSV, databaseToCSVString, readCSVFile, shareCSVFile } from '../utils/DataUtils'
+import { Typography } from '../setupTheme'
 import { scheduleReminderNotification } from '../utils/NotificationUtils'
 
 Notifications.setNotificationHandler({
@@ -31,7 +33,13 @@ Notifications.setNotificationHandler({
   }),
 })
 
+// TODO Order by drag and drop
 export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>) {
+  // Schedule Reminder Notification
+  useEffect(() => {
+    scheduleReminderNotification()
+  }, [])
+
   const [loading, setLoading] = useState(false)
 
   const [meters, reloadMeters] = useUpdatedData<Meter, MeterService>(MeterService)
@@ -39,22 +47,14 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
 
   const loadData = useCallback(async () => {
       setLoading(true)
-      const p1 = reloadMeters()
-      const p2 = reloadContracts()
-      await Promise.all([p1, p2])
+      await Promise.all([reloadMeters(), reloadContracts()])
       setLoading(false)
     }, [reloadMeters, reloadContracts],
   )
 
   useEffect(() => {
     loadData()
-      .catch(console.error)
   }, [loadData])
-
-  // Schedule Reminder Notification
-  useEffect(() => {
-    scheduleReminderNotification()
-  }, [])
 
   return (
     <SafeAreaView
@@ -66,10 +66,11 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
         actions={ <>
           <IconButton
             getIcon={ () => <SettingsIcon color={ Colors.onBackground } /> }
-            onPress={ () => navigation.push('SettingsScreen') }
+            onPress={ () => navigation.navigate('SettingsScreen') }
           />
         </> }
       />
+
       <ScrollView
         refreshControl={ <RefreshControl
           refreshing={ loading }
@@ -81,7 +82,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
       >
         <Text
           style={ styles.sectionTitle }
-          onSurfaceVariant
+          onSurface
         >
           { t('home_screen:meters_section_title') }
         </Text>
@@ -89,19 +90,20 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
           meters.map(meter => <MeterListEntry
             key={ meter.id }
             meter={ meter }
-            onPress={ () => navigation.push('MeterSummaryScreen', { meter }) }
+            onPress={ () => navigation.navigate('MeterSummaryScreen', { meter }) }
+            navigateToAddMeasurement={ () => navigation.navigate('AddMeasurementModal', { meter }) }
           />)
         }
         <Button
           style={ styles.button }
           label={ t('home_screen:add_new_meter') }
           icon={ AddIcon }
-          onPress={ () => navigation.push('AddMeterModal', {}) }
+          onPress={ () => navigation.navigate('AddMeterModal', {}) }
         />
 
         <Text
           style={ styles.sectionTitle }
-          onSurfaceVariant
+          onSurface
         >
           { t('home_screen:contracts_section_title') }
         </Text>
@@ -109,18 +111,28 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
           contracts.map(contract => <ContractListEntry
             key={ contract.id }
             contract={ contract }
+            onPress={ () => navigation.navigate('AddContractModal', {
+              editContract: contract,
+              onEndEditing: reloadContracts,
+            }) }
           />)
         }
         <Button
           style={ styles.button }
           label={ t('home_screen:add_new_contract') }
           icon={ AddIcon }
-          onPress={ () => navigation.push('AddContractModal') }
+          onPress={ () => navigation.navigate('AddContractModal', {}) }
         />
       </ScrollView>
-      <FloatingActionButton
-        icon={ AddIcon }
-        onPress={ () => navigation.push('AddMeasurementModal', { meter: undefined }) }
+
+
+      <GlobalToast
+        renderAttachment={ () =>
+          <FloatingActionButton
+            icon={ AddIcon }
+            onPress={ () => navigation.navigate('AddMeasurementModal', {}) }
+          />
+        }
       />
     </SafeAreaView>
   )

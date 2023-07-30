@@ -4,6 +4,7 @@
  */
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import Contract from '../services/database/entities/contract'
 import Measurement from '../services/database/entities/measurement'
 import Meter from '../services/database/entities/meter'
 
@@ -33,7 +34,10 @@ export type HomeStackParamList = {
     editMeasurement?: Measurement
     onEndEditing?: () => void
   };
-  AddContractModal: undefined;
+  AddContractModal: {
+    editContract?: Contract
+    onEndEditing?: () => void
+  };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<

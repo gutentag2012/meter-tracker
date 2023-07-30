@@ -11,7 +11,7 @@ class Meter {
    'Configuration
    digits: int
    unit: string
-   areValuesIncreasing: boolean
+   areValuesDepleting: boolean
    isActive: boolean
 
    'Foreign keys

@@ -14,7 +14,6 @@ import { IconButton } from '../../components/IconButton'
 import { AddIcon } from '../../components/icons/AddIcon'
 import { CloseIcon } from '../../components/icons/CloseIcon'
 import { Input } from '../../components/Input'
-import { Typography } from '../../constants/Theme'
 import { HomeStackScreenProps } from '../../navigation/types'
 import Contract from '../../services/database/entities/contract'
 import Meter from '../../services/database/entities/meter'
@@ -22,6 +21,7 @@ import { useRepository, useUpdatedData } from '../../services/database/GenericRe
 import ContractService from '../../services/database/services/ContractService'
 import MeterService from '../../services/database/services/MeterService'
 import { t } from '../../services/i18n'
+import { Typography } from '../../setupTheme'
 
 export default function AddMeterModal({
                                         navigation,
@@ -46,7 +46,7 @@ export default function AddMeterModal({
   } as Record<string, any>)
 
   const [formBoolState, setFormBoolState] = useState({
-    valuesAreIncreasing: editMeter?.areValuesIncreasing ?? true,
+    areValuesDepleting: editMeter?.areValuesDepleting ?? false,
     isActive: editMeter?.isActive ?? true,
   })
 
@@ -60,7 +60,7 @@ export default function AddMeterModal({
     setLoading(true)
 
     const meter = new Meter(
-      name.current, parseInt(digits.current), unit.current, selectedContract, formBoolState.valuesAreIncreasing,
+      name.current, parseInt(digits.current), unit.current, selectedContract, formBoolState.areValuesDepleting,
       formBoolState.isActive, identificationNumber.current,
     )
     if (!editMeter) {
@@ -107,7 +107,7 @@ export default function AddMeterModal({
                 color: Colors.primary,
               } }
             >
-              Save
+              { t('utils:save') }
             </Text>
           </Ripple>
         </> }
@@ -151,7 +151,7 @@ export default function AddMeterModal({
               marginBottom: 4,
             } }
           >
-            Configuration
+            { t('meter:configuration') }
           </Text>
           <View
             row
@@ -187,22 +187,22 @@ export default function AddMeterModal({
             <Checkbox
               label={ t('meter:input_placeholder_is_increase') }
               color={ Colors.primary }
-              value={ formBoolState.valuesAreIncreasing }
-              onValueChange={ (valuesAreIncreasing: boolean) => setFormBoolState({
+              value={ formBoolState.areValuesDepleting }
+              onValueChange={ (areValuesDepleting: boolean) => setFormBoolState({
                 ...formBoolState,
-                valuesAreIncreasing,
+                areValuesDepleting,
               }) }
             />
           </View>
-          <Checkbox
-            label={ t('meter:input_placeholder_is_valid') }
-            color={ Colors.primary }
-            value={ formBoolState.isActive }
-            onValueChange={ (isActive: boolean) => setFormBoolState({
-              ...formBoolState,
-              isActive,
-            }) }
-          />
+          {/*<Checkbox*/}
+          {/*  label={ t('meter:input_placeholder_is_valid') }*/}
+          {/*  color={ Colors.primary }*/}
+          {/*  value={ formBoolState.isActive }*/}
+          {/*  onValueChange={ (isActive: boolean) => setFormBoolState({*/}
+          {/*    ...formBoolState,*/}
+          {/*    isActive,*/}
+          {/*  }) }*/}
+          {/*/>*/}
         </View>
 
         <View
@@ -218,7 +218,7 @@ export default function AddMeterModal({
               marginBottom: 8,
             } }
           >
-            Contract
+            { t('contract:contract') }
           </Text>
           {
             contracts.map(contract => <ContractSelectEntry
@@ -232,7 +232,7 @@ export default function AddMeterModal({
           <Button
             label={ t('home_screen:add_new_contract') }
             icon={ AddIcon }
-            onPress={ () => navigation.push('AddContractModal') }
+            onPress={ () => navigation.navigate('AddContractModal', {}) }
           />
         </View>
       </ScrollView>

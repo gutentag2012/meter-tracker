@@ -12,15 +12,15 @@ export default class Contract extends Entity {
     public identification?: string,
     public createdAt: number = Date.now(),
     public id?: number,
+    public lastMonthConsumption?: number,
+    public thisMonthConsumption?: number,
   ) {
     super(id)
   }
 
   getInsertionValues(forceId?: boolean): string {
-    // TODO Think about sanitizing the values
     const identification = this.identification ? `"${ this.identification }"` : 'NULL'
-    return `("${ this.name }", ${ this.pricePerUnit }, ${ identification }, "${ moment(this.createdAt)
-      .format('YYYY-MM-DD HH:mm') }"${ forceId ? `, ${ this.id }` : '' })`
+    return `("${ this.name }", ${ this.pricePerUnit }, ${ identification }, ${ this.createdAt }${ forceId ? `, ${ this.id }` : '' })`
   }
 
   public getUpdateStatement(): string {
@@ -30,7 +30,7 @@ SET
   name = "${ this.name }", 
   pricePerUnit = ${ this.pricePerUnit }, 
   identification = "${ this.identification ?? 'NULL' }", 
-  createdAt = "${ moment( this.createdAt ).format( 'YYYY-MM-DD HH:mm' ) }" 
+  createdAt = ${ this.createdAt }
 WHERE id = ${ this.id }`
   }
 

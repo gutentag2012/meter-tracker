@@ -1,4 +1,6 @@
 import moment from 'moment'
+import { LangKey } from '../lang/en'
+import { t } from '../services/i18n'
 
 export interface IntervalDaily {
   type: 'Daily'
@@ -30,15 +32,18 @@ export interface IntervalYearly {
 
 export type Interval = IntervalDaily | IntervalWeekly | IntervalMonthly | IntervalYearly
 
+export const translateInterval = (type: Interval["type"]) => {
+  return t(`utils:interval_${ type.toLowerCase() }` as LangKey)
+}
+
 export const intervalToString = (interval: Interval) => {
-  let res = interval.type
+  let res = translateInterval(interval.type)
   if (interval.type === 'Weekly') {
     res += `  |  ${ moment()
       .isoWeekday(interval.dayOfWeek)
       .format('dddd') }`
   }
   if (interval.type === 'Monthly') {
-    console.log("MONTHLY", interval)
     res += `  |  Day ${ interval.dayOfMonth.toString()
       .padStart(2, '0') }`
   }

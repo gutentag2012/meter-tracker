@@ -1,10 +1,11 @@
+import './polyfill'
 import './setupColorScheme'
 import './setupTheme'
 
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { ButtonProps, Colors, ThemeManager } from 'react-native-ui-lib'
 
 import useCachedResources from './hooks/useCachedResources'
 import useColorScheme from './hooks/useColorScheme'
@@ -17,6 +18,7 @@ import { LogBox } from 'react-native';
 LogBox.ignoreLogs([
   'Non-serializable values were found in the navigation state',
 ]);
+
 
 export default function App() {
   const isLoadingComplete = useCachedResources()
@@ -47,7 +49,9 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <Navigation colorScheme={ colorScheme } />
+      <GestureHandlerRootView style={{flex: 1}}>
+        <Navigation colorScheme={ colorScheme } />
+      </GestureHandlerRootView>
       <StatusBar />
     </SafeAreaProvider>
   )

@@ -1,12 +1,18 @@
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
-import db from '../services/database'
-import { CONTRACT_TABLE_NAME, MEASUREMENT_TABLE_NAME, METER_TABLE_NAME } from '../services/database/entities'
+import moment from 'moment'
+import { Colors } from 'react-native-ui-lib'
+import { CheckCircleIcon } from '../components/icons/CheckCircleIcon'
+import { ErrorCircleIcon } from '../components/icons/ErrorCircleIcon'
+import { InfoCircleIcon } from '../components/icons/InfoCircleIcon'
+import { clearDatabase, reloadDatabase } from '../services/database'
 import GenericRepository from '../services/database/GenericRepository'
 import ContractService from '../services/database/services/ContractService'
 import MeasurementService from '../services/database/services/MeasurementService'
 import MeterService from '../services/database/services/MeterService'
+import EventEmitter from '../services/events'
+import { t } from '../services/i18n'
 
 export const databaseToCSVString = async () => {
   // Could be used to export everything in separate files
@@ -39,9 +45,16 @@ export const databaseToCSVString = async () => {
   // })
 
   const service = new MeasurementService()
+  // const meterService = new MeterService()
+  // const contractService = new ContractService()
   const repo = new GenericRepository(service)
+  // const meterRepo = new GenericRepository(meterService)
+  // const contractRepo = new GenericRepository(contractService)
 
   const allMeasurements = await repo.getAllData()
+  // const allMeters = await meterRepo.getAllData()
+  // const allContracts = await contractRepo.getAllData()
+
   let csvHeader = service.getCSVHeader(true)
   const csvRows = allMeasurements.map(measurement => {
     return measurement.getCSVValues(true)
@@ -49,7 +62,12 @@ export const databaseToCSVString = async () => {
   return [csvHeader, ...csvRows].join('\n')
 }
 
-export const shareCSVFile = async (data: string, filename = 'db.csv') => {
+export const shareCSVFile = async (data: string, filename?: string) => {
+  if (!filename) {
+    filename = `meter-tracker_${ moment()
+      .format('YYYY-MM-DD_HH-mm') }.csv`
+  }
+
   const fileUri = FileSystem.cacheDirectory + filename
   await FileSystem.writeAsStringAsync(fileUri, data, { encoding: FileSystem.EncodingType.UTF8 })
 
@@ -72,6 +90,11 @@ export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   if (!csv) {
     csv = await readCSVFile()
   }
+  EventEmitter.emitToast({
+    message: t('utils:importing_data'),
+    isLoading: true,
+    icon: InfoCircleIcon,
+  })
 
   const measurementService = new MeasurementService()
   const measurementRepo = new GenericRepository(measurementService)
@@ -86,33 +109,22 @@ export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   const rowsAsObjects = rows.map(row => {
     const values = row.split(',')
     const paresObject = values.reduce((acc, value, index) => {
-      acc[headerArray[index]] = !value ? undefined : JSON.parse(value)
+
+      try {
+        acc[headerArray[index]] = !value ? undefined : JSON.parse(value)
+      } catch (ignored) {
+        // Catch any possible parsing error
+        acc[headerArray[index]] = value
+      }
+
       return acc
     }, {} as Record<string, any>)
+
     return measurementService.fromJSON(paresObject)
   })
 
   if (overwrite) {
-    db.transaction(async tx => {
-      await Promise.all(
-        [METER_TABLE_NAME, CONTRACT_TABLE_NAME, MEASUREMENT_TABLE_NAME].map(table => {
-          const statement = `DELETE FROM ${table} WHERE 1 = 1`
-          return new Promise((resolve, reject) => {
-            tx.executeSql(
-              statement,
-              [],
-              (_, { rows }) => {
-                resolve(rows._array)
-              },
-              (_, error) => {
-                console.error('ERROR WHILE EXPORTING DB', error)
-                resolve([])
-                return true
-              },
-            )
-          })
-        }))
-    })
+    await clearDatabase()
   }
 
   const uniqueEntities = {
@@ -135,15 +147,40 @@ export const databaseFromCSV = async (csv?: string, overwrite = true) => {
 
   const promises = []
   for (const contract of Object.values(uniqueEntities.contracts)) {
-    promises.push(contractRepo.insertData(contract, true))
+    promises.push(contractRepo.insertData(contract, true, false))
   }
   for (const meter of Object.values(uniqueEntities.meters)) {
-    promises.push(meterRepo.insertData(meter, true))
+    promises.push(meterRepo.insertData(meter, true, false))
   }
   for (const measurement of Object.values(uniqueEntities.measurements)) {
-    promises.push(measurementRepo.insertData(measurement, true))
+    promises.push(measurementRepo.insertData(measurement, true, false))
   }
 
-  await Promise.all(promises)
-  console.log('Inserted all data')
+  const [success, error] = await Promise.all(promises)
+    .then(() => [true])
+    .catch(err => [false, err])
+
+  if (!success) {
+    EventEmitter.emitToast({
+      message: error?.message ?? error,
+      duration: 5000,
+      icon: ErrorCircleIcon,
+      colors: {
+        background: Colors.errorContainer,
+        text: Colors.onErrorContainer,
+        button: 'error',
+      },
+    })
+    return
+  }
+
+  reloadDatabase()
+
+  EventEmitter.emit(`data-inserted`)
+
+  EventEmitter.emitToast({
+    message: t('utils:import_finished'),
+    duration: 3000,
+    icon: CheckCircleIcon,
+  })
 }

@@ -9,7 +9,8 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "patch-package": "npx patch-package",
-    "build:android:preview": "eas build -p android --profile preview"
+    "build:android:preview": "npx eas build -p android --profile preview",
+    "build:docker:env": "docker run --rm -it -v ${PWD}:/project mingc/android-build-box:1.20.0"
   },
   "jest": {
     "preset": "jest-expo"
@@ -22,6 +23,7 @@
     "@react-navigation/bottom-tabs": "^6.0.5",
     "@react-navigation/native": "^6.0.2",
     "@react-navigation/native-stack": "^6.1.0",
+    "d3": "^7.8.5",
     "expo": "~47.0.12",
     "expo-asset": "~8.7.0",
     "expo-camera": "~13.1.0",
@@ -32,7 +34,6 @@
     "expo-linking": "~3.3.1",
     "expo-localization": "~14.0.0",
     "expo-notifications": "~0.17.0",
-    "expo-permissions": "~14.0.0",
     "expo-sharing": "~11.0.1",
     "expo-splash-screen": "~0.17.5",
     "expo-sqlite": "~11.0.0",
@@ -57,6 +58,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
+    "@types/d3": "^7.4.0",
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
     "@types/react-native-material-ripple": "^0.9.2",

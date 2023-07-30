@@ -11,21 +11,28 @@ import { AppBar } from '../../components/AppBar'
 import { IconButton } from '../../components/IconButton'
 import { CloseIcon } from '../../components/icons/CloseIcon'
 import { Input } from '../../components/Input'
-import { Typography } from '../../constants/Theme'
 import { HomeStackScreenProps } from '../../navigation/types'
 import Contract from '../../services/database/entities/contract'
 import { useRepository } from '../../services/database/GenericRepository'
 import ContractService from '../../services/database/services/ContractService'
 import { t } from '../../services/i18n'
+import { Typography } from '../../setupTheme'
 
-export default function AddContractModal({ navigation }: HomeStackScreenProps<'AddContractModal'>) {
+export default function AddContractModal({ navigation,
+                                           route: {
+                                             params: {
+                                               editContract,
+                                               onEndEditing,
+                                             },
+                                           },
+                                         }: HomeStackScreenProps<'AddContractModal'>) {
   const [repository] = useRepository<Contract, ContractService>(ContractService)
 
   const [loading, setLoading] = useState(false)
 
-  const name = useRef('')
-  const identificationNumber = useRef('')
-  const pricePerUnit = useRef('')
+  const name = useRef(editContract?.name ?? '')
+  const identificationNumber = useRef(editContract?.identification ?? '')
+  const pricePerUnit = useRef(editContract?.pricePerUnit.toString() ?? '')
 
   const textFieldRefs = useRef({
     name: undefined,
@@ -43,7 +50,13 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
     setLoading(true)
 
     const contract = new Contract(name.current, parseFloat(pricePerUnit.current), identificationNumber.current)
-    await repository.insertData(contract)
+    if (!editContract) {
+      await repository.insertData(contract)
+    } else {
+      contract.id = editContract.id
+      await repository.updateData(contract)
+      onEndEditing?.()
+    }
 
     setLoading(false)
     navigation.pop()
@@ -81,7 +94,7 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
                 color: Colors.primary,
               } }
             >
-              Save
+              { t('utils:save') }
             </Text>
           </Ripple>
         </> }
@@ -101,12 +114,14 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
             validation={ ['required'] }
             validationMessages={ [t('validationMessage:required')] }
             onSubmit={ onSave }
+            initialValue={ name.current }
           />
           <Input
             ref={ (ref: any) => textFieldRefs.current.identificationNumber = ref }
             label={ t('meter:input_placeholder_identification') }
             onChangeText={ (value) => identificationNumber.current = value }
             onSubmit={ onSave }
+            initialValue={ identificationNumber.current }
           />
           <Input
             ref={ (ref: any) => textFieldRefs.current.pricePerUnit = ref }
@@ -116,7 +131,8 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
             validation={ ['required', (value: string) => !isNaN(Number(value))] }
             validationMessages={ [t('validationMessage:required'), t('validationMessage:isNotANumber')] }
             onSubmit={ onSave }
-            hint='in cents'
+            hint={ t('contract:in_cents') }
+            initialValue={ pricePerUnit.current }
           />
         </View>
 
@@ -127,5 +143,3 @@ export default function AddContractModal({ navigation }: HomeStackScreenProps<'A
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({})

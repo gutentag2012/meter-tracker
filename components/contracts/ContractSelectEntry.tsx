@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from 'react'
 import { StyleSheet } from 'react-native'
 import { Checkbox, Colors, Text, TouchableOpacity, View } from 'react-native-ui-lib'
-import { Typography } from '../../constants/Theme'
 import Contract from '../../services/database/entities/contract'
+import { Typography } from '../../setupTheme'
 
 interface MeterListEntryProps {
   contract: Contract,
@@ -39,7 +39,7 @@ export const ContractSelectEntry: FunctionComponent<Props> = ({
     </View>
     <Text
       style={ styles.value }
-      onSurfaceVariant
+      onSurface
     >
       { contract.pricePerUnit } Cent
     </Text>

@@ -5,8 +5,8 @@ export abstract class Service {
   protected constructor(public readonly TableName: string) {
   }
 
-  getRetrieveAllStatement(): string {
-    return `SELECT * FROM ${ this.TableName }`
+  getRetrieveAllStatement(ordered=false): string {
+    return `SELECT * FROM ${ this.TableName }${ ordered ? ' ORDER BY id' : ''}`
   }
 
   getRetrieveByIdStatement(id: number): string {
@@ -15,6 +15,14 @@ export abstract class Service {
 
   getRetrieveWhereStatement(whereClause: string): string {
     return `${ this.getRetrieveAllStatement() } WHERE ${ whereClause }`
+  }
+
+  getDeleteStatement(id: number): string {
+    return `DELETE FROM ${ this.TableName } WHERE id = ${ id }`
+  }
+
+  getDeleteAllStatement(): string {
+    return `DELETE FROM ${ this.TableName }`
   }
 
   abstract getCSVHeader(withChildren?: boolean): string

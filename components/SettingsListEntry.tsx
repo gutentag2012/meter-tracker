@@ -1,13 +1,14 @@
-import { StatusBar } from 'expo-status-bar'
-import React, { FunctionComponent, ReactElement, Ref, useRef, useState } from 'react'
-import { Platform, StyleSheet } from 'react-native'
+import React, { FunctionComponent, ReactElement } from 'react'
+import { StyleSheet } from 'react-native'
 import Ripple from 'react-native-material-ripple'
-import { Colors, DateTimePicker, Dialog, Text, View } from 'react-native-ui-lib'
-import { Typography } from '../constants/Theme'
+import { Colors, DateTimePicker, Text, View } from 'react-native-ui-lib'
+import Layout from '../constants/Layout'
+import { Typography } from '../setupTheme'
 import { CustomSwitch } from './CustomSwitch'
-import { Input } from './Input'
+import { ExportIcon } from './icons/ExportIcon'
 
 type SettingsType = 'text' | 'email-address' | 'checkbox' | 'date' | 'time' | 'custom'
+
 interface SettingsListEntryProps {
   type: SettingsType
   onPress?: (value?: any) => void // Returns new value
@@ -92,7 +93,7 @@ export const SettingsListEntry: FunctionComponent<Props> = ({
       </Text>
       <Text
         style={ styles.subtitle }
-        onSurfaceVariant
+        onSurface
       >
         { getSubTitle(value) }
       </Text>
@@ -115,5 +116,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...Typography.BodySmall,
+    maxWidth: Layout.window.width - 96,
   },
 })

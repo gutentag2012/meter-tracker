@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { CONTRACT_TABLE_NAME } from '../entities'
+import { CONTRACT_TABLE_NAME, MEASUREMENT_TABLE_NAME, METER_TABLE_NAME } from '../entities'
 import Contract from '../entities/contract'
 import { Service } from './service'
 
@@ -17,32 +17,36 @@ CREATE TABLE IF NOT EXISTS ${CONTRACT_TABLE_NAME} (
     name                  TEXT NOT NULL,
     pricePerUnit          REAL NOT NULL,
     identification        TEXT,
-    createdAt             STRING
+    createdAt             INTEGER
 );`
     }
     return ''
   }
 
-  public getRetrieveAllStatement(): string {
+  public getRetrieveAllStatement(ordered=false): string {
+    const startOfThisMonth = moment().startOf('month').valueOf()
+    const startOfLastMonth = moment().subtract(1, 'month').startOf('month').valueOf()
+    const endOfLastMonth = moment(startOfLastMonth).endOf('month').valueOf()
     return `
 SELECT 
-  name as contract_name,
-  pricePerUnit as contract_pricePerUnit,
-  identification as contract_identification,
-  createdAt as contract_createdAt,
-  id as contract_id 
-FROM ${ this.TableName }`
+  c.name as contract_name,
+  c.pricePerUnit as contract_pricePerUnit,
+  c.identification as contract_identification,
+  c.createdAt as contract_createdAt,
+  c.id as contract_id,
+  (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfLastMonth} AND mm.createdAt <= ${endOfLastMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt ASC LIMIT 1) as contract_lastMonthFirstReading,
+  (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfLastMonth} AND mm.createdAt <= ${endOfLastMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt DESC LIMIT 1) as contract_lastMonthLastReading,
+  (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfThisMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt DESC LIMIT 1) as contract_thisMonthLastReading
+FROM ${ this.TableName } c
+${ ordered ? 'ORDER BY c.name ASC' : ''}`
   }
 
   fromJSON(json: any): Contract {
+    const lastMonthConsumption = (json.contract_lastMonthLastReading ?? 0) - (json.contract_lastMonthFirstReading ?? 0)
+    const thisMonthConsumption = (json.contract_thisMonthLastReading ?? 0) - (json.contract_lastMonthLastReading ?? 0)
     return new Contract(
       json.contract_name, json.contract_pricePerUnit, json.contract_identification,
-      typeof json.contract_createdAt === 'number' ? json.contract_createdAt : moment(
-        json.contract_createdAt,
-        'YYYY-M-D HH:mm',
-      )
-        .toDate()
-        .getTime(), json.contract_id,
+      json.contract_createdAt, json.contract_id, lastMonthConsumption, thisMonthConsumption
     )
   }
 

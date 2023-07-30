@@ -5,6 +5,5 @@ export default {
   REMINDER_INTERVAL: 'reminderInterval',
 
   ENABLE_BACKUP_MAIL: 'enableBackupMail',
-  BACKUP_MAIL_RECEIVER: 'backupMailReceiver',
-  BACKUP_MAIL_INTERVAL: 'backupMailInterval',
+  BACKUP_LAST_MAIL: 'backupLastMail',
 } as const

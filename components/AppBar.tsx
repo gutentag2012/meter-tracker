@@ -2,10 +2,7 @@ import React, { FunctionComponent, ReactElement } from 'react'
 import { StyleSheet } from 'react-native'
 import { Bar as ProgressBar } from 'react-native-progress'
 import { Colors, Text, View } from 'react-native-ui-lib'
-import { Typography } from '../constants/Theme'
-import { IconButton } from './IconButton'
-import { BackIcon } from './icons/BackIcon'
-import { CloseIcon } from './icons/CloseIcon'
+import { Typography } from '../setupTheme'
 
 interface AppBarProps {
   title: string,
@@ -22,7 +19,7 @@ export const AppBar: FunctionComponent<Props> = ({
                                                    loading,
   leftAction
                                                  }) => {
-  return <View marginB-16>
+  return <View>
     <View
       style={ styles.container }
       row

@@ -19,7 +19,6 @@ import { FlashIcon } from '../../components/icons/FlashIcon'
 import { FlashOffIcon } from '../../components/icons/FlashOffIcon'
 import { Input } from '../../components/Input'
 import { MeterSelectEntry } from '../../components/meters/MeterSelectEntry'
-import { Typography } from '../../constants/Theme'
 import { HomeStackScreenProps } from '../../navigation/types'
 import Measurement from '../../services/database/entities/measurement'
 import Meter from '../../services/database/entities/meter'
@@ -27,10 +26,18 @@ import { useRepository, useUpdatedData } from '../../services/database/GenericRe
 import MeasurementService from '../../services/database/services/MeasurementService'
 import MeterService from '../../services/database/services/MeterService'
 import { t } from '../../services/i18n'
+import { Typography } from '../../setupTheme'
+import { parseValueForDigits } from '../../utils/TranslationUtils'
 
 export default function AddMeasurementModal({
                                               navigation,
-                                              route: {params: {meter, editMeasurement, onEndEditing}},
+                                              route: {
+                                                params: {
+                                                  meter,
+                                                  editMeasurement,
+                                                  onEndEditing,
+                                                },
+                                              },
                                             }: HomeStackScreenProps<'AddMeasurementModal'>) {
   const [repository, service] = useRepository<Measurement, MeasurementService>(MeasurementService)
   const [meters] = useUpdatedData<Meter, MeterService>(MeterService)
@@ -41,20 +48,28 @@ export default function AddMeasurementModal({
   const [selectedMeter, setSelectedMeter] = useState<Meter | undefined>(meter)
   const [lastMeasurement, setLastMeasurement] = useState<Measurement | undefined>(undefined)
 
-
-  // TODO When editing, I could take the known previous value as the last value (might be unnecessary)
   useEffect(() => {
     if (!selectedMeter) {
       setLastMeasurement(undefined)
       return
     }
 
-    repository.executeRaw<[Measurement]>(service.getLastMeasurementForMeter(selectedMeter.id!))
-      .then((result) => setLastMeasurement(service.fromJSON(result?.[0])))
+    const query = editMeasurement
+                  ? service.getPreviousMeasurement(editMeasurement)
+                  : service.getLastMeasurementForMeter(selectedMeter.id!)
+    repository.executeRaw<[Measurement]>(query)
+      .then((result) => {
+          if (!result?.[0]) {
+            setLastMeasurement(undefined)
+          } else {
+            setLastMeasurement(service.fromJSON(result[0]))
+          }
+        },
+      )
   }, [selectedMeter, repository, service])
 
   const value = useRef<string>(editMeasurement?.value?.toString() ?? '')
-  const date = useRef(editMeasurement?.createdAt ? new Date(editMeasurement?.createdAt) :  new Date())
+  const date = useRef(editMeasurement?.createdAt ? new Date(editMeasurement?.createdAt) : new Date())
 
   const textFieldRefs = useRef({
     value: undefined,
@@ -67,6 +82,41 @@ export default function AddMeasurementModal({
     date: '',
   })
 
+  const switchTorch = useCallback(async (newFlashState: boolean) => {
+    setIsFlashOn(newFlashState)
+    if (Platform.OS === 'ios') {
+      Torch.switchState(newFlashState)
+      return
+    }
+
+    const cameraAllowed = await Torch.requestCameraPermission(
+        t('utils:camera_permission'), // dialog title
+        t('utils:camera_permission_message'), // dialog body
+      )
+      .catch(err => console.log('ERROR WITH CAMERA PERMISSION', err))
+
+    if (!cameraAllowed) {
+      return
+    }
+
+    try {
+      // noinspection JSVoidFunctionReturnValueUsed
+      Promise.resolve(Torch.switchState(newFlashState))
+        .catch(err => console.log('ERROR WITH TORCH', err))
+    } catch (e) {
+      console.log('ERROR WITH TORCH', e)
+    }
+  }, [])
+
+  // Switch off torch when the modal is popped
+  useEffect(() => {
+    return () => {
+      // Do not want to ask for camera permission when the flash was not used
+      if(!isFlashOn) return
+      switchTorch(false)
+    }
+  }, [switchTorch, isFlashOn])
+
   const onSave = useCallback(async () => {
     const validations = Object.values(textFieldRefs.current)
     validations?.forEach((validation: any) => validation.validate())
@@ -74,7 +124,7 @@ export default function AddMeasurementModal({
       return
     }
 
-    const floatValue = parseFloat(value.current)
+    const floatValue = parseFloat(value.current.replace(',', '.'))
     if (isNaN(floatValue)) {
       setErrorState({
         ...errorState,
@@ -93,7 +143,7 @@ export default function AddMeasurementModal({
     setLoading(true)
 
     const measurement = new Measurement(floatValue, selectedMeter.id!, date.current.getTime())
-    if(!editMeasurement) {
+    if (!editMeasurement) {
       await repository.insertData(measurement)
     } else {
       measurement.id = editMeasurement.id
@@ -101,6 +151,7 @@ export default function AddMeasurementModal({
       onEndEditing?.()
     }
 
+    // switchTorch(false)
     setLoading(false)
     navigation.pop()
   }, [selectedMeter])
@@ -115,7 +166,7 @@ export default function AddMeasurementModal({
     >
       <AppBar
         loading={ loading }
-        title={ 'Add Measurement' }
+        title={ t('home_screen:add_new_reading') }
         leftAction={ <>
           <IconButton
             style={ { marginRight: 8 } }
@@ -137,7 +188,7 @@ export default function AddMeasurementModal({
                 color: Colors.primary,
               } }
             >
-              Save
+              { t('utils:save') }
             </Text>
           </Ripple>
         </> }
@@ -154,19 +205,22 @@ export default function AddMeasurementModal({
             ref={ (ref: any) => textFieldRefs.current.value = ref }
             textFieldProps={ { autoFocus: true } }
             inputType='numeric'
-            label={ 'Value' }
+            label={ t('meter:reading') }
             onChangeText={ (textValue) => value.current = textValue }
-            validation={ ['required', (value: string) => !isNaN(Number(value))] }
+            validation={ ['required', (value: string) => !isNaN(parseFloat(value.replace(',', '.')))] }
             validationMessages={ [t('validationMessage:required'), t('validationMessage:isNotANumber')] }
             onSubmit={ onSave }
             initialValue={ value.current }
             hint={ lastMeasurement
-                   ? `Last value was: ${ lastMeasurement.value } ${ selectedMeter?.unit }`
-                   : 'No previous measurement found' }
+                   ? t('meter:last_reading_value', {
+                value: parseValueForDigits(lastMeasurement.value, selectedMeter?.digits),
+                unit: selectedMeter?.unit,
+              })
+                   : t('meter:no_previous_reading') }
           />
           <DateInput
             ref={ (ref: any) => textFieldRefs.current.date = ref }
-            label={ 'Date' }
+            label={ t('utils:date') }
             onChange={ (dateValue) => date.current = dateValue }
             validation={ ['required'] }
             validationMessages={ [t('validationMessage:required')] }
@@ -187,7 +241,7 @@ export default function AddMeasurementModal({
               marginBottom: 8,
             } }
           >
-            Meter
+            { t('meter:meter') }
           </Text>
           {
             errorState.meter && <Text
@@ -209,9 +263,9 @@ export default function AddMeasurementModal({
           }
 
           <Button
-            label={ 'Add Meter' }
+            label={ t('home_screen:add_new_meter') }
             icon={ AddIcon }
-            onPress={ () => navigation.push('AddMeterModal', {}) }
+            onPress={ () => navigation.navigate('AddMeterModal', {}) }
           />
         </View>
       </ScrollView>
@@ -219,24 +273,7 @@ export default function AddMeasurementModal({
 
       <FloatingActionButton
         icon={ isFlashOn ? FlashOffIcon : FlashIcon }
-        onPress={ async () => {
-          setIsFlashOn(!isFlashOn)
-          if (Platform.OS === 'ios') {
-            Torch.switchState(!isFlashOn)
-            return
-          }
-
-          const cameraAllowed = await Torch.requestCameraPermission(
-            'Camera Permissions', // dialog title
-            'We require camera permissions to use the torch on the back of your phone.', // dialog body
-          )
-
-          if (!cameraAllowed) {
-            return
-          }
-
-          Torch.switchState(!isFlashOn)
-        } }
+        onPress={ () => switchTorch(!isFlashOn) }
       />
 
       {/* Use a light status bar on iOS to account for the black space above the modal */ }

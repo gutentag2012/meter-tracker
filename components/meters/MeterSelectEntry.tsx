@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from 'react'
 import { StyleSheet } from 'react-native'
 import { Checkbox, Colors, Text, TouchableOpacity, View } from 'react-native-ui-lib'
-import { Typography } from '../../constants/Theme'
 import Meter from '../../services/database/entities/meter'
+import { Typography } from '../../setupTheme'
 
 interface MeterListEntryProps {
   meter: Meter,
@@ -39,7 +39,7 @@ export const MeterSelectEntry: FunctionComponent<Props> = ({
     </View>
     <Text
       style={ styles.value }
-      onSurfaceVariant
+      onSurface
     >
       { meter.identification }
     </Text>

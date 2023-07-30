@@ -1,7 +1,6 @@
 import React, { ForwardedRef, FunctionComponent } from 'react'
 import { StyleProp, ViewStyle } from 'react-native'
-import { Colors, DateTimePicker, Incubator, TextFieldProps } from 'react-native-ui-lib'
-import { Typography } from '../constants/Theme'
+import { DateTimePicker, TextFieldProps } from 'react-native-ui-lib'
 import { Input } from './Input'
 
 interface InputProps {
@@ -35,12 +34,12 @@ export const DateInput: FunctionComponent<Props> = React.forwardRef(({
     onChange={ (date: Date) => {
       onChange?.(date)
     } }
-    dateFormat={"DD/MM/yyyy"}
+    dateFormat={ 'DD/MM/yyyy' }
     value={ value }
     renderInput={ (props: any) => <Input
       { ...props }
       ref={ ref }
-      hint="dd/mm/yyyy"
+      hint='dd/mm/yyyy'
       placeholder={ label }
       label={ label }
       floatingPlaceholder

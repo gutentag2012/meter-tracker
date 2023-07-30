@@ -18,9 +18,7 @@ export default class Measurement extends Entity {
   }
 
   getInsertionValues(forceId?: boolean): string {
-    // TODO Think about sanitizing the values
-    return `(${ this.value }, ${ this.meter_id }, "${ moment(this.createdAt)
-      .format('YYYY-MM-DD HH:mm') }"${ forceId ? `, ${ this.id }` : '' })`
+    return `(${ this.value }, ${ this.meter_id }, ${ this.createdAt }${ forceId ? `, ${ this.id }` : '' })`
   }
 
   public getUpdateStatement(): string {
@@ -29,7 +27,7 @@ UPDATE ${ Measurement.TABLE_NAME }
 SET 
   value = ${ this.value }, 
   meter_id = ${ this.meter_id }, 
-  createdAt = "${ moment(this.createdAt).format('YYYY-MM-DD HH:mm') }"
+  createdAt = ${ this.createdAt }
 WHERE id = ${ this.id }`
   }
 
@@ -45,7 +43,7 @@ WHERE id = ${ this.id }`
       this.meter?.name,
       this.meter?.digits,
       this.meter?.unit,
-      this.meter?.areValuesIncreasing,
+      this.meter?.areValuesDepleting,
       this.meter?.isActive,
       this.meter?.identification,
       this.meter?.createdAt,

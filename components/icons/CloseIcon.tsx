@@ -1,25 +1,7 @@
 import React, { FunctionComponent } from 'react'
-import Svg, { Path } from 'react-native-svg'
-import { Colors } from 'react-native-ui-lib'
+import { IconBase, IconBaseProps } from './IconBase'
 
-interface closeProps {
-  color?: string
-  size?: number
-}
-
-type Props = closeProps
-
-export const CloseIcon: FunctionComponent<Props> = ({
-                                                      color = Colors.onBackground,
-                                                      size =24,
-                                                    }) => {
-  return <Svg
-    height={ size }
-    width={ size }
-    viewBox={ `0 0 24 24` }
-    fill={ color }
-  >
-    <Path d='m12 13.4-4.9 4.9q-.275.275-.7.275-.425 0-.7-.275-.275-.275-.275-.7 0-.425.275-.7l4.9-4.9-4.9-4.9q-.275-.275-.275-.7 0-.425.275-.7.275-.275.7-.275.425 0 .7.275l4.9 4.9 4.9-4.9q.275-.275.7-.275.425 0 .7.275.275.275.275.7 0 .425-.275.7L13.4 12l4.9 4.9q.275.275.275.7 0 .425-.275.7-.275.275-.7.275-.425 0-.7-.275Z' />
-  </Svg>
-
+const path = 'M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z'
+export const CloseIcon: FunctionComponent<IconBaseProps> = (props) => {
+  return <IconBase { ...props } path={ path } />
 }

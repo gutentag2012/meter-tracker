@@ -1,9 +1,11 @@
+import { StatusBar } from 'expo-status-bar'
 import React, { FunctionComponent, useEffect, useRef } from 'react'
-import { StyleSheet } from 'react-native'
+import { Platform, StyleSheet } from 'react-native'
 import Ripple from 'react-native-material-ripple'
 import { Colors, Dialog, Text, View } from 'react-native-ui-lib'
 import { Input } from '../../components/Input'
-import { Typography } from '../../constants/Theme'
+import { t } from '../../services/i18n'
+import { Typography } from '../../setupTheme'
 
 export interface SingleTextFieldDialogProps {
   label?: string
@@ -46,6 +48,7 @@ export const SingleTextFieldDialog: FunctionComponent<Props> = ({
       borderRadius: 4,
     } }
   >
+    <StatusBar style={ Platform.OS === 'ios' ? 'light' : 'auto' } backgroundColor={Colors.overlay} />
     <Text style={ styles.titleDialog }>{ label }</Text>
 
     <Input
@@ -80,7 +83,7 @@ export const SingleTextFieldDialog: FunctionComponent<Props> = ({
             color: Colors.primary,
           } }
         >
-          Cancel
+          { t('utils:cancel') }
         </Text>
       </Ripple>
       <Ripple
@@ -103,7 +106,7 @@ export const SingleTextFieldDialog: FunctionComponent<Props> = ({
             color: Colors.primary,
           } }
         >
-          Save
+          { t('utils:save') }
         </Text>
       </Ripple>
     </View>

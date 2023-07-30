@@ -10,7 +10,7 @@ import React, {
 } from 'react'
 import { StyleProp, ViewStyle } from 'react-native'
 import { Colors, Incubator, Text, TextFieldProps, View } from 'react-native-ui-lib'
-import { Typography } from '../constants/Theme'
+import { Typography } from '../setupTheme'
 
 interface InputProps {
   label?: string,
@@ -112,7 +112,7 @@ export const Input: FunctionComponent<Props> = React.forwardRef(({
       cursorColor={ Colors.primary }
       selectionColor={ Colors.primary }
       floatingPlaceholderColor={ {
-        default: Colors.onSurfaceVariant,
+        default: Colors.onSurface,
         focus: Colors.primary,
         error: Colors.error,
         disabled: Colors.outline,

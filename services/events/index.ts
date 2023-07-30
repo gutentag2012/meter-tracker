@@ -1,3 +1,5 @@
+import { GlobalToast } from '../../components/GlobalToast'
+
 export default class EventEmitter {
   private static subscribers = new Map<string, Array<Function>>()
 
@@ -24,5 +26,24 @@ export default class EventEmitter {
       return
     }
     EventEmitter.subscribers.get(event)!.forEach(cb => cb(...args))
+  }
+
+  static lastToast: GlobalToast | undefined
+  private static toastTimeout: NodeJS.Timeout | undefined
+
+  static emitToast(props?: GlobalToast) {
+    EventEmitter.emit('global-toast', EventEmitter.lastToast = props)
+
+    if (EventEmitter.toastTimeout) {
+      clearTimeout(EventEmitter.toastTimeout)
+    }
+
+    if (!props || props.isLoading === true) {
+      return
+    }
+
+    EventEmitter.toastTimeout = setTimeout(() => {
+        EventEmitter.emit('global-toast', EventEmitter.lastToast = undefined)
+    }, props.duration ?? 5000)
   }
 }

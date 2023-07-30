@@ -20,6 +20,7 @@ export const FloatingActionButton: FunctionComponent<Props> = ({
   return <Ripple
     rippleContainerBorderRadius={ 16 }
     rippleColor={ Colors.onPrimaryContainer }
+    // @ts-ignore
     style={ [styles.container, style] }
     onPress={ onPress }
   >

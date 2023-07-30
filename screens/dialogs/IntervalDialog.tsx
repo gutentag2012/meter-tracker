@@ -1,12 +1,13 @@
+import { StatusBar } from 'expo-status-bar'
 import moment from 'moment/moment'
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react'
-import { StyleSheet } from 'react-native'
+import React, { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react'
+import { Platform, StyleSheet } from 'react-native'
 import Ripple from 'react-native-material-ripple'
 import { Chip, Colors, Dialog, Text, View } from 'react-native-ui-lib'
 import { Input } from '../../components/Input'
-import { Typography } from '../../constants/Theme'
 import { t } from '../../services/i18n'
-import { DefaultIntervalSetting, Interval } from '../../utils/IntervalUtils'
+import { Typography } from '../../setupTheme'
+import { DefaultIntervalSetting, Interval, translateInterval } from '../../utils/IntervalUtils'
 
 export interface IntervalDialogProps {
   title?: string
@@ -56,6 +57,43 @@ export const IntervalDialog: FunctionComponent<Props> = ({
     }
   }, [initialValue])
 
+  const onSave = useCallback(() => setTimeout(() => {
+    const interval = {
+      ...(value as any),
+      hour: parseInt(textFieldValues.current.hour),
+      minute: parseInt(textFieldValues.current.minute),
+      dayOfMonth: parseInt(textFieldValues.current.dayOfMonth),
+    }
+
+    const foundErrors = {} as Record<string, string>
+    if (interval.type === 'Weekly' && interval.dayOfWeek === undefined) {
+      foundErrors['dayOfWeek'] = t('validationMessage:required')
+    }
+
+    if ((interval.type === 'Monthly' || interval.type === 'Yearly') && interval.dayOfMonth === undefined) {
+      foundErrors['dayOfMonth'] = t('validationMessage:required')
+    }
+    if ((interval.type === 'Monthly' || interval.type === 'Yearly') && (interval.dayOfMonth < 1 || interval.dayOfMonth > 31)) {
+      foundErrors['dayOfMonth'] = t('validationMessage:dayOfMonthNotInRange')
+    }
+
+    if (interval.type === 'Yearly' && interval.monthOfYear === undefined) {
+      foundErrors['monthOfYear'] = t('validationMessage:required')
+    }
+    if (interval.type === 'Yearly' && (interval.monthOfYear < 1 || interval.monthOfYear > 12)) {
+      foundErrors['monthOfYear'] = t('validationMessage:monthNotInRange')
+    }
+
+    if (Object.keys(foundErrors).length > 0) {
+      setErrors(foundErrors)
+      return
+    }
+
+    onFinish?.(interval)
+    setValue(DefaultIntervalSetting)
+    onDismiss()
+  }, 100), [value, onFinish, onDismiss])
+
   return <Dialog
     onDismiss={ onDismiss }
     visible={ isVisible }
@@ -72,25 +110,30 @@ export const IntervalDialog: FunctionComponent<Props> = ({
       borderRadius: 4,
     } }
   >
+    <StatusBar
+      style={ Platform.OS === 'ios' ? 'light' : 'auto' }
+      backgroundColor={ Colors.overlay }
+    />
     <Text style={ styles.titleDialog }>{ title }</Text>
 
     <View
       style={ {
         display: 'flex',
         flexDirection: 'row',
+        flexWrap: 'wrap',
         paddingHorizontal: 16,
-        marginBottom: 8,
       } }
     >
       {
         intervalOptions.map(interval => (
           <Chip
             key={ interval }
-            label={ interval }
+            label={ translateInterval(interval) }
             containerStyle={ [
               value.type === interval
               ? styles.chipActive
               : styles.chipInactive,
+              { marginBottom: 8 },
             ] }
             onPress={ () => setValue({
               ...(value as any),
@@ -102,7 +145,7 @@ export const IntervalDialog: FunctionComponent<Props> = ({
     {
       value.type === 'Weekly' &&
         <View>
-            <Text style={ styles.sectionTitle }>Day of Week</Text>
+            <Text style={ styles.sectionTitle }>{ t('utils:day_of_week') }</Text>
           { errors.dayOfWeek && <Text style={ styles.labelError }>{ errors.dayOfWeek }</Text> }
             <View
                 style={ {
@@ -137,7 +180,7 @@ export const IntervalDialog: FunctionComponent<Props> = ({
     {
       value.type === 'Yearly' &&
         <View>
-            <Text style={ styles.sectionTitle }>Month</Text>
+            <Text style={ styles.sectionTitle }>{ t('utils:month') }</Text>
           { errors.monthOfYear && <Text style={ styles.labelError }>{ errors.monthOfYear }</Text> }
             <View
                 style={ {
@@ -176,7 +219,7 @@ export const IntervalDialog: FunctionComponent<Props> = ({
             outerContainerStyle={ {
               paddingHorizontal: 16,
             } }
-            label={ 'Day of Month' }
+            label={ t('utils:day_of_month') }
             inputType={ 'numeric' }
             initialValue={ initialValue?.type === 'Monthly' || initialValue?.type === 'Yearly'
                            ? initialValue.dayOfMonth.toString()
@@ -197,7 +240,7 @@ export const IntervalDialog: FunctionComponent<Props> = ({
           flex: 1,
           marginRight: 4,
         } }
-        label={ 'Hour' }
+        label={ t('utils:hour') }
         inputType={ 'numeric' }
         initialValue={ initialValue?.hour?.toString() ?? '0' }
         onChangeText={ text => textFieldValues.current.hour = text }
@@ -207,7 +250,7 @@ export const IntervalDialog: FunctionComponent<Props> = ({
           flex: 1,
           marginLeft: 4,
         } }
-        label={ 'Minute' }
+        label={ t('utils:minute') }
         inputType={ 'numeric' }
         initialValue={ initialValue?.minute?.toString() ?? '0' }
         onChangeText={ text => textFieldValues.current.minute = text }
@@ -238,49 +281,14 @@ export const IntervalDialog: FunctionComponent<Props> = ({
             color: Colors.primary,
           } }
         >
-          Cancel
+          { t('utils:cancel') }
         </Text>
       </Ripple>
       <Ripple
         rippleColor={ Colors.onBackground }
         rippleContainerBorderRadius={ 100 }
         rippleCentered
-        onPress={ () => setTimeout(() => {
-          const interval = {
-            ...(value as any),
-            hour: parseInt(textFieldValues.current.hour),
-            minute: parseInt(textFieldValues.current.minute),
-            dayOfMonth: parseInt(textFieldValues.current.dayOfMonth),
-          }
-
-          const foundErrors = {} as Record<string, string>
-          if (interval.type === 'Weekly' && interval.dayOfWeek === undefined) {
-            foundErrors['dayOfWeek'] = t('validationMessage:required')
-          }
-
-          if ((interval.type === 'Monthly' || interval.type === 'Yearly') && interval.dayOfMonth === undefined) {
-            foundErrors['dayOfMonth'] = t('validationMessage:required')
-          }
-          if ((interval.type === 'Monthly' || interval.type === 'Yearly') && (interval.dayOfMonth < 1 || interval.dayOfMonth > 31)) {
-            foundErrors['dayOfMonth'] = "The day of month must be between 1 and 31"
-          }
-
-          if (interval.type === 'Yearly' && interval.monthOfYear === undefined) {
-            foundErrors['monthOfYear'] = t('validationMessage:required')
-          }
-          if (interval.type === 'Yearly' && (interval.monthOfYear < 1 || interval.monthOfYear > 12)) {
-            foundErrors['monthOfYear'] = "The month of year must be between 1 and 12"
-          }
-
-          if (Object.keys(foundErrors).length > 0) {
-            setErrors(foundErrors)
-            return
-          }
-
-          onFinish?.(interval)
-          setValue(DefaultIntervalSetting)
-          onDismiss()
-        }, 100) }
+        onPress={ onSave }
         style={ {
           paddingVertical: 8,
           paddingHorizontal: 16,
@@ -292,7 +300,7 @@ export const IntervalDialog: FunctionComponent<Props> = ({
             color: Colors.primary,
           } }
         >
-          Save
+          { t('utils:save') }
         </Text>
       </Ripple>
     </View>
@@ -323,7 +331,7 @@ const styles = StyleSheet.create({
   labelError: {
     ...Typography.BodySmall,
     color: Colors.error,
-    paddingHorizontal: 16
+    paddingHorizontal: 16,
   },
   titleDialog: {
     ...Typography.TitleSmall,
