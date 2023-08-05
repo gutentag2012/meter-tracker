@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import moment from 'moment'
 import * as React from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { RefreshControl, SectionList, SectionListRenderItem, StyleSheet } from 'react-native'
+import { Appearance, RefreshControl, SectionList, SectionListRenderItem, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Svg, { G, Line, Path, Rect, Text as SvgText } from 'react-native-svg'
 import { Colors, Text, View } from 'react-native-ui-lib'
@@ -24,7 +24,7 @@ import MeasurementService from '../services/database/services/MeasurementService
 import MeterService from '../services/database/services/MeterService'
 import EventEmitter from '../services/events'
 import { t } from '../services/i18n'
-import { ChartColors, Typography } from '../setupTheme'
+import { ChartColorsDark, ChartColorsLight, Typography } from '../setupTheme'
 
 type MeasurementHistory = [Measurement, Measurement, Measurement]
 type ClusteredMeasurements = Array<[string, Array<MeasurementHistory>]>
@@ -134,8 +134,12 @@ export default function MeterSummaryScreen({
           }),
       ]))
 
-    const colors = d3.quantize(
-      d3.piecewise(d3.interpolateHcl, ChartColors), Math.max(2, Object.keys(dataGrouped).length))
+    const PossibleColors = Appearance.getColorScheme() === 'dark' ? ChartColorsDark : ChartColorsLight
+
+    const interpolator = d3.piecewise(d3.interpolateHcl, PossibleColors)
+    const colorAmount = Math.max(2, Object.keys(dataGrouped).length)
+    const colors = d3.quantize(interpolator, colorAmount)
+
     const colorScale = d3.scaleOrdinal()
       .domain(Object.keys(dataGrouped))
       .range(colors)
@@ -456,6 +460,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: Colors.background,
+    color: Colors.onBackground,
   },
   button: {
     marginHorizontal: 16,

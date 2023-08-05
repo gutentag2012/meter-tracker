@@ -31,6 +31,7 @@ export const MeterListEntry: FunctionComponent<Props> = ({
   const hasButton = !!navigateToAddMeasurement && !moment()
     .startOf('day')
     .isBefore(moment(meter.lastMeasurementDate).endOf("day"))
+
   const AddButtonOffset = hasButton ? 16 : -8
   const styles = makeStyles(AddButtonOffset)
 

@@ -89,7 +89,11 @@ export const readCSVFile = async () => {
 export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   if (!csv) {
     csv = await readCSVFile()
+    if(!csv) {
+      return
+    }
   }
+
   EventEmitter.emitToast({
     message: t('utils:importing_data'),
     isLoading: true,

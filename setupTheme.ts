@@ -469,7 +469,7 @@ const colors = {
 //   "#A25831",
 //   "#F9B46E",
 // ]
-export const ChartColors = [
+export const ChartColorsLight = [
   "#093E48",
   "#6B9A91",
   "#A9C4AB",
@@ -479,6 +479,17 @@ export const ChartColors = [
   "#DC6921",
   "#9F3202",
   "#5D2109",
+]
+export const ChartColorsDark = [
+  "#2093a8",
+  "#6B9A91",
+  "#A9C4AB",
+  "#E4DDA3",
+  "#D8C27B",
+  "#EA8520",
+  "#DC6921",
+  "#c83e07",
+  "#9f3202",
 ]
 
 export type CustomColors = typeof colors;

@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "metertracker",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -26,7 +26,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.gutentag2012.metertracker",
+      "package": "com.gawenda.metertracker",
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.SCHEDULE_EXACT_ALARM",
@@ -75,15 +75,12 @@
           },
           "MaterialDateDialog": {
             "parent": "Theme.MaterialComponents.DayNight.Dialog",
-            "colorPrimary": "@color/primary",
-            "colorAccent": "@color/primary",
-            "colorSecondary": "@color/secondary",
-            "colorSurface": "@color/surface",
-            "colorOnSurface": "@color/onSurface",
-            "android:textColorPrimary": "@color/primary",
+            "colorAccent": "@color/primaryContainer",
+            "android:textColor": "@color/onSurface",
+            "android:textColorPrimaryInverse": "@color/onPrimaryContainer",
+            "android:textColorPrimary": "@color/onSurface",
             "android:textColorSecondary": "@color/primary",
             "android:windowBackground": "@color/surface",
-            "android:background": "@color/surface",
             "android:windowLightStatusBar": "false"
           },
           "AlertDialog": {
@@ -99,14 +96,6 @@
             "android:windowBackground": "@color/surface",
             "android:background": "@color/surface",
             "android:windowLightStatusBar": "false"
-          },
-          "NegativeButtonStyle": {
-            "parent": "Widget.AppCompat.Button.ButtonBar.AlertDialog",
-            "android:textColor": "@color/primary"
-          },
-          "PositiveButtonStyle": {
-            "parent": "Widget.AppCompat.Button.ButtonBar.AlertDialog",
-            "android:textColor": "@color/primary"
           }
         }
       ],

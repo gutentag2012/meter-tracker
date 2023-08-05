@@ -1,4 +1,3 @@
-import moment from 'moment'
 import Entity from './entity'
 import { CONTRACT_TABLE_NAME } from './index'
 
@@ -12,6 +11,7 @@ export default class Contract extends Entity {
     public identification?: string,
     public createdAt: number = Date.now(),
     public id?: number,
+    public __v = 0,
     public lastMonthConsumption?: number,
     public thisMonthConsumption?: number,
   ) {
@@ -20,7 +20,9 @@ export default class Contract extends Entity {
 
   getInsertionValues(forceId?: boolean): string {
     const identification = this.identification ? `"${ this.identification }"` : 'NULL'
-    return `("${ this.name }", ${ this.pricePerUnit }, ${ identification }, ${ this.createdAt }${ forceId ? `, ${ this.id }` : '' })`
+    return `("${ this.name }", ${ this.pricePerUnit }, ${ identification }, ${ this.createdAt }${ forceId
+                                                                                                  ? `, ${ this.id }`
+                                                                                                  : '' }, ${ this.__v ?? 0 })`
   }
 
   public getUpdateStatement(): string {
@@ -30,7 +32,8 @@ SET
   name = "${ this.name }", 
   pricePerUnit = ${ this.pricePerUnit }, 
   identification = "${ this.identification ?? 'NULL' }", 
-  createdAt = ${ this.createdAt }
+  createdAt = ${ this.createdAt }, 
+  __v = ${ this.__v }
 WHERE id = ${ this.id }`
   }
 
@@ -41,6 +44,7 @@ WHERE id = ${ this.id }`
       this.pricePerUnit,
       this.identification,
       this.createdAt,
+      this.__v,
     ].map(e => JSON.stringify(e))
       .join(',')
   }

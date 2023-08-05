@@ -20,6 +20,12 @@ CREATE TABLE IF NOT EXISTS ${CONTRACT_TABLE_NAME} (
     createdAt             INTEGER
 );`
     }
+    if(from === 1 && to === 2) {
+      // Alter table to add __v column
+        return `
+ALTER TABLE ${CONTRACT_TABLE_NAME} ADD COLUMN __v INTEGER DEFAULT 0;
+`
+    }
     return ''
   }
 
@@ -34,6 +40,7 @@ SELECT
   c.identification as contract_identification,
   c.createdAt as contract_createdAt,
   c.id as contract_id,
+  c.__v as contract_v,
   (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfLastMonth} AND mm.createdAt <= ${endOfLastMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt ASC LIMIT 1) as contract_lastMonthFirstReading,
   (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfLastMonth} AND mm.createdAt <= ${endOfLastMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt DESC LIMIT 1) as contract_lastMonthLastReading,
   (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfThisMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt DESC LIMIT 1) as contract_thisMonthLastReading
@@ -43,15 +50,15 @@ ${ ordered ? 'ORDER BY c.name ASC' : ''}`
 
   fromJSON(json: any): Contract {
     const lastMonthConsumption = (json.contract_lastMonthLastReading ?? 0) - (json.contract_lastMonthFirstReading ?? 0)
-    const thisMonthConsumption = (json.contract_thisMonthLastReading ?? 0) - (json.contract_lastMonthLastReading ?? 0)
+    const thisMonthConsumption = json.contract_thisMonthLastReading ? json.contract_thisMonthLastReading - (json.contract_lastMonthLastReading ?? 0) : 0
     return new Contract(
       json.contract_name, json.contract_pricePerUnit, json.contract_identification,
-      json.contract_createdAt, json.contract_id, lastMonthConsumption, thisMonthConsumption
+      json.contract_createdAt, json.contract_id, json.contract_v, lastMonthConsumption, thisMonthConsumption
     )
   }
 
   getInsertionHeader(forceId?: boolean): string {
-    return `INSERT INTO ${CONTRACT_TABLE_NAME} (name, pricePerUnit, identification, createdAt${forceId ? ", id": ""}) VALUES `
+    return `INSERT INTO ${CONTRACT_TABLE_NAME} (name, pricePerUnit, identification, createdAt${forceId ? ", id": ""}, __v) VALUES `
   }
 
   public getCSVHeader(withChildren?: boolean): string {
@@ -61,6 +68,7 @@ ${ ordered ? 'ORDER BY c.name ASC' : ''}`
       'contract_pricePerUnit',
       'contract_identification',
       'contract_createdAt',
+      'contract___v',
     ].join(',')
   }
 }

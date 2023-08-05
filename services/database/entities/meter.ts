@@ -1,4 +1,3 @@
-import moment from 'moment'
 import Contract from './contract'
 import Entity from './entity'
 import { METER_TABLE_NAME } from './index'
@@ -18,6 +17,7 @@ export default class Meter extends Entity {
     public createdAt: number = Date.now(),
     public order?: number,
     public id?: number,
+    public __v = 0,
     public contract?: Contract,
     public lastMeasurementDate?: number,
     public lastMeasurementValue?: number,
@@ -27,7 +27,9 @@ export default class Meter extends Entity {
 
   getInsertionValues(forceId?: boolean): string {
     const identification = this.identification ? `"${ this.identification }"` : 'NULL'
-    return `("${ this.name }", ${ this.digits }, "${ this.unit }", ${ this.contract_id ?? 'NULL' }, ${ this.areValuesDepleting ?? 'NULL' }, ${ this.isActive ?? 'NULL' }, ${ identification }, ${ this.createdAt }, ${ this.order ?? 0 }${ forceId ? `, ${ this.id }` : '' })`
+    return `("${ this.name }", ${ this.digits }, "${ this.unit }", ${ this.contract_id ?? 'NULL' }, ${ this.areValuesDepleting ?? 'NULL' }, ${ this.isActive ?? 'NULL' }, ${ identification }, ${ this.createdAt }, ${ this.order ?? 0 }${ forceId
+                                                                                                                                                                                                                                           ? `, ${ this.id }`
+                                                                                                                                                                                                                                           : '' }, ${ this.__v ?? 0 })`
   }
 
   public getUpdateStatement(): string {
@@ -42,7 +44,8 @@ SET
   isActive = ${this.isActive ?? 'NULL'}, 
   identification = "${this.identification ?? 'NULL'}", 
   sortingOrder = ${this.order ?? 'NULL'}, 
-  createdAt = ${this.createdAt} 
+  createdAt = ${this.createdAt} , 
+  __v = ${this.__v} 
 WHERE id = ${this.id}`
   }
 
@@ -58,18 +61,12 @@ WHERE id = ${this.id}`
       this.identification,
       this.createdAt,
       this.order,
+      this.__v,
     ].map(e => JSON.stringify(e))
       .join(',')
     if (!withChildren) {
       return ownHeader
     }
-    const contractHeader = [
-      this.contract?.name,
-      this.contract?.pricePerUnit,
-      this.contract?.identification,
-      this.contract?.createdAt,
-    ].map(e => JSON.stringify(e))
-      .join(',')
-    return [ownHeader, contractHeader].join(',')
+    return `${ ownHeader }${ this.contract ? `,${ this.contract.getCSVValues() }` : '' }`
   }
 }
