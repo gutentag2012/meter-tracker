@@ -1,6 +1,7 @@
 import Contract from './contract'
 import Entity from './entity'
 import { METER_TABLE_NAME } from './index'
+import Measurement from './measurement'
 
 export default class Meter extends Entity {
 
@@ -19,8 +20,7 @@ export default class Meter extends Entity {
     public id?: number,
     public __v = 0,
     public contract?: Contract,
-    public lastMeasurementDate?: number,
-    public lastMeasurementValue?: number,
+    public lastMeasurements?: Array<{value: number, date: number}>,
   ) {
     super(id)
   }
