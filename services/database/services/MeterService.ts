@@ -41,8 +41,7 @@ ALTER TABLE ${METER_TABLE_NAME} ADD COLUMN __v INTEGER DEFAULT 0;
 SELECT 
 m.name as meter_name, m.digits as meter_digits, m.unit as meter_unit, m.contract_id as meter_contract_id, m.areValuesDepleting as meter_areValuesDepleting, m.isActive as meter_isActive, m.identification as meter_identification, m.createdAt as meter_createdAt, m.sortingOrder as meter_order, m.id as meter_id, m.__v as meter_v,
 c.id as contract_id, c.name as contract_name, c.pricePerUnit as contract_pricePerUnit, c.identification as contract_identification, c.createdAt as contract_createdAt,
-(SELECT createdAt FROM ${MEASUREMENT_TABLE_NAME} mm_j WHERE mm_j.meter_id = m.id ORDER BY mm_j.createdAt DESC LIMIT 1) as last_measurement_date,
-(SELECT value FROM ${MEASUREMENT_TABLE_NAME} mm_j WHERE mm_j.meter_id = m.id ORDER BY mm_j.createdAt DESC LIMIT 1) as last_measurement_value
+(SELECT GROUP_CONCAT(measurements.row, ';') FROM (SELECT mm.value || '|' || mm.createdAt as row FROM ${MEASUREMENT_TABLE_NAME} mm WHERE mm.meter_id = m.id ORDER BY mm.createdAt DESC LIMIT 3) measurements) as last_measurements
 FROM ${METER_TABLE_NAME} m 
     LEFT JOIN ${CONTRACT_TABLE_NAME} c ON m.contract_id = c.id
     ${ ordered ? 'ORDER BY COALESCE(m.sortingOrder, m.name) ASC, m.name ASC' : '' }
@@ -56,14 +55,18 @@ FROM ${METER_TABLE_NAME} m
   fromJSON(json: any): Meter {
     const contract = this.contractService.fromJSON(json)
 
-    const lastMeasurementDate = json['last_measurement_date'] ? json['last_measurement_date'] : undefined
-    const lastMeasurementValue = json['last_measurement_value']
+    const lastMeasurements = json["last_measurements"]?.split(';').map((row: string) => {
+        const [value, date] = row.split('|')
+        return {
+          value: parseFloat(value),
+          date: parseInt(date)
+        }
+    })
 
     return new Meter(
       json.meter_name, json.meter_digits, json.meter_unit, json.meter_contract_id, json.meter_areValuesDepleting,
       json.meter_isActive, json.meter_identification,
-      json.meter_createdAt, json.meter_order, json.meter_id, json.meter_v, contract, lastMeasurementDate,
-      lastMeasurementValue,
+      json.meter_createdAt, json.meter_order, json.meter_id, json.meter_v, contract, lastMeasurements
     )
   }
 
@@ -88,6 +91,6 @@ FROM ${METER_TABLE_NAME} m
     if (!withChildren) {
       return ownHeader
     }
-    return `${ ownHeader },${ this.contractService.getCSVHeader(true) }`
+    return `${ ownHeader },${ this.contractService.getCSVHeader() }`
   }
 }

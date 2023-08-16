@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS ${CONTRACT_TABLE_NAME} (
     createdAt             INTEGER
 );`
     }
-    if(from === 1 && to === 2) {
+    if (from === 1 && to === 2) {
       // Alter table to add __v column
         return `
 ALTER TABLE ${CONTRACT_TABLE_NAME} ADD COLUMN __v INTEGER DEFAULT 0;
@@ -29,10 +29,11 @@ ALTER TABLE ${CONTRACT_TABLE_NAME} ADD COLUMN __v INTEGER DEFAULT 0;
     return ''
   }
 
-  public getRetrieveAllStatement(ordered=false): string {
+  public getRetrieveAllStatement(ordered = false): string {
     const startOfThisMonth = moment().startOf('month').valueOf()
+    const endOfThisMonth = moment().endOf('month').valueOf()
     const startOfLastMonth = moment().subtract(1, 'month').startOf('month').valueOf()
-    const endOfLastMonth = moment(startOfLastMonth).endOf('month').valueOf()
+
     return `
 SELECT 
   c.name as contract_name,
@@ -41,27 +42,74 @@ SELECT
   c.createdAt as contract_createdAt,
   c.id as contract_id,
   c.__v as contract_v,
-  (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfLastMonth} AND mm.createdAt <= ${endOfLastMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt ASC LIMIT 1) as contract_lastMonthFirstReading,
-  (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfLastMonth} AND mm.createdAt <= ${endOfLastMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt DESC LIMIT 1) as contract_lastMonthLastReading,
-  (SELECT mm.value FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt >= ${startOfThisMonth}) WHERE m.contract_id = c.id ORDER BY mm.createdAt DESC LIMIT 1) as contract_thisMonthLastReading
+  (
+    SELECT mm.value || '|' || mm.createdAt 
+        FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt <= ${endOfThisMonth} AND mm.createdAt >= ${startOfThisMonth}) 
+        WHERE m.contract_id = c.id 
+        ORDER BY mm.createdAt DESC
+        LIMIT 1
+  ) as this_month_anchor,
+  (
+    SELECT mm.value || '|' || mm.createdAt 
+        FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt <= ${startOfThisMonth} AND mm.createdAt >= ${startOfLastMonth}) 
+        WHERE m.contract_id = c.id 
+        ORDER BY mm.createdAt DESC
+        LIMIT 1
+  ) as last_month_anchor,
+  (
+    SELECT mm.value || '|' || mm.createdAt 
+        FROM ${METER_TABLE_NAME} m LEFT JOIN ${MEASUREMENT_TABLE_NAME} mm ON (m.id = mm.meter_id AND mm.createdAt <= ${startOfLastMonth}) 
+        WHERE m.contract_id = c.id 
+        ORDER BY mm.createdAt DESC
+        LIMIT 1
+  ) as last_last_month_anchor
 FROM ${ this.TableName } c
 ${ ordered ? 'ORDER BY c.name ASC' : ''}`
   }
 
   fromJSON(json: any): Contract {
-    const lastMonthConsumption = (json.contract_lastMonthLastReading ?? 0) - (json.contract_lastMonthFirstReading ?? 0)
-    const thisMonthConsumption = json.contract_thisMonthLastReading ? json.contract_thisMonthLastReading - (json.contract_lastMonthLastReading ?? 0) : 0
+    const daysIntoMonth = moment().date()
+    const daysOfLastMonth = moment().subtract(1, 'month').daysInMonth()
+
+    const mapAnchors = (row?: [string, string]) => row ? ({
+      value: parseFloat(row[0]),
+      date: parseInt(row[1]),
+    }) : undefined
+
+    const thisMonthAnchor = mapAnchors(json.this_month_anchor?.split('|'))
+    const lastMonthAnchor = mapAnchors(json.last_month_anchor?.split('|'))
+    const lastLastMonthAnchor = mapAnchors(json.last_last_month_anchor?.split('|'))
+
+    let thisMonthConsumption = 0
+    if(thisMonthAnchor && (lastMonthAnchor || lastLastMonthAnchor)) {
+      const compareEntity = (lastMonthAnchor || lastLastMonthAnchor)!
+      const daysBetween = moment(thisMonthAnchor.date).endOf("day").diff(moment(compareEntity.date).startOf("day"), 'days')
+      const consumptionPerDay = (thisMonthAnchor.value - compareEntity.value) / daysBetween
+      thisMonthConsumption = consumptionPerDay * daysIntoMonth
+    }
+
+    let lastMonthConsumption = 0
+    if((lastMonthAnchor || thisMonthAnchor) && lastLastMonthAnchor) {
+      const compareEntity = (lastMonthAnchor || thisMonthAnchor)!
+      const daysBetween = moment(compareEntity.date).endOf("day").diff(moment(lastLastMonthAnchor.date).startOf("day"), 'days')
+      const consumptionPerDay = (compareEntity.value - lastLastMonthAnchor.value) / daysBetween
+      lastMonthConsumption = consumptionPerDay * daysOfLastMonth
+    }
+
     return new Contract(
       json.contract_name, json.contract_pricePerUnit, json.contract_identification,
-      json.contract_createdAt, json.contract_id, json.contract_v, lastMonthConsumption, thisMonthConsumption
+      json.contract_createdAt, json.contract_id, json.contract_v, lastMonthConsumption, thisMonthConsumption,
     )
   }
 
   getInsertionHeader(forceId?: boolean): string {
-    return `INSERT INTO ${CONTRACT_TABLE_NAME} (name, pricePerUnit, identification, createdAt${forceId ? ", id": ""}, __v) VALUES `
+    return `INSERT INTO ${ CONTRACT_TABLE_NAME } (name, pricePerUnit, identification, createdAt${ forceId
+                                                                                                  ? ', id'
+                                                                                                  : '' }, __v)
+            VALUES `
   }
 
-  public getCSVHeader(withChildren?: boolean): string {
+  public getCSVHeader(): string {
     return [
       'contract_id',
       'contract_name',
