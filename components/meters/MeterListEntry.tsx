@@ -67,11 +67,8 @@ export const MeterListEntry: FunctionComponent<Props> = ({
 
   const areValuesGood = percentileChange !== undefined && ((percentileChange >= 0 && !!meter.areValuesDepleting) || (percentileChange <= 0 && !meter.areValuesDepleting))
 
-  // TODO Add meter modal allow comma
-  // TODO Contract, add yearly base price
   // TODO Contract, add unit conversion
   // TODO Add yearly stats
-  // TODO Fix issue with contract last months price calucaltion
 
   return <>
     <Ripple

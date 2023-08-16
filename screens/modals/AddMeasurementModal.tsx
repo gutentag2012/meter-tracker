@@ -125,14 +125,6 @@ export default function AddMeasurementModal({
       return
     }
 
-    const floatValue = parseFloat(value.current.replace(',', '.'))
-    if (isNaN(floatValue)) {
-      setErrorState({
-        ...errorState,
-        value: 'Value must be a number',
-      })
-      return
-    }
     if (!selectedMeter) {
       setErrorState({
         ...errorState,
@@ -143,7 +135,9 @@ export default function AddMeasurementModal({
 
     setLoading(true)
 
+    const floatValue = parseFloat(value.current.replace(',', '.'))
     const measurement = new Measurement(floatValue, selectedMeter.id!, date.current.getTime())
+
     if (!editMeasurement) {
       await repository.insertData(measurement)
     } else {
@@ -282,5 +276,3 @@ export default function AddMeasurementModal({
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({})

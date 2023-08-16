@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS ${CONTRACT_TABLE_NAME} (
 ALTER TABLE ${CONTRACT_TABLE_NAME} ADD COLUMN __v INTEGER DEFAULT 0;
 `
     }
+    if (from === 2 && to === 3) {
+      // Alter table to add conversion column
+        return `
+ALTER TABLE ${CONTRACT_TABLE_NAME} ADD COLUMN conversion REAL DEFAULT 1;
+`
+    }
     return ''
   }
 
@@ -40,6 +46,7 @@ SELECT
   c.pricePerUnit as contract_pricePerUnit,
   c.identification as contract_identification,
   c.createdAt as contract_createdAt,
+  c.conversion as contract_conversion,
   c.id as contract_id,
   c.__v as contract_v,
   (
@@ -98,12 +105,12 @@ ${ ordered ? 'ORDER BY c.name ASC' : ''}`
 
     return new Contract(
       json.contract_name, json.contract_pricePerUnit, json.contract_identification,
-      json.contract_createdAt, json.contract_id, json.contract_v, lastMonthConsumption, thisMonthConsumption,
+      json.contract_createdAt, json.contract_conversion, json.contract_id, json.contract_v, lastMonthConsumption, thisMonthConsumption,
     )
   }
 
   getInsertionHeader(forceId?: boolean): string {
-    return `INSERT INTO ${ CONTRACT_TABLE_NAME } (name, pricePerUnit, identification, createdAt${ forceId
+    return `INSERT INTO ${ CONTRACT_TABLE_NAME } (name, pricePerUnit, identification, createdAt, conversion${ forceId
                                                                                                   ? ', id'
                                                                                                   : '' }, __v)
             VALUES `
@@ -116,6 +123,7 @@ ${ ordered ? 'ORDER BY c.name ASC' : ''}`
       'contract_pricePerUnit',
       'contract_identification',
       'contract_createdAt',
+      'contract_conversion',
       'contract___v',
     ].join(',')
   }

@@ -35,11 +35,14 @@ const lang: Language = {
   },
   contract: {
     input_placeholder_price_per_unit: "Preis pro Einheit*",
+    input_placeholder_conversion: "Umrechnung*",
     last_month: "Letzten Monat:",
     this_month: "Diesen Monat:",
     in_cents: "in Cent",
 
-    contract: "Vertrag"
+    contract: "Vertrag",
+
+    explain_conversion: "Die Umrechnung wird verwendet, um die Einheiten des Messgeräts in die Einheiten des Vertrags umzurechnen. Wenn Ihr Messgerät beispielsweise in kWh misst und Ihr Vertrag in MWh ist, geben Sie 0,001 ein."
   },
   utils: {
     date: "Datum",

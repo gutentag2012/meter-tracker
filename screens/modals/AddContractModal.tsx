@@ -33,11 +33,13 @@ export default function AddContractModal({ navigation,
   const name = useRef(editContract?.name ?? '')
   const identificationNumber = useRef(editContract?.identification ?? '')
   const pricePerUnit = useRef(editContract?.pricePerUnit.toString() ?? '')
+  const conversion = useRef(editContract?.conversion.toString() ?? '1')
 
   const textFieldRefs = useRef({
     name: undefined,
     identificationNumber: undefined,
     pricePerUnit: undefined,
+    conversion: undefined,
   } as Record<string, any>)
 
   const onSave = useCallback(async () => {
@@ -49,7 +51,7 @@ export default function AddContractModal({ navigation,
 
     setLoading(true)
 
-    const contract = new Contract(name.current, parseFloat(pricePerUnit.current), identificationNumber.current)
+    const contract = new Contract(name.current, parseFloat(pricePerUnit.current), identificationNumber.current, undefined, parseFloat(conversion.current))
     if (!editContract) {
       await repository.insertData(contract)
     } else {
@@ -128,11 +130,22 @@ export default function AddContractModal({ navigation,
             label={ t('contract:input_placeholder_price_per_unit') }
             inputType='numeric'
             onChangeText={ (value) => pricePerUnit.current = value }
-            validation={ ['required', (value: string) => !isNaN(Number(value))] }
+            validation={ ['required', (value: string) => !isNaN(parseFloat(value.replace(',', '.')))] }
             validationMessages={ [t('validationMessage:required'), t('validationMessage:isNotANumber')] }
             onSubmit={ onSave }
             hint={ t('contract:in_cents') }
             initialValue={ pricePerUnit.current }
+          />
+          <Input
+            ref={ (ref: any) => textFieldRefs.current.conversion = ref }
+            label={ t('contract:input_placeholder_conversion') }
+            inputType='numeric'
+            onChangeText={ (value) => conversion.current = value }
+            validation={ ['required', (value: string) => !isNaN(parseFloat(value.replace(',', '.')))] }
+            validationMessages={ [t('validationMessage:required'), t('validationMessage:isNotANumber')] }
+            onSubmit={ onSave }
+            hint={ t('contract:explain_conversion') }
+            initialValue={ conversion.current }
           />
         </View>
 

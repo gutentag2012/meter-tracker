@@ -34,11 +34,14 @@ const lang = {
   },
   contract: {
     input_placeholder_price_per_unit: "Price per unit*",
+    input_placeholder_conversion: "Conversion*",
     last_month: "Last month:",
     this_month: "This month:",
     in_cents: "in cents",
 
-    contract: "Contract"
+    contract: "Contract",
+
+    explain_conversion: "Conversion is used to convert the units of the meter to the units of the contract. For example, if your meter measures in kWh and your contract is in MWh, you would enter 0.001."
   },
   utils: {
     date: "Date",

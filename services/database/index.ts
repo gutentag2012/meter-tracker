@@ -7,7 +7,7 @@ import MeasurementService from './services/MeasurementService'
 import MeterService from './services/MeterService'
 
 export const DEFAULT_DATABASE_NAME = 'meter_tracker.db' as const
-export const DATABASE_VERSION = 2
+export const DATABASE_VERSION = 3
 const RESET_DB = false
 
 let db = openDatabase(DEFAULT_DATABASE_NAME)
@@ -74,7 +74,11 @@ export async function setupDatabase() {
 
   for (let migrateVersion = currentDatabaseVersion; migrateVersion < DATABASE_VERSION; migrateVersion++) {
     const promises = Services.map(async entityClass => {
-      return RunOnDB(entityClass.getMigrationStatement(migrateVersion, migrateVersion + 1))
+      const migrationStatement = entityClass.getMigrationStatement(migrateVersion, migrateVersion + 1)
+
+      if (!migrationStatement) return
+
+      return RunOnDB(migrationStatement)
         .then(() =>
           console.log(
             `Table ${ entityClass.TableName } migrated from ${ migrateVersion } to ${ migrateVersion + 1 }`),

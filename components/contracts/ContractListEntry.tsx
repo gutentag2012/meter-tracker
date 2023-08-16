@@ -18,7 +18,7 @@ export const ContractListEntry: FunctionComponent<Props> = ({
                                                               contract,
                                                               onPress,
                                                             }) => {
-  const priceRatio = contract.pricePerUnit / 100
+  const priceRatio = contract.pricePerUnit / 100 * contract.conversion
   const lastMonthsCost = (contract.lastMonthConsumption ?? 0) * priceRatio
   const thisMonthsConst = (contract.thisMonthConsumption ?? 0) * priceRatio
 
