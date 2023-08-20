@@ -1,4 +1,3 @@
-import type { SQLResultSet, SQLStatementCallback, SQLStatementErrorCallback } from 'expo-sqlite/src/SQLite.types'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Colors } from 'react-native-ui-lib'
 import { ErrorCircleIcon } from '../../components/icons/ErrorCircleIcon'
@@ -6,8 +5,6 @@ import EventEmitter from '../events'
 import type Entity from './entities/entity'
 import {RunOnDB} from './index'
 import { Service, useService } from './services/service'
-
-// TODO Implement change listeners
 
 export const useRepository = <T extends Entity, S extends Service>(Service: (new() => S)): [GenericRepository<T>, S] => {
   const service = useService(Service)

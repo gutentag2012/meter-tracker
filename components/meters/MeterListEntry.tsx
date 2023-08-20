@@ -67,7 +67,6 @@ export const MeterListEntry: FunctionComponent<Props> = ({
 
   const areValuesGood = percentileChange !== undefined && ((percentileChange >= 0 && !!meter.areValuesDepleting) || (percentileChange <= 0 && !meter.areValuesDepleting))
 
-  // TODO Contract, add unit conversion
   // TODO Add yearly stats
 
   return <>

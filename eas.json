@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 0.54.1"
+    "version": ">= 0.54.1",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -25,14 +26,15 @@
     "preview3": {
       "developmentClient": true
     },
-    "production": {}
+    "production": {
+      "autoIncrement": true
+    }
   },
   "submit": {
     "production": {
       "android": {
         "serviceAccountKeyPath": "./pc-api-6736822767242653081-358-51c5d838394f.json",
-        "track": "internal",
-        "releaseStatus": "draft"
+        "track": "internal"
       }
     }
   }

@@ -94,7 +94,6 @@ export const scheduleReminderNotification = async (interval?: Interval) => {
     return
   }
 
-  // ! Why is that not working?
   if (!await checkNotificationPermissions()) {
     console.error('No notification permissions')
     return

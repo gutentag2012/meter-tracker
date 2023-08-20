@@ -10,6 +10,8 @@
     "test": "jest --watchAll",
     "patch-package": "npx patch-package",
     "build:android:preview": "npx eas build -p android --profile preview",
+    "build:android": "npx eas build -p android",
+    "submit:android": "npx eas submit -p android --latest",
     "build:docker:env": "docker run --rm -it -v ${PWD}:/project mingc/android-build-box:1.20.0"
   },
   "jest": {
@@ -63,6 +65,7 @@
     "@types/react-native": "~0.70.6",
     "@types/react-native-material-ripple": "^0.9.2",
     "@types/react-native-torch": "^1.1.0",
+    "expo-build-properties": "^0.8.3",
     "jest": "^26.6.3",
     "jest-expo": "~47.0.1",
     "react-test-renderer": "18.1.0",
