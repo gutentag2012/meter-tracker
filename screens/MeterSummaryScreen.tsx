@@ -1,10 +1,18 @@
-import * as d3 from 'd3'
 import moment from 'moment'
 import * as React from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Appearance, RefreshControl, SectionList, SectionListRenderItem, StyleSheet } from 'react-native'
+import { useCallback, useMemo, useState } from 'react'
+import {
+  Animated,
+  Dimensions,
+  RefreshControl,
+  SectionList,
+  SectionListRenderItem,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Svg, { G, Line, Path, Rect, Text as SvgText } from 'react-native-svg'
+import { SceneMap, SceneRendererProps, TabView } from 'react-native-tab-view'
 import { Colors, Text, View } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
 import { FloatingActionButton } from '../components/FloatingActionButton'
@@ -16,6 +24,11 @@ import { CheckCircleIcon } from '../components/icons/CheckCircleIcon'
 import { EditIcon } from '../components/icons/EditIcon'
 import { SettingsIcon } from '../components/icons/SettingsIcon'
 import { MeasurementListEntry } from '../components/measurements/MeasurementListEntry'
+import {
+  MeasurementDailyUsagePerDayChart,
+  YearlyChunkSize,
+} from '../components/meters/MeasurementDailyUsagePerDayChart'
+import { MeasurementTotalYearlyUsageChart } from '../components/meters/MeasurementTotalYearlyUsageChart'
 import { HomeStackScreenProps } from '../navigation/types'
 import Measurement from '../services/database/entities/measurement'
 import Meter from '../services/database/entities/meter'
@@ -24,27 +37,54 @@ import MeasurementService from '../services/database/services/MeasurementService
 import MeterService from '../services/database/services/MeterService'
 import EventEmitter from '../services/events'
 import { t } from '../services/i18n'
-import { ChartColorsDark, ChartColorsLight, Typography } from '../setupTheme'
+import { Typography } from '../setupTheme'
 
-type MeasurementHistory = [Measurement, Measurement, Measurement]
-type ClusteredMeasurements = Array<[string, Array<MeasurementHistory>]>
+export type MeasurementHistory = [Measurement, Measurement, Measurement]
+export type ClusteredMeasurements = Array<[string, Array<MeasurementHistory>]>
 
-const ChartPadding = {
-  top: 16,
-  left: 32,
-  bottom: 16,
-  right: 16,
-}
+type SceneProps = {
+  route: any;
+} & Omit<SceneRendererProps, 'layout'>;
+
+const MeasurementDailyUsage = (props: SceneProps) => <View>
+  <Text style={ styles.sectionTitle }>
+    { t('meter:usage_per_day') }
+  </Text>
+  <MeasurementDailyUsagePerDayChart measurements={ props.route.measurements } />
+</View>
+
+const MeasurementTotalUsage = (props: SceneProps) => <View>
+  <Text style={ styles.sectionTitle }>
+    { t('meter:usage_per_year') }
+  </Text>
+  <MeasurementTotalYearlyUsageChart measurements={ props.route.measurements } />
+</View>
+
+const renderScene = SceneMap({
+  yearlyDailyUsage: MeasurementDailyUsage,
+  yearlyTotalUsage: MeasurementTotalUsage,
+})
 
 export default function MeterSummaryScreen({
                                              navigation,
                                              route,
                                            }: HomeStackScreenProps<'MeterSummaryScreen'>) {
+  const layout = useWindowDimensions()
+
   const [loading, setLoading] = useState(true)
   const [measurements, setMeasurements] = useState<ClusteredMeasurements>([])
 
-  const [svgContainerWidth, setSvgContainerWidth] = useState(0)
-  const svgContainerHeight = svgContainerWidth * .6
+  const [index, setIndex] = useState(0)
+  const routes = useMemo(() => [
+    {
+      key: 'yearlyDailyUsage',
+      measurements,
+    },
+    {
+      key: 'yearlyTotalUsage',
+      measurements,
+    },
+  ], [measurements])
 
   const [repo, service] = useRepository(MeasurementService)
   const [meterRepo] = useRepository(MeterService)
@@ -93,110 +133,6 @@ export default function MeterSummaryScreen({
     navigation.setParams({ meter: newMeter })
     setLoading(false)
   }, [route.params.meter.id])
-
-  const {
-    linesPerYear,
-    yScale,
-    mappedXScale,
-    xScale,
-    colorScale,
-  } = useMemo(() => {
-    if (!svgContainerWidth || !measurements.length) {
-      return {
-        linesPerYear: {},
-        yScale: undefined,
-        mappedXScale: undefined,
-        xScale: undefined,
-        colorScale: undefined,
-      }
-    }
-    type DataEntry = { value: number, date: number }
-    const linesPerYear: Record<string, string> = {}
-
-    const dataGrouped: Record<string, Array<DataEntry>> = Object.fromEntries(
-      measurements.map(([year, measurements]) => [
-        year, measurements.filter(m => m.filter(Boolean).length >= 2)
-          .map(([measurement, previousMeasurement, previousPreviousMeasurement]) => {
-            const daysBetween = moment(measurement.createdAt)
-              .endOf('day')
-              .diff(moment(previousMeasurement.createdAt)
-                .startOf('day'), 'days') || 1
-            const delta = measurement.value - previousMeasurement.value
-
-            return {
-              value: previousMeasurement.value == 0 && previousPreviousMeasurement?.value === 0
-                     ? 0
-                     : delta / daysBetween,
-              date: moment(measurement.createdAt)
-                .year(0)
-                .valueOf(),
-            }
-          }),
-      ]))
-
-    const PossibleColors = Appearance.getColorScheme() === 'dark' ? ChartColorsDark : ChartColorsLight
-
-    const interpolator = d3.piecewise(d3.interpolateHcl, PossibleColors)
-    const colorAmount = Math.max(2, Object.keys(dataGrouped).length)
-    const colors = d3.quantize(interpolator, colorAmount)
-
-    const colorScale = d3.scaleOrdinal()
-      .domain(Object.keys(dataGrouped))
-      .range(colors)
-
-    const allData = Object.values(dataGrouped)
-      .flat()
-    const [minValue = 0, maxValue = 0] = d3.extent(allData, (entry: DataEntry) => entry.value)
-    const [minDate = Date.now(), maxDate = Date.now()] = d3.extent(allData, (entry: DataEntry) => entry.date)
-    const yScale = d3.scaleLinear()
-      .domain([minValue, maxValue])
-      .nice()
-      .range([svgContainerHeight - ChartPadding.bottom, ChartPadding.top])
-    const xScale = d3.scaleTime()
-      .domain([minDate, maxDate])
-      .nice(1)
-      .range([ChartPadding.left, svgContainerWidth - ChartPadding.right])
-
-    for (const [year, data] of Object.entries(dataGrouped)) {
-      linesPerYear[year] = d3.line<DataEntry>()
-        .x(d => xScale(d.date))
-        .y(d => yScale(d.value))
-        .curve(d3.curveNatural)(data) ?? ''
-    }
-
-    const mappedXScale: Array<[number, string]> = xScale.ticks()
-      .map(tick => [
-        moment(tick)
-          .valueOf(), moment(tick)
-          .format('MMM'),
-      ])
-
-    return {
-      linesPerYear,
-      yScale,
-      mappedXScale,
-      xScale,
-      colorScale,
-    }
-  }, [measurements, svgContainerWidth])
-
-  // const left = useSharedValue(0)
-  // const top = useSharedValue(0)
-  // const popupStyle = useAnimatedStyle(() => ({
-  //   top: top.value,
-  //   left: left.value,
-  // }))
-
-  const chunkSize = 5
-  const chunkedYears = Object.keys(linesPerYear)
-    .reduce((acc, year, index) => {
-      const chunkIndex = Math.floor(index / chunkSize)
-      if (!acc[chunkIndex]) {
-        acc[chunkIndex] = []
-      }
-      acc[chunkIndex].push(year)
-      return acc
-    }, [] as Array<Array<string>>)
 
   const renderListItem: SectionListRenderItem<MeasurementHistory> = useCallback(({
                                                                                    item: [measurement, previousMeasurement, previousPreviousMeasurement],
@@ -259,7 +195,8 @@ export default function MeterSummaryScreen({
     />
   }, [measurements])
 
-
+  // The height modifier is only used in the first screen, since it can have an overflow of years
+  const heightModifier = index === 0 ? Math.ceil((measurements?.length ?? 0) / YearlyChunkSize) : 1
   return (
     <SafeAreaView
       style={ styles.container }
@@ -289,131 +226,73 @@ export default function MeterSummaryScreen({
         </> }
       />
 
-      <Text style={ styles.sectionTitle }>{ t('meter:usage_per_day') }</Text>
       <View
         style={ {
-          minHeight: svgContainerWidth * .6,
-          height: svgContainerWidth * .6,
-          marginBottom: 24 * chunkedYears.length,
-          position: 'relative',
+          height: Dimensions.get('window').width * 0.6 + 40 + 24 * heightModifier,
         } }
-        onLayout={ ({ nativeEvent: { layout } }) => setSvgContainerWidth(layout.width) }
       >
-        {/*<Animated.View*/ }
-        {/*  style={ [*/ }
-        {/*    {*/ }
-        {/*      width: 25,*/ }
-        {/*      height: 25,*/ }
-        {/*      backgroundColor: 'red',*/ }
-        {/*      position: 'absolute',*/ }
-        {/*    }, popupStyle,*/ }
-        {/*  ] }*/ }
-        {/*/>*/ }
-        <Svg
-          width={ svgContainerWidth }
-          height={ svgContainerHeight + 24 * chunkedYears.length }
-          // onTouchMove={ e => {
-          //   top.value = (e.nativeEvent.locationY) - 50
-          //   left.value = (e.nativeEvent.locationX)
-          // } }
-          // onTouchStart={ e => {
-          //   top.value = (e.nativeEvent.locationY) - 50
-          //   left.value = (e.nativeEvent.locationX)
-          // } }
-          // onTouchEnd={ e => {
-          //   top.value = (0)
-          //   left.value = (0)
-          // } }
-        >
-          <G>
-            {
-              yScale && yScale.ticks(5)
-                .map(tick => <G
-                  translateY={ yScale(tick) }
-                  key={ tick }
-                >
-                  <SvgText
-                    x={ ChartPadding.left - 2 }
-                    translateY={ 2 }
-                    textAnchor='end'
-                    fontSize={ 8 }
-                    fontWeight={ 100 }
-                    strokeWidth={ .6 }
-                    opacity={ .8 }
-                    stroke={ Colors.onSurface }
-                  >{ tick /*+ " " + route.params.meter.unit*/ }</SvgText>
-                  <Line
-                    x1={ ChartPadding.left }
-                    x2={ svgContainerWidth - ChartPadding.right }
-                    opacity={ .8 }
-                    stroke={ Colors.onSurface }
-                    strokeWidth={ 1 }
-                  />
-                </G>)
-            }
-          </G>
-          <G>
-            {
-              mappedXScale && xScale && mappedXScale.map(([tick, label], i) => <G
-                translateX={ xScale(tick) }
-                key={ label + i }
+        <TabView
+          navigationState={ {
+            index,
+            routes,
+          } }
+          overScrollMode='always'
+          tabBarPosition='bottom'
+          renderTabBar={ (props) => {
+            const inputRange = props.navigationState.routes.map((x, i) => i)
+
+            return (
+              <View
+                style={ {
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                } }
               >
-                <SvgText
-                  y={ svgContainerHeight - ChartPadding.bottom + 10 }
-                  textAnchor='middle'
-                  fontSize={ 8 }
-                  fontWeight={ 100 }
-                  strokeWidth={ .6 }
-                  opacity={ .8 }
-                  stroke={ Colors.onSurface }
-                >{ label }</SvgText>
-              </G>)
-            }
-          </G>
-          {
-            colorScale && chunkedYears.map((chunk, chunkIndex) => <G
-              key={ `chunk-${ chunkIndex }` }
-              translateX={ ChartPadding.left }
-              translateY={ chunkIndex * 24 + svgContainerHeight + 4 }
-            >
-              {
-                chunk
-                  .map((year, index) => <G
-                      key={ `legend-${ year }-${ index }` }
-                      translateX={ index * 56 }
+                { props.navigationState.routes.map((route, i) => {
+
+                  const opacity = props.position.interpolate({
+                    inputRange,
+                    outputRange: inputRange.map((inputIndex) =>
+                      inputIndex === i ? 1 : 0.25,
+                    ),
+                  })
+                  const size = props.position.interpolate({
+                    inputRange,
+                    outputRange: inputRange.map((inputIndex) =>
+                      inputIndex === i ? 6 : 4,
+                    ),
+                  })
+
+                  return (
+                    <TouchableOpacity
+                      key={ route.key }
+                      style={ {
+                        padding: 8,
+                      } }
+                      onPress={ () => setIndex(i) }
                     >
-                      <Rect
-                        rx={ 2 }
-                        width={ 8 }
-                        height={ 8 }
-                        fill={ colorScale(year) ?? Colors.primary }
+                      <Animated.View
+                        style={ [
+                          {
+                            transform: [{ scale: size }],
+                            width: 1,
+                            height: 1,
+                            backgroundColor: Colors.onBackground,
+                            borderRadius: 8,
+                          }, { opacity },
+                        ] }
                       />
-                      <SvgText
-                        fontWeight={ 400 }
-                        x={ 8 + 4 }
-                        y={ 8 }
-                        fill={ Colors.onSurface }
-                        opacity={ .8 }
-                      >{ year }</SvgText>
-                    </G>,
+                    </TouchableOpacity>
                   )
-              }
-            </G>)
-          }
-          {
-            colorScale && Object.entries(linesPerYear)
-              .map(([year, line]) => <G key={ year }>
-                <Path
-                  d={ line ?? '' }
-                  stroke={ colorScale(year) ?? Colors.primary }
-                  strokeWidth={ 3 }
-                  opacity={ .8 }
-                  strokeLinecap='round'
-                  fill='none'
-                />
-              </G>)
-          }
-        </Svg>
+                }) }
+              </View>
+            )
+          } }
+          renderScene={ renderScene }
+          onIndexChange={ setIndex }
+          initialLayout={ { width: layout.width } }
+        />
       </View>
 
       <SectionList<MeasurementHistory>

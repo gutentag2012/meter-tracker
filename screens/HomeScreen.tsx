@@ -1,8 +1,8 @@
 import * as Notifications from 'expo-notifications'
 import * as React from 'react'
-import { createRef, useCallback, useEffect, useState } from 'react'
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
-import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated'
+import { useCallback, useEffect, useState } from 'react'
+import { RefreshControl, StyleSheet } from 'react-native'
+import { ScrollView } from 'react-native-gesture-handler'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Text } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
@@ -14,7 +14,6 @@ import { IconButton } from '../components/IconButton'
 import { AddIcon } from '../components/icons/AddIcon'
 import { SettingsIcon } from '../components/icons/SettingsIcon'
 import { MeterListEntry } from '../components/meters/MeterListEntry'
-import Layout from '../constants/Layout'
 import { HomeStackScreenProps } from '../navigation/types'
 import Contract from '../services/database/entities/contract'
 import Meter from '../services/database/entities/meter'
@@ -57,10 +56,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
   }, [loadData])
 
   return (
-    <SafeAreaView
-      style={ styles.container }
-      bg-backgroundColor
-    >
+    <SafeAreaView style={ styles.container }>
       <AppBar
         title={ t('home_screen:title') }
         actions={ <>
@@ -71,15 +67,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
         </> }
       />
 
-      <ScrollView
-        refreshControl={ <RefreshControl
-          refreshing={ loading }
-          onRefresh={ loadData }
-          tintColor={ Colors.onSecondaryContainer }
-          progressBackgroundColor={ Colors.secondaryContainer }
-          colors={ [Colors.onSecondaryContainer] }
-        /> }
-      >
+      <ScrollView>
         <Text
           style={ styles.sectionTitle }
           onSurface

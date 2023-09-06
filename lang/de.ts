@@ -32,6 +32,7 @@ const lang: Language = {
     configuration: "Konfiguration",
 
     usage_per_day: "Verbrauch pro Tag",
+    usage_per_year: "Verbrauch pro Jahr",
   },
   contract: {
     input_placeholder_price_per_unit: "Preis pro Einheit*",
