@@ -44,25 +44,37 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       }
     }
 
-    const barsPerYear: Record<string, number> = Object.fromEntries(measurements.map(([year, measurements]) => {
+    const barsPerYear: Record<string, [number, number]> = Object.fromEntries(measurements.map(([year, measurements], index) => {
       const values = measurements.filter(m => m.filter(Boolean).length >= 2)
-        .map(([measurement, previousMeasurement, previousPreviousMeasurement]: MeasurementHistory) => {
+        .map(([measurement, previousMeasurement]: MeasurementHistory) => {
           const daysBetween = moment(measurement.createdAt)
             .endOf('day')
             .diff(moment(previousMeasurement.createdAt)
               .startOf('day'), 'days') || 1
           const delta = measurement.value - previousMeasurement.value
-
-          return previousMeasurement.value == 0 && previousPreviousMeasurement?.value === 0
-                 ? 0
-                 : delta / daysBetween
+          return delta / daysBetween
         })
 
       // We only want to show negative values if the meter is refillable and does not prefer positive values
       const refillableMultiplier = areValuesDepleting ? -1 : 1
       const totalUsagePositive = values.filter(value => isRefillable ? value * refillableMultiplier <= 0 : value >= 0).reduce((acc, curr) => acc + curr, 0)
 
-      return [year, totalUsagePositive]
+      // Only want to estimate for the current year
+      let totalUsageCurrentYear = 0
+      // if(index === 0) {
+      //   // Estimate the total usage for the current year
+      //   const daysIntoCurrentYear = moment().diff(moment().startOf('year'), 'days')
+      //   const daysInCurrentYear = moment().endOf('year').diff(moment().startOf('year'), 'days')
+//
+      //   totalUsageCurrentYear = totalUsagePositive / daysIntoCurrentYear * daysInCurrentYear
+      // }
+
+      // To get a better estimation I would have to
+      // 1. Compare the usage of the current year up until now with the usage of the previous year up until now (-1 year)
+      // 2. Get the usage of the previous year for the rest of the year
+      // 3. Calculate the difference between the two usages and add it to the current usage
+
+      return [year, [totalUsagePositive, totalUsageCurrentYear]]
     }) ?? [])
 
     const PossibleColors = Appearance.getColorScheme() === 'dark' ? ChartColorsDark : ChartColorsLight
@@ -75,7 +87,7 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       .domain(Object.keys(barsPerYear))
       .range(colors)
 
-    const [minValue = 0, maxValue = 0] = d3.extent(Object.values(barsPerYear).flat())
+    const [minValue = 0, maxValue = 0] = d3.extent(Object.values(barsPerYear).map(([value]) => value))
     const yScale = d3.scaleLinear()
       .domain([Math.min(0, minValue), Math.max(0, maxValue)])
       .nice()
@@ -135,7 +147,7 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       <G>
         {
           xScale && Object.entries(barsPerYear)
-            .map(([label, value], i) => <G
+            .map(([label, [,value]], i) => <G
               translateX={ xScale(label) }
               key={ label + i }
             >
@@ -156,13 +168,21 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       </G>
       {
         colorScale && Object.entries(barsPerYear)
-          .map(([year, value]) => <G key={ year }>
+          .map(([year, [value, estimatedValue]]) => <G key={ year }>
             <Rect
               x={ xScale(year) }
               y={ value >= 0 ? yScale(0) : yScale(value) }
               width={ xScale.bandwidth() }
               height={ value >= 0 ? yScale(value) - yScale(0) : yScale(0) - yScale(value) }
               fill={ colorScale(year) ?? Colors.primary }
+            />
+            <Rect
+              x={ xScale(year) }
+              y={ estimatedValue >= 0 ? yScale(0) : yScale(estimatedValue) }
+              width={ xScale.bandwidth() }
+              height={ estimatedValue >= 0 ? yScale(estimatedValue) - yScale(0) : yScale(0) - yScale(estimatedValue) }
+              fill={ colorScale(year) ?? Colors.primary }
+              opacity={ .6}
             />
           </G>)
       }
