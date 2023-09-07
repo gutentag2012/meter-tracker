@@ -32,7 +32,7 @@ ALTER TABLE ${MEASUREMENT_TABLE_NAME} ADD COLUMN __v INTEGER DEFAULT 0;
   getRetrieveAllStatement(ordered = false): string {
     return `
 SELECT 
-m.name as meter_name, m.digits as meter_digits, m.unit as meter_unit, m.contract_id as meter_contract_id, m.areValuesDepleting as meter_areValuesDepleting, m.isActive as meter_isActive, m.identification as meter_identification, m.createdAt as meter_createdAt, m.id as meter_id,
+m.name as meter_name, m.digits as meter_digits, m.unit as meter_unit, m.contract_id as meter_contract_id, m.areValuesDepleting as meter_areValuesDepleting, m.isRefillable as meter_isRefillable, m.isActive as meter_isActive, m.identification as meter_identification, m.createdAt as meter_createdAt, m.id as meter_id,
 mm.value as measurement_value, mm.meter_id as measurement_meter_id, mm.createdAt as measurement_createdAt, mm.id as measurement_id, mm.__v as measurement_v, 
 c.id as contract_id, c.name as contract_name, c.pricePerUnit as contract_pricePerUnit, c.identification as contract_identification, c.createdAt as contract_createdAt 
 FROM ${MEASUREMENT_TABLE_NAME} mm 

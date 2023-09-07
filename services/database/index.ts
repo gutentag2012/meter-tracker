@@ -7,7 +7,7 @@ import MeasurementService from './services/MeasurementService'
 import MeterService from './services/MeterService'
 
 export const DEFAULT_DATABASE_NAME = 'meter_tracker.db' as const
-export const DATABASE_VERSION = 3
+export const DATABASE_VERSION = 4
 const RESET_DB = false
 
 let db = openDatabase(DEFAULT_DATABASE_NAME)

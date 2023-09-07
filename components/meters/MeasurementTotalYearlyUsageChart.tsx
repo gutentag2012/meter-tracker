@@ -16,13 +16,15 @@ const ChartPadding = {
 
 interface MeasurementYearlyChartProps {
   measurements: ClusteredMeasurements
+  isRefillable?: boolean
+  areValuesDepleting?: boolean
 }
 
 type Props = MeasurementYearlyChartProps
 
 // TODO Show bars on top for positive and on bottom for negative (only if applicable)
 
-export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ measurements }) => {
+export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ measurements, isRefillable, areValuesDepleting }) => {
   const [svgContainerWidth, setSvgContainerWidth] = useState(0)
   const svgContainerHeight = svgContainerWidth * .6 + 12
 
@@ -42,9 +44,8 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       }
     }
 
-    // TODO Sum up "2023-positive" and "2023-negative" separately, so that the bars are stacked
-    const barsPerYear: Record<string, number> = Object.fromEntries(measurements.map(([year, measurements], index) => {
-      const totalUsage = measurements.filter(m => m.filter(Boolean).length >= 2)
+    const barsPerYear: Record<string, number> = Object.fromEntries(measurements.map(([year, measurements]) => {
+      const values = measurements.filter(m => m.filter(Boolean).length >= 2)
         .map(([measurement, previousMeasurement, previousPreviousMeasurement]: MeasurementHistory) => {
           const daysBetween = moment(measurement.createdAt)
             .endOf('day')
@@ -56,9 +57,12 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
                  ? 0
                  : delta / daysBetween
         })
-        .reduce((acc, curr) => acc + curr, 0)
 
-      return [year, totalUsage]
+      // We only want to show negative values if the meter is refillable and does not prefer positive values
+      const refillableMultiplier = areValuesDepleting ? -1 : 1
+      const totalUsagePositive = values.filter(value => isRefillable ? value * refillableMultiplier <= 0 : value >= 0).reduce((acc, curr) => acc + curr, 0)
+
+      return [year, totalUsagePositive]
     }) ?? [])
 
     const PossibleColors = Appearance.getColorScheme() === 'dark' ? ChartColorsDark : ChartColorsLight
@@ -71,9 +75,9 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       .domain(Object.keys(barsPerYear))
       .range(colors)
 
-    const [minValue = 0, maxValue = 0] = d3.extent(Object.values(barsPerYear))
+    const [minValue = 0, maxValue = 0] = d3.extent(Object.values(barsPerYear).flat())
     const yScale = d3.scaleLinear()
-      .domain([Math.min(0, minValue), maxValue])
+      .domain([Math.min(0, minValue), Math.max(0, maxValue)])
       .nice()
       .range([svgContainerHeight - ChartPadding.bottom, ChartPadding.top])
     const xScale = d3.scaleBand()
@@ -87,7 +91,7 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       xScale,
       colorScale,
     }
-  }, [measurements, svgContainerWidth])
+  }, [measurements, svgContainerWidth, isRefillable, areValuesDepleting])
 
   return <View
     style={ {
@@ -155,9 +159,9 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
           .map(([year, value]) => <G key={ year }>
             <Rect
               x={ xScale(year) }
-              y={ value > 0 ? yScale(0) : yScale(value) }
+              y={ value >= 0 ? yScale(0) : yScale(value) }
               width={ xScale.bandwidth() }
-              height={ (value > 0 ? yScale(value) - yScale(0) : yScale(0) - yScale(value)) }
+              height={ value >= 0 ? yScale(value) - yScale(0) : yScale(0) - yScale(value) }
               fill={ colorScale(year) ?? Colors.primary }
             />
           </G>)

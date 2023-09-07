@@ -25,7 +25,8 @@ const lang: Language = {
     input_placeholder_identification: "Identifikationsnummer (optional)",
     input_placeholder_digit: "Präzision*",
     input_placeholder_unit: "Einheit*",
-    input_placeholder_is_increase: "Werte sinken über Zeit",
+    input_placeholder_is_positive: "Höherer Verbrauch ist besser",
+    input_placeholder_is_refillable: "Zähler kann zurückgesetzt werden",
     input_placeholder_is_valid: "Ist aktiv",
 
     reading: "Zählerstand",

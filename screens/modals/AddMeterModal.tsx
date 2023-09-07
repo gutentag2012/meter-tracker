@@ -47,6 +47,7 @@ export default function AddMeterModal({
 
   const [formBoolState, setFormBoolState] = useState({
     areValuesDepleting: editMeter?.areValuesDepleting ?? false,
+    isRefillable: editMeter?.isRefillable ?? false,
     isActive: editMeter?.isActive ?? true,
   })
 
@@ -60,7 +61,7 @@ export default function AddMeterModal({
     setLoading(true)
 
     const meter = new Meter(
-      name.current, parseInt(digits.current), unit.current, selectedContract, formBoolState.areValuesDepleting,
+      name.current, parseInt(digits.current), unit.current, selectedContract, formBoolState.areValuesDepleting, formBoolState.isRefillable,
       formBoolState.isActive, identificationNumber.current,
     )
     if (!editMeter) {
@@ -185,7 +186,18 @@ export default function AddMeterModal({
 
           <View style={ { marginBottom: 8 } }>
             <Checkbox
-              label={ t('meter:input_placeholder_is_increase') }
+              label={ t('meter:input_placeholder_is_refillable') }
+              color={ Colors.primary }
+              value={ formBoolState.isRefillable }
+              onValueChange={ (isRefillable: boolean) => setFormBoolState({
+                ...formBoolState,
+                isRefillable,
+              }) }
+            />
+          </View>
+          <View style={ { marginBottom: 8 } }>
+            <Checkbox
+              label={ t('meter:input_placeholder_is_positive') }
               color={ Colors.primary }
               value={ formBoolState.areValuesDepleting }
               onValueChange={ (areValuesDepleting: boolean) => setFormBoolState({

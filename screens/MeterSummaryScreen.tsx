@@ -50,14 +50,22 @@ const MeasurementDailyUsage = (props: SceneProps) => <View>
   <Text style={ styles.sectionTitle }>
     { t('meter:usage_per_day') }
   </Text>
-  <MeasurementDailyUsagePerDayChart measurements={ props.route.measurements } />
+  <MeasurementDailyUsagePerDayChart
+    measurements={ props.route.measurements }
+    isRefillable={ props.route.meter.isRefillable }
+    areValuesDepleting={ props.route.meter.areValuesDepleting }
+  />
 </View>
 
 const MeasurementTotalUsage = (props: SceneProps) => <View>
   <Text style={ styles.sectionTitle }>
     { t('meter:usage_per_year') }
   </Text>
-  <MeasurementTotalYearlyUsageChart measurements={ props.route.measurements } />
+  <MeasurementTotalYearlyUsageChart
+    measurements={ props.route.measurements }
+    isRefillable={ props.route.meter.isRefillable }
+    areValuesDepleting={ props.route.meter.areValuesDepleting }
+  />
 </View>
 
 const renderScene = SceneMap({
@@ -79,10 +87,12 @@ export default function MeterSummaryScreen({
     {
       key: 'yearlyDailyUsage',
       measurements,
+      meter: route.params.meter
     },
     {
       key: 'yearlyTotalUsage',
       measurements,
+      meter: route.params.meter
     },
   ], [measurements])
 

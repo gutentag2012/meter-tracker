@@ -24,7 +24,8 @@ const lang = {
     input_placeholder_identification: "Identification Number (optional)",
     input_placeholder_digit: "Digits*",
     input_placeholder_unit: "Unit*",
-    input_placeholder_is_increase: "Values decrease over time",
+    input_placeholder_is_positive: "Higher usage is better",
+    input_placeholder_is_refillable: "Meter can be reset",
     input_placeholder_is_valid: "Is active",
 
     reading: "Reading",

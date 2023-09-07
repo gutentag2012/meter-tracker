@@ -79,7 +79,8 @@ export const MeasurementListEntry: FunctionComponent<Props> = React.memo(({
     return (deltaValue - previousDeltaValue) / Math.abs(previousDeltaValue || 1) * 100
   }, [deltaValue, previousMeasurement, previousPreviousMeasurement])
 
-  const areValuesGood = percentileChange !== undefined && ((percentileChange >= 0 && !!measurement.meter?.areValuesDepleting) || (percentileChange <= 0 && !measurement.meter?.areValuesDepleting))
+  const refillableMultiplier = measurement.meter?.isRefillable ? -1 : 1
+  const areValuesGood = percentileChange !== undefined && (measurement.meter?.areValuesDepleting ? (percentileChange * refillableMultiplier) >= 0 : (percentileChange * refillableMultiplier) <= 0)
 
   // Animation (Swipe to delete)
   const dragX = useSharedValue(0)

@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import moment from 'moment/moment'
-import React, { FunctionComponent, useMemo, useState } from 'react'
+import React, { FunctionComponent, useMemo } from 'react'
 import { Appearance, Dimensions } from 'react-native'
 import Svg, { G, Line, Path, Rect, Text as SvgText } from 'react-native-svg'
 import { Colors, View } from 'react-native-ui-lib'
@@ -16,14 +16,20 @@ const ChartPadding = {
 
 interface MeasurementYearlyChartProps {
   measurements: ClusteredMeasurements
+  isRefillable?: boolean
+  areValuesDepleting?: boolean
 }
 
 type Props = MeasurementYearlyChartProps
 
 export const YearlyChunkSize = 5
 
-export const MeasurementDailyUsagePerDayChart: FunctionComponent<Props> = ({ measurements }) => {
-  const svgContainerWidth = Dimensions.get("window").width
+export const MeasurementDailyUsagePerDayChart: FunctionComponent<Props> = ({
+                                                                             measurements,
+                                                                             isRefillable,
+                                                                             areValuesDepleting,
+                                                                           }) => {
+  const svgContainerWidth = Dimensions.get('window').width
   const svgContainerHeight = svgContainerWidth * .6
 
   const {
@@ -54,14 +60,30 @@ export const MeasurementDailyUsagePerDayChart: FunctionComponent<Props> = ({ mea
               .diff(moment(previousMeasurement.createdAt)
                 .startOf('day'), 'days') || 1
             const delta = measurement.value - previousMeasurement.value
+            const value = delta / daysBetween
+
+            const date = moment(measurement.createdAt)
+              .year(0)
+              .valueOf()
+
+            // If the previous measurement is 0 and the one before that is 0, we assume that the meter got its first value
+            if(previousMeasurement.value == 0 && previousPreviousMeasurement?.value === 0) {
+                return {
+                    value: 0,
+                    date,
+                }
+            }
+
+            if (isRefillable && (areValuesDepleting && value < 0 || !areValuesDepleting && value > 0)) {
+              return {
+                value: 0,
+                date,
+              }
+            }
 
             return {
-              value: previousMeasurement.value == 0 && previousPreviousMeasurement?.value === 0
-                     ? 0
-                     : delta / daysBetween,
-              date: moment(measurement.createdAt)
-                .year(0)
-                .valueOf(),
+              value,
+              date,
             }
           }),
       ]))
@@ -110,7 +132,7 @@ export const MeasurementDailyUsagePerDayChart: FunctionComponent<Props> = ({ mea
       xScale,
       colorScale,
     }
-  }, [measurements, svgContainerWidth])
+  }, [measurements, svgContainerWidth, areValuesDepleting, isRefillable])
 
   // const left = useSharedValue(0)
   // const top = useSharedValue(0)

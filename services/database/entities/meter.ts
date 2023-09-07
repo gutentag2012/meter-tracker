@@ -12,7 +12,8 @@ export default class Meter extends Entity {
     public digits: number,
     public unit: string,
     public contract_id?: number,
-    public areValuesDepleting?: boolean,
+    public areValuesDepleting?: boolean, // Actually is the field isPositive, it's just bad to rename it now
+    public isRefillable?: boolean,
     public isActive?: boolean,
     public identification?: string,
     public createdAt: number = Date.now(),
@@ -27,7 +28,7 @@ export default class Meter extends Entity {
 
   getInsertionValues(forceId?: boolean): string {
     const identification = this.identification ? `"${ this.identification }"` : 'NULL'
-    return `("${ this.name }", ${ this.digits }, "${ this.unit }", ${ this.contract_id ?? 'NULL' }, ${ this.areValuesDepleting ?? 'NULL' }, ${ this.isActive ?? 'NULL' }, ${ identification }, ${ this.createdAt }, ${ this.order ?? 0 }${ forceId
+    return `("${ this.name }", ${ this.digits }, "${ this.unit }", ${ this.contract_id ?? 'NULL' }, ${ this.areValuesDepleting ?? 'NULL' }, ${ this.isRefillable ?? 'NULL' }, ${ this.isActive ?? 'NULL' }, ${ identification }, ${ this.createdAt }, ${ this.order ?? 0 }${ forceId
                                                                                                                                                                                                                                            ? `, ${ this.id }`
                                                                                                                                                                                                                                            : '' }, ${ this.__v ?? 0 })`
   }
@@ -40,7 +41,8 @@ SET
   digits = ${this.digits}, 
   unit = "${this.unit}", 
   contract_id = ${this.contract_id ?? 'NULL'}, 
-  areValuesDepleting = ${this.areValuesDepleting ?? 'NULL'}, 
+  areValuesDepleting = ${this.areValuesDepleting ?? 'NULL'},
+  isRefillable = ${this.isRefillable ?? 'NULL'}, 
   isActive = ${this.isActive ?? 'NULL'}, 
   identification = "${this.identification ?? 'NULL'}", 
   sortingOrder = ${this.order ?? 'NULL'}, 
@@ -57,6 +59,7 @@ WHERE id = ${this.id}`
       this.digits,
       this.unit,
       this.areValuesDepleting,
+      this.isRefillable,
       this.isActive,
       this.identification,
       this.createdAt,
