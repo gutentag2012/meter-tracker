@@ -55,24 +55,24 @@ export const MeasurementDailyUsagePerDayChart: FunctionComponent<Props> = ({
       measurements.map(([year, measurements]) => [
         year, measurements.filter(m => m.filter(Boolean).length >= 2)
           .map(([measurement, previousMeasurement, previousPreviousMeasurement]) => {
+            const date = moment(measurement.createdAt)
+              .year(0)
+              .valueOf()
+
+            // If the previous measurement is 0 and the one before that is 0, we assume that the meter got its first value
+            if(!previousMeasurement?.value && !previousPreviousMeasurement?.value) {
+              return {
+                value: 0,
+                date,
+              }
+            }
+
             const daysBetween = moment(measurement.createdAt)
               .endOf('day')
               .diff(moment(previousMeasurement.createdAt)
                 .startOf('day'), 'days') || 1
             const delta = measurement.value - previousMeasurement.value
             const value = delta / daysBetween
-
-            const date = moment(measurement.createdAt)
-              .year(0)
-              .valueOf()
-
-            // If the previous measurement is 0 and the one before that is 0, we assume that the meter got its first value
-            if(previousMeasurement.value == 0 && previousPreviousMeasurement?.value === 0) {
-                return {
-                    value: 0,
-                    date,
-                }
-            }
 
             if (isRefillable && (areValuesDepleting && value < 0 || !areValuesDepleting && value > 0)) {
               return {

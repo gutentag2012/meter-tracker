@@ -51,13 +51,13 @@ export const MeasurementMonthlyHeatmap: FunctionComponent<Props> = ({
     const barsPerYear: Record<string, Array<readonly [string, number]>> = Object.fromEntries(
       measurements.map(([year, measurements]) => {
         // Chunk the measurements per month of the createdAt date of the measurement
-        const differencesPerMonth = measurements.filter(m => m.filter(Boolean).length >= 2)
+        const differencesPerMonth = measurements
           .map(([measurement, previousMeasurement, previousPreviousMeasurement]: MeasurementHistory) => {
             const month = moment(measurement.createdAt)
               .format('MMMM')
 
             // If the previous measurement is 0 and the one before that is 0, we assume that the meter got its first value
-            if(previousMeasurement.value == 0 && previousPreviousMeasurement?.value === 0) {
+            if(!previousMeasurement?.value && !previousPreviousMeasurement?.value) {
               return [month, 0] as const
             }
 
