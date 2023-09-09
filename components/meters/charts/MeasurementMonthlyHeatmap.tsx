@@ -90,7 +90,7 @@ export const MeasurementMonthlyHeatmap: FunctionComponent<Props> = ({
 
     const colorScale = d3.scaleLinear<string>()
       .domain([minValue, maxValue])
-      .range(maxValue < 0 ? [extremeColor, baselineColor] : [baselineColor, extremeColor])
+      .range(maxValue <= 0 ? [extremeColor, baselineColor] : [baselineColor, extremeColor])
 
     const yScale = d3.scaleBand()
       .domain(Object.keys(barsPerYear))
