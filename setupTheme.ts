@@ -470,18 +470,18 @@ const colors = {
 //   "#F9B46E",
 // ]
 export const ChartColorsLight = [
-  "#093E48",
+  "#15768c",
   "#6B9A91",
   "#A9C4AB",
   "#E4DDA3",
-  "#D8C27B",
+  "#d9b84c",
   "#EA8520",
   "#DC6921",
-  "#9F3202",
-  "#5D2109",
+  "#b33702",
+  "#993308",
 ]
 export const ChartColorsDark = [
-  "#2093a8",
+  "#0d819e",
   "#6B9A91",
   "#A9C4AB",
   "#E4DDA3",

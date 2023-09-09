@@ -34,6 +34,7 @@ const lang: Language = {
 
     usage_per_day: "Verbrauch pro Tag",
     usage_per_year: "Verbrauch pro Jahr",
+    heatmap_of_usage: "Verbrauchshistorie",
   },
   contract: {
     input_placeholder_price_per_unit: "Preis pro Einheit*",

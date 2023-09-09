@@ -27,8 +27,9 @@ import { MeasurementListEntry } from '../components/measurements/MeasurementList
 import {
   MeasurementDailyUsagePerDayChart,
   YearlyChunkSize,
-} from '../components/meters/MeasurementDailyUsagePerDayChart'
-import { MeasurementTotalYearlyUsageChart } from '../components/meters/MeasurementTotalYearlyUsageChart'
+} from '../components/meters/charts/MeasurementDailyUsagePerDayChart'
+import { MeasurementMonthlyHeatmap } from '../components/meters/charts/MeasurementMonthlyHeatmap'
+import { MeasurementTotalYearlyUsageChart } from '../components/meters/charts/MeasurementTotalYearlyUsageChart'
 import { HomeStackScreenProps } from '../navigation/types'
 import Measurement from '../services/database/entities/measurement'
 import Meter from '../services/database/entities/meter'
@@ -68,9 +69,21 @@ const MeasurementTotalUsage = (props: SceneProps) => <View>
   />
 </View>
 
+const MonthlyHeatmap = (props: SceneProps) => <View>
+  <Text style={ styles.sectionTitle }>
+    { t('meter:heatmap_of_usage') }
+  </Text>
+  <MeasurementMonthlyHeatmap
+    measurements={ props.route.measurements }
+    isRefillable={ props.route.meter.isRefillable }
+    areValuesDepleting={ props.route.meter.areValuesDepleting }
+  />
+</View>
+
 const renderScene = SceneMap({
   yearlyDailyUsage: MeasurementDailyUsage,
   yearlyTotalUsage: MeasurementTotalUsage,
+  monthlyHeatmap: MonthlyHeatmap,
 })
 
 export default function MeterSummaryScreen({
@@ -91,6 +104,11 @@ export default function MeterSummaryScreen({
     },
     {
       key: 'yearlyTotalUsage',
+      measurements,
+      meter: route.params.meter
+    },
+    {
+      key: 'monthlyHeatmap',
       measurements,
       meter: route.params.meter
     },
@@ -206,7 +224,7 @@ export default function MeterSummaryScreen({
   }, [measurements])
 
   // The height modifier is only used in the first screen, since it can have an overflow of years
-  const heightModifier = index === 0 ? Math.ceil((measurements?.length ?? 0) / YearlyChunkSize) : 1
+  const bottomHeightModifier = index === 0 ? Math.ceil((measurements?.length ?? 0) / YearlyChunkSize) : 1
   return (
     <SafeAreaView
       style={ styles.container }
@@ -238,7 +256,7 @@ export default function MeterSummaryScreen({
 
       <View
         style={ {
-          height: Dimensions.get('window').width * 0.6 + 40 + 24 * heightModifier,
+          height: Dimensions.get('window').width * 0.6 + 40 + 24 * bottomHeightModifier,
         } }
       >
         <TabView

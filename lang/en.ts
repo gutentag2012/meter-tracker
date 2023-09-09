@@ -33,6 +33,7 @@ const lang = {
 
     usage_per_day: "Usage per day",
     usage_per_year: "Usage per year",
+    heatmap_of_usage: "Heatmap of usage",
   },
   contract: {
     input_placeholder_price_per_unit: "Price per unit*",

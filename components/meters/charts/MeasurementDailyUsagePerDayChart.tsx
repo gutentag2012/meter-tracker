@@ -4,8 +4,8 @@ import React, { FunctionComponent, useMemo } from 'react'
 import { Appearance, Dimensions } from 'react-native'
 import Svg, { G, Line, Path, Rect, Text as SvgText } from 'react-native-svg'
 import { Colors, View } from 'react-native-ui-lib'
-import { ClusteredMeasurements } from '../../screens/MeterSummaryScreen'
-import { ChartColorsDark, ChartColorsLight } from '../../setupTheme'
+import { ClusteredMeasurements } from '../../../screens/MeterSummaryScreen'
+import { ChartColorsDark, ChartColorsLight } from '../../../setupTheme'
 
 const ChartPadding = {
   top: 16,
@@ -242,10 +242,9 @@ export const MeasurementDailyUsagePerDayChart: FunctionComponent<Props> = ({
         colorScale && Object.entries(linesPerYear)
           .map(([year, line]) => <G key={ year }>
             <Path
-              d={ line ?? '' }
+              d={ line }
               stroke={ colorScale(year) ?? Colors.primary }
-              strokeWidth={ 3 }
-              opacity={ .8 }
+              strokeWidth={ 2 }
               strokeLinecap='round'
               fill='none'
             />

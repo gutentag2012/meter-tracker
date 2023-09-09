@@ -1,11 +1,10 @@
 import * as d3 from 'd3'
-import moment from 'moment/moment'
 import React, { FunctionComponent, useMemo, useState } from 'react'
 import { Appearance } from 'react-native'
 import Svg, { G, Line, Rect, Text as SvgText } from 'react-native-svg'
 import { Colors, View } from 'react-native-ui-lib'
-import { ClusteredMeasurements, MeasurementHistory } from '../../screens/MeterSummaryScreen'
-import { ChartColorsDark, ChartColorsLight } from '../../setupTheme'
+import { ClusteredMeasurements, MeasurementHistory } from '../../../screens/MeterSummaryScreen'
+import { ChartColorsDark, ChartColorsLight } from '../../../setupTheme'
 
 const ChartPadding = {
   top: 16,
@@ -22,9 +21,11 @@ interface MeasurementYearlyChartProps {
 
 type Props = MeasurementYearlyChartProps
 
-// TODO Show bars on top for positive and on bottom for negative (only if applicable)
-
-export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ measurements, isRefillable, areValuesDepleting }) => {
+export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({
+                                                                             measurements,
+                                                                             isRefillable,
+                                                                             areValuesDepleting,
+                                                                           }) => {
   const [svgContainerWidth, setSvgContainerWidth] = useState(0)
   const svgContainerHeight = svgContainerWidth * .6 + 12
 
@@ -36,7 +37,7 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
   } = useMemo(() => {
     if (!svgContainerWidth || !measurements.length) {
       return {
-        linesPerYear: {},
+        barsPerYear: {},
         yScale: undefined,
         mappedXScale: undefined,
         xScale: undefined,
@@ -44,38 +45,35 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       }
     }
 
-    const barsPerYear: Record<string, [number, number]> = Object.fromEntries(measurements.map(([year, measurements], index) => {
-      const values = measurements.filter(m => m.filter(Boolean).length >= 2)
-        .map(([measurement, previousMeasurement]: MeasurementHistory) => {
-          const daysBetween = moment(measurement.createdAt)
-            .endOf('day')
-            .diff(moment(previousMeasurement.createdAt)
-              .startOf('day'), 'days') || 1
-          const delta = measurement.value - previousMeasurement.value
-          return delta / daysBetween
-        })
+    const barsPerYear: Record<string, [number, number]> = Object.fromEntries(
+      measurements.map(([year, measurements], index) => {
+        const values = measurements.filter(m => m.filter(Boolean).length >= 2)
+          .map(([measurement, previousMeasurement]: MeasurementHistory) => {
+            return measurement.value - previousMeasurement.value
+          })
 
-      // We only want to show negative values if the meter is refillable and does not prefer positive values
-      const refillableMultiplier = areValuesDepleting ? -1 : 1
-      const totalUsagePositive = values.filter(value => isRefillable ? value * refillableMultiplier <= 0 : value >= 0).reduce((acc, curr) => acc + curr, 0)
+        // We only want to show negative values if the meter is refillable and does not prefer positive values
+        const refillableMultiplier = areValuesDepleting ? -1 : 1
+        const totalUsagePositive = values.filter(value => isRefillable ? value * refillableMultiplier <= 0 : value >= 0)
+          .reduce((acc, curr) => acc + curr, 0)
 
-      // Only want to estimate for the current year
-      let totalUsageCurrentYear = 0
-      // if(index === 0) {
-      //   // Estimate the total usage for the current year
-      //   const daysIntoCurrentYear = moment().diff(moment().startOf('year'), 'days')
-      //   const daysInCurrentYear = moment().endOf('year').diff(moment().startOf('year'), 'days')
-//
-      //   totalUsageCurrentYear = totalUsagePositive / daysIntoCurrentYear * daysInCurrentYear
-      // }
+        // Only want to estimate for the current year
+        let totalUsageCurrentYear = 0
+        // if(index === 0) {
+        //   // Estimate the total usage for the current year
+        //   const daysIntoCurrentYear = moment().diff(moment().startOf('year'), 'days')
+        //   const daysInCurrentYear = moment().endOf('year').diff(moment().startOf('year'), 'days')
+        //
+        //   totalUsageCurrentYear = totalUsagePositive / daysIntoCurrentYear * daysInCurrentYear
+        // }
 
-      // To get a better estimation I would have to
-      // 1. Compare the usage of the current year up until now with the usage of the previous year up until now (-1 year)
-      // 2. Get the usage of the previous year for the rest of the year
-      // 3. Calculate the difference between the two usages and add it to the current usage
+        // To get a better estimation I would have to
+        // 1. Compare the usage of the current year up until now with the usage of the previous year up until now (-1
+        // year) 2. Get the usage of the previous year for the rest of the year 3. Calculate the difference between the
+        // two usages and add it to the current usage
 
-      return [year, [totalUsagePositive, totalUsageCurrentYear]]
-    }) ?? [])
+        return [year, [totalUsagePositive, totalUsageCurrentYear]]
+      }) ?? [])
 
     const PossibleColors = Appearance.getColorScheme() === 'dark' ? ChartColorsDark : ChartColorsLight
 
@@ -87,7 +85,8 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       .domain(Object.keys(barsPerYear))
       .range(colors)
 
-    const [minValue = 0, maxValue = 0] = d3.extent(Object.values(barsPerYear).map(([value]) => value))
+    const [minValue = 0, maxValue = 0] = d3.extent(Object.values(barsPerYear)
+      .map(([value]) => value))
     const yScale = d3.scaleLinear()
       .domain([Math.min(0, minValue), Math.max(0, maxValue)])
       .nice()
@@ -147,7 +146,7 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
       <G>
         {
           xScale && Object.entries(barsPerYear)
-            .map(([label, [,value]], i) => <G
+            .map(([label, [, value]], i) => <G
               translateX={ xScale(label) }
               key={ label + i }
             >
@@ -182,7 +181,7 @@ export const MeasurementTotalYearlyUsageChart: FunctionComponent<Props> = ({ mea
               width={ xScale.bandwidth() }
               height={ estimatedValue >= 0 ? yScale(estimatedValue) - yScale(0) : yScale(0) - yScale(estimatedValue) }
               fill={ colorScale(year) ?? Colors.primary }
-              opacity={ .6}
+              opacity={ .6 }
             />
           </G>)
       }
