@@ -85,6 +85,7 @@ const lang: Language = {
     import_data_description: "Importieren Sie Ihre Daten von einer CSV",
 
     reminder: "Erinnerung",
+    reminder_notification_body: "Bitte geben Sie Ihre Zählerstände ein",
     enable_reminder: "Erinnerung aktivieren",
     enable_reminder_description: "Regelmäßige Erinnerung an die Eingabe der Zählerstande",
 

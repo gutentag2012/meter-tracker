@@ -150,9 +150,9 @@ export const scheduleReminderNotification = async (interval?: Interval) => {
   await Notifications.scheduleNotificationAsync({
     identifier: reminderId,
     content: {
-      title: 'Reminder',
+      title: t("utils:reminder"),
       color: Colors.primary,
-      body: 'Please enter your meter readings',
+      body: t("utils:reminder_notification_body"),
     },
     trigger,
   })
