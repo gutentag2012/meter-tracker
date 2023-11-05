@@ -13,50 +13,17 @@ import MeasurementService from '../services/database/services/MeasurementService
 import MeterService from '../services/database/services/MeterService'
 import EventEmitter from '../services/events'
 import { t } from '../services/i18n'
+import BuildingService from '../services/database/services/BuildingService'
+import type Entity from '../services/database/entities/entity'
 
 export const databaseToCSVString = async () => {
-  // Could be used to export everything in separate files
-  // db.transaction(async tx => {
-  //   const [meters, contracts, measurements] = await Promise.all(
-  //     [METER_TABLE_NAME, CONTRACT_TABLE_NAME, MEASUREMENT_TABLE_NAME].map(table => {
-  //       const statement = `SELECT * FROM ${table}`
-  //       return new Promise((resolve, reject) => {
-  //         tx.executeSql(
-  //           statement,
-  //           [],
-  //           (_, { rows }) => {
-  //             resolve(rows._array)
-  //           },
-  //           (_, error) => {
-  //             console.error('ERROR WHILE EXPORTING DB', error)
-  //             resolve([])
-  //             return true
-  //           },
-  //         )
-  //       })
-  //     }))
-  //
-  //   console.log('meters')
-  //   console.log(meters)
-  //   console.log('contracts')
-  //   console.log(contracts)
-  //   console.log('measurements')
-  //   console.log(measurements)
-  // })
-
   const service = new MeasurementService()
-  // const meterService = new MeterService()
-  // const contractService = new ContractService()
   const repo = new GenericRepository(service)
-  // const meterRepo = new GenericRepository(meterService)
-  // const contractRepo = new GenericRepository(contractService)
 
   const allMeasurements = await repo.getAllData()
-  // const allMeters = await meterRepo.getAllData()
-  // const allContracts = await contractRepo.getAllData()
 
-  let csvHeader = service.getCSVHeader(true)
-  const csvRows = allMeasurements.map(measurement => {
+  const csvHeader = service.getCSVHeader(true)
+  const csvRows = allMeasurements.map((measurement) => {
     return measurement.getCSVValues(true)
   })
   return [csvHeader, ...csvRows].join('\n')
@@ -64,8 +31,7 @@ export const databaseToCSVString = async () => {
 
 export const shareCSVFile = async (data: string, filename?: string) => {
   if (!filename) {
-    filename = `meter-tracker_${ moment()
-      .format('YYYY-MM-DD_HH-mm') }.csv`
+    filename = `meter-tracker_${moment().format('YYYY-MM-DD_HH-mm')}.csv`
   }
 
   const fileUri = FileSystem.cacheDirectory + filename
@@ -89,7 +55,7 @@ export const readCSVFile = async () => {
 export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   if (!csv) {
     csv = await readCSVFile()
-    if(!csv) {
+    if (!csv) {
       return
     }
   }
@@ -106,23 +72,27 @@ export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   const contractRepo = new GenericRepository(contractService)
   const meterService = new MeterService()
   const meterRepo = new GenericRepository(meterService)
+  const buildingService = new BuildingService()
+  const buildingRepo = new GenericRepository(buildingService)
 
   const [header, ...rows] = csv.split('\n')
   const headerArray = header.split(',')
 
-  const rowsAsObjects = rows.map(row => {
+  const rowsAsObjects = rows.map((row) => {
     const values = row.split(',')
-    const paresObject = values.reduce((acc, value, index) => {
+    const paresObject = values.reduce(
+      (acc, value, index) => {
+        try {
+          acc[headerArray[index]] = !value ? undefined : JSON.parse(value)
+        } catch (ignored) {
+          // Catch any possible parsing error
+          acc[headerArray[index]] = value
+        }
 
-      try {
-        acc[headerArray[index]] = !value ? undefined : JSON.parse(value)
-      } catch (ignored) {
-        // Catch any possible parsing error
-        acc[headerArray[index]] = value
-      }
-
-      return acc
-    }, {} as Record<string, any>)
+        return acc
+      },
+      {} as Record<string, unknown>
+    )
 
     return measurementService.fromJSON(paresObject)
   })
@@ -132,12 +102,16 @@ export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   }
 
   const uniqueEntities = {
-    contracts: {} as Record<string, any>,
-    meters: {} as Record<string, any>,
-    measurements: {} as Record<string, any>,
+    contracts: {} as Record<string, Entity>,
+    meters: {} as Record<string, Entity>,
+    measurements: {} as Record<string, Entity>,
+    buildings: {} as Record<string, Entity>,
   }
 
   for (const measurement of rowsAsObjects) {
+    if (measurement.meter?.building?.id) {
+      uniqueEntities.buildings[measurement.meter.building.id] = measurement.meter.building
+    }
     if (measurement.meter?.contract?.id) {
       uniqueEntities.contracts[measurement.meter.contract.id] = measurement.meter.contract
     }
@@ -159,10 +133,13 @@ export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   for (const measurement of Object.values(uniqueEntities.measurements)) {
     promises.push(measurementRepo.insertData(measurement, true, false))
   }
+  for (const building of Object.values(uniqueEntities.buildings)) {
+    promises.push(buildingRepo.insertData(building, true, false))
+  }
 
   const [success, error] = await Promise.all(promises)
     .then(() => [true])
-    .catch(err => [false, err])
+    .catch((err) => [false, err])
 
   if (!success) {
     EventEmitter.emitToast({
