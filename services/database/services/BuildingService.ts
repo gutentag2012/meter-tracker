@@ -19,7 +19,7 @@ export default class BuildingService extends Service {
         createdAt             INTEGER,
         __v                   INTEGER
       );`,
-        `INSERT INTO ${BUILDING_TABLE_NAME} (id, name, createdAt) VALUES (${DEFAULT_BUILDING_ID}, "default", ${Date.now()});`,
+        `INSERT OR IGNORE INTO ${BUILDING_TABLE_NAME} (id, name, createdAt) VALUES (${DEFAULT_BUILDING_ID}, "default", ${Date.now()});`,
       ]
     }
     return []
