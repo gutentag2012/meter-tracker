@@ -15,6 +15,7 @@ import EventEmitter from '../services/events'
 import { t } from '../services/i18n'
 import BuildingService from '../services/database/services/BuildingService'
 import type Entity from '../services/database/entities/entity'
+import { DEFAULT_BUILDING_ID } from '../services/database/entities/building'
 
 export const databaseToCSVString = async () => {
   const service = new MeasurementService()
@@ -109,7 +110,10 @@ export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   }
 
   for (const measurement of rowsAsObjects) {
-    if (measurement.meter?.building?.id) {
+    if (
+      measurement.meter?.building?.id &&
+      measurement.meter?.building?.id !== DEFAULT_BUILDING_ID
+    ) {
       uniqueEntities.buildings[measurement.meter.building.id] = measurement.meter.building
     }
     if (measurement.meter?.contract?.id) {
@@ -124,17 +128,25 @@ export const databaseFromCSV = async (csv?: string, overwrite = true) => {
   }
 
   const promises = []
+  for (const building of Object.values(uniqueEntities.buildings)) {
+    promises.push(buildingRepo.insertData(building, true, false))
+  }
   for (const contract of Object.values(uniqueEntities.contracts)) {
     promises.push(contractRepo.insertData(contract, true, false))
   }
+  // Since the meters are dependent on the buildings and contracts, we need to wait for them to be inserted first
+  await Promise.all(promises)
+  promises.length = 0
+
   for (const meter of Object.values(uniqueEntities.meters)) {
     promises.push(meterRepo.insertData(meter, true, false))
   }
+  // Since the measurements are dependent on the meters, we need to wait for them to be inserted first
+  await Promise.all(promises)
+  promises.length = 0
+
   for (const measurement of Object.values(uniqueEntities.measurements)) {
     promises.push(measurementRepo.insertData(measurement, true, false))
-  }
-  for (const building of Object.values(uniqueEntities.buildings)) {
-    promises.push(buildingRepo.insertData(building, true, false))
   }
 
   const [success, error] = await Promise.all(promises)
