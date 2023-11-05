@@ -44,16 +44,35 @@ const lang = {
 
     contract: 'Contract',
 
-    explain_conversion: 'Conversion is used to convert the units of the meter to the units of the contract. For example, if your meter measures in kWh and your contract is in MWh, you would enter 0.001.',
+    explain_conversion:
+      'Conversion is used to convert the units of the meter to the units of the contract. For example, if your meter measures in kWh and your contract is in MWh, you would enter 0.001.',
+  },
+  buildings: {
+    buildings: 'Buildings',
+
+    add_building: 'Add Building',
+
+    delete_building: 'Delete Building',
+    delete_building_warning:
+      'There is currently {{numberOfConnectedMeters}} meter connected to this building. The connection will be removed and your data stays in takt.',
+    delete_building_warning_plural:
+      'There are currently {{numberOfConnectedMeters}} meters connected to this building. The connection will be removed and your data stays in takt.',
+
+    input_placeholder_address: 'Address',
+    input_placeholder_notes: 'Notes',
+
+    default_building_name: 'Default',
   },
   utils: {
     date: 'Date',
     history: 'History',
 
     deleted_reading: 'Deleted reading',
+    deleted_building: 'Deleted building',
 
     camera_permission: 'Camera Permissions',
-    camera_permission_message: 'We require camera permissions to use the torch on the back of your phone.',
+    camera_permission_message:
+      'We require camera permissions to use the torch on the back of your phone.',
 
     per_day: 'per day',
     add_entry: 'Add entry',
@@ -100,7 +119,8 @@ const lang = {
     delete_finished: 'Delete finished',
 
     notification_permission_dialog_title: 'Notification Permissions',
-    notification_permission_dialog_message: 'We need permission to send you reminders. You can change this in the settings.',
+    notification_permission_dialog_message:
+      'We need permission to send you reminders. You can change this in the settings.',
     notification_permission_dialog_cancel: 'Cancel',
     notification_permission_dialog_goto_settings: 'Go to Settings',
   },
@@ -114,12 +134,12 @@ const lang = {
 
 type PathOf<T> = {
   // @ts-ignore
-  [K in keyof T]: T[K] extends object ? `${ K }:${ PathOf<T[K]> }` : K
+  [K in keyof T]: T[K] extends object ? `${K}:${PathOf<T[K]>}` : K
 }[keyof T]
 
 type RecursivePartial<T> = {
-  [P in keyof T]?: RecursivePartial<T[P]>;
-};
+  [P in keyof T]?: RecursivePartial<T[P]>
+}
 
 export type Language = RecursivePartial<typeof lang>
 export type LangKey = PathOf<typeof lang>
