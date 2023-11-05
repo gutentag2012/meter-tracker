@@ -19,13 +19,19 @@ const RESET_DB = false
 
 let db = openDatabase(DEFAULT_DATABASE_NAME)
 const setForeingKeys = (value?: 'ON' | 'OFF') => {
-  console.log('Setting foreign keys:', value)
   return new Promise((resolve) => {
     db.exec(
-      [{ sql: value ? `PRAGMA foreign_keys=${value};` : 'PRAGMA foreign_keys', args: [] }],
+      [
+        {
+          sql: value ? `PRAGMA foreign_keys=${value};` : 'PRAGMA foreign_keys',
+          args: [],
+        },
+      ],
       false,
       (err, res) => {
-        console.log('Foreign keys set to:', value, '__', err, res?.[0]?.rows)
+        if (!value) {
+          console.log('Foreign keys set to:', value, '__', err, res?.[0])
+        }
         resolve(undefined)
       }
     )
@@ -107,6 +113,7 @@ export async function setupDatabase() {
   }
 
   await setForeingKeys('OFF')
+  await setForeingKeys()
 
   for (
     let migrateVersion = currentDatabaseVersion;
