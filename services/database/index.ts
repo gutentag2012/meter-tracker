@@ -18,11 +18,28 @@ export const DATABASE_VERSION = 5
 const RESET_DB = false
 
 let db = openDatabase(DEFAULT_DATABASE_NAME)
-db.exec([{ sql: 'PRAGMA foreign_keys=ON;', args: [] }], false, () => {})
+const setForeingKeys = (value: 'ON' | 'OFF') => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `PRAGMA foreign_keys=${value};`,
+        [],
+        (tx, res) => {
+          resolve(res)
+        },
+        (tx, error) => {
+          reject(error)
+          return true
+        }
+      )
+    })
+  })
+}
+setForeingKeys('ON')
 
 export const reloadDatabase = () => {
   db = openDatabase(DEFAULT_DATABASE_NAME)
-  db.exec([{ sql: 'PRAGMA foreign_keys=ON;', args: [] }], false, () => {})
+  setForeingKeys('ON')
 }
 
 const Services = [
@@ -93,6 +110,8 @@ export async function setupDatabase() {
     await dropDatabase()
   }
 
+  await setForeingKeys('OFF')
+
   for (
     let migrateVersion = currentDatabaseVersion;
     migrateVersion < DATABASE_VERSION;
@@ -123,6 +142,8 @@ export async function setupDatabase() {
     })
     await Promise.all(promises)
   }
+
+  await setForeingKeys('ON')
 
   await AsyncStorage.setItem('databaseVersion', String(DATABASE_VERSION))
 }
