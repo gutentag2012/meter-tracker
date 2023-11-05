@@ -1,8 +1,8 @@
-import i18next, { Module } from 'i18next'
+import i18next, { type Module } from 'i18next'
 import { I18nManager as RNI18nManager } from 'react-native'
 import * as config from '../../config/i18n'
 import { supportedLocales } from '../../config/i18n'
-import { LangKey } from '../../lang/en'
+import { type LangKey } from '../../lang/en'
 import date from './date'
 import languageDetector from './language-detector'
 import translationLoader from './translation-loader'
@@ -16,27 +16,36 @@ const i18n = {
       i18next
         .use(languageDetector)
         .use(translationLoader as Module)
-        .init({
-          compatibilityJSON: 'v3',
-          fallbackLng: config.fallback,
-          ns: config.namespaces,
-          defaultNS: config.defaultNamespace,
-          interpolation: {
-            escapeValue: false,
-            format(value, format) {
-              if (!(value instanceof Date)) {
-                return ''
-              }
-              return date.format(value, format)
+        .init(
+          {
+            compatibilityJSON: 'v3',
+            fallbackLng: config.fallback,
+            ns: config.namespaces,
+            defaultNS: config.defaultNamespace,
+            interpolation: {
+              escapeValue: false,
+              format(value, format) {
+                if (!(value instanceof Date)) {
+                  return ''
+                }
+                return date.format(value, format)
+              },
             },
           },
-        }, (error) => {
-          if (error) { return reject(error) }
-          date.init(Object.keys(supportedLocales)
-                      .includes(i18next.language) ? i18next.language as keyof typeof supportedLocales : config.fallback)
-            .then(resolve)
-            .catch(error => reject(error))
-        })
+          (error) => {
+            if (error) {
+              return reject(error)
+            }
+            date
+              .init(
+                Object.keys(supportedLocales).includes(i18next.language)
+                  ? (i18next.language as keyof typeof supportedLocales)
+                  : config.fallback
+              )
+              .then(resolve)
+              .catch((error) => reject(error))
+          }
+        )
         .then(resolve)
     })
   },
@@ -57,8 +66,7 @@ const i18n = {
    * @returns {'LTR' | 'RTL'}
    */
   get dir() {
-    return i18next.dir()
-      .toUpperCase()
+    return i18next.dir().toUpperCase()
   },
   /**
    * @returns {boolean}
