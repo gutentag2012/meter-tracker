@@ -3,43 +3,49 @@ import { Colors } from 'react-native-ui-lib'
 import { ErrorCircleIcon } from '../../components/icons/ErrorCircleIcon'
 import EventEmitter from '../events'
 import type Entity from './entities/entity'
-import {RunOnDB} from './index'
-import { Service, useService } from './services/service'
+import { RunOnDB } from './index'
+import { type Service, useService } from './services/service'
 
-export const useRepository = <T extends Entity, S extends Service>(Service: (new() => S)): [GenericRepository<T>, S] => {
+export const useRepository = <T extends Entity, S extends Service>(
+  Service: new () => S
+): [GenericRepository<T>, S] => {
   const service = useService(Service)
   const repo = useRef(new GenericRepository<T>(service))
   return [repo.current, service]
 }
 
-export const useManualUpdatedData = (reload: () => void, events = ['data-inserted', 'data-removed']) => {
+export const useManualUpdatedData = (
+  reload: () => void,
+  events = ['data-inserted', 'data-removed']
+) => {
   useEffect(() => {
     reload()
     const onUpdate = () => {
       setTimeout(() => reload(), 100) // Small Timer for other transactions to settle
     }
-    events.forEach(event => EventEmitter.subscribe(event, onUpdate))
+    events.forEach((event) => EventEmitter.subscribe(event, onUpdate))
 
     return () => {
-      events.forEach(event => EventEmitter.unsubscribe(event, onUpdate))
+      events.forEach((event) => EventEmitter.unsubscribe(event, onUpdate))
     }
   }, [reload])
 }
 
-export const useUpdatedData = <T extends Entity, S extends Service>(Service: (new() => S)): [Array<T>, () => Promise<void>, GenericRepository<T>, S] => {
+export const useUpdatedData = <T extends Entity, S extends Service>(
+  Service: new () => S,
+  getDataFn?: (repo: GenericRepository<T>, service: S) => Promise<Array<T>>
+): [Array<T>, () => Promise<void>, GenericRepository<T>, S] => {
   const [data, setData] = useState<Array<T>>([])
 
   const [repo, service] = useRepository<T, S>(Service)
 
   const reload = useCallback(async () => {
-      const data = await repo.getAllData()
-      setData(data)
-    }, [repo],
-  )
+    const data = getDataFn ? await getDataFn(repo, service) : await repo.getAllData()
+    setData(data)
+  }, [getDataFn, repo, service])
 
   useEffect(() => {
-    reload()
-      .catch((error) => console.error('Error while reloading data: ', error))
+    reload().catch((error) => console.error('Error while reloading data: ', error))
     const onUpdate = () => {
       setTimeout(() => reload(), 100) // Small Timer for other transactions to settle
     }
@@ -56,9 +62,7 @@ export const useUpdatedData = <T extends Entity, S extends Service>(Service: (ne
 }
 
 export default class GenericRepository<T extends Entity> {
-
-  constructor(private service: Service) {
-  }
+  constructor(private service: Service) {}
 
   insertData(data: T, forceId = false, shouldEmit = true): Promise<T | undefined> {
     return RunOnDB(this.service.getInsertionHeader(forceId) + data.getInsertionValues(forceId))
@@ -100,8 +104,8 @@ export default class GenericRepository<T extends Entity> {
         EventEmitter.emit(`data-inserted`, freshData)
         return freshData
       })
-      .catch(err => {
-        console.error(`Error while updating ${ this.service.TableName } entity: `, err)
+      .catch((err) => {
+        console.error(`Error while updating ${this.service.TableName} entity: `, err)
         EventEmitter.emitToast({
           message: err?.message ?? err,
           duration: 5000,
@@ -117,12 +121,10 @@ export default class GenericRepository<T extends Entity> {
   }
 
   getAllData(): Promise<Array<T>> {
-    return RunOnDB(
-      this.service.getRetrieveAllStatement(true),
-    )
+    return RunOnDB(this.service.getRetrieveAllStatement(true))
       .then(({ rows }) => rows._array.map(this.service.fromJSON.bind(this.service)))
-      .catch(err => {
-        console.error(`Error while retrieving ${ this.service.TableName } entity: `, err)
+      .catch((err) => {
+        console.error(`Error while retrieving ${this.service.TableName} entity: `, err)
         EventEmitter.emitToast({
           message: err?.message ?? err,
           duration: 5000,
@@ -140,8 +142,8 @@ export default class GenericRepository<T extends Entity> {
   executeRaw<R>(statement: string): Promise<R | undefined> {
     return RunOnDB(statement)
       .then(({ rows }) => rows._array as R)
-      .catch(err => {
-        console.error(`Error while executing raw statement '${ statement }'`, err)
+      .catch((err) => {
+        console.error(`Error while executing raw statement '${statement}'`, err)
         EventEmitter.emitToast({
           message: err?.message ?? err,
           duration: 5000,
@@ -162,9 +164,10 @@ export default class GenericRepository<T extends Entity> {
         EventEmitter.emit(`data-removed`, {
           id,
           tableName: this.service.TableName,
-        }))
-      .catch(err => {
-        console.error(`Error while deleting ${ this.service.TableName } entity: `, err)
+        })
+      )
+      .catch((err) => {
+        console.error(`Error while deleting ${this.service.TableName} entity: `, err)
         EventEmitter.emitToast({
           message: err?.message ?? err,
           duration: 5000,
@@ -180,9 +183,11 @@ export default class GenericRepository<T extends Entity> {
 
   getDataById<T extends Entity>(id: number): Promise<T | undefined> {
     return RunOnDB(this.service.getRetrieveByIdStatement(id))
-      .then(({ rows }) => rows._array.length > 0 ? this.service.fromJSON(rows._array[0]) : undefined)
-      .catch(err => {
-        console.error(`Error while retrieving ${ this.service.TableName } entity: `, err)
+      .then(({ rows }) =>
+        rows._array.length > 0 ? this.service.fromJSON(rows._array[0]) : undefined
+      )
+      .catch((err) => {
+        console.error(`Error while retrieving ${this.service.TableName} entity: `, err)
         EventEmitter.emitToast({
           message: err?.message ?? err,
           duration: 5000,
