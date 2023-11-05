@@ -108,7 +108,6 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
         title={t('home_screen:title')}
         actions={
           <>
-            {/* TODO Find a way to make clear, that these are the buildings */}
             {shouldShowBuildingsSelect && (
               <BuildingPicker
                 value={selectedBuilding}

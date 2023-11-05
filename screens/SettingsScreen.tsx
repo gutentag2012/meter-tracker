@@ -259,52 +259,6 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
               }}
             />
           </View>
-
-          {/* TODO Add background tasks to send emails */}
-          {/*<Text style={ styles.sectionTitle }>Backup Mail</Text>
-         <SettingsListEntry
-         type='checkbox'
-         value={ values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
-         getIcon={ () => <MailIcon /> }
-         onPress={ () => setValue(AsyncStorageKeys.ENABLE_BACKUP_MAIL, !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL]) }
-         title='Enable Backup Mail'
-         getSubTitle={ () => 'Sends a regular mail with your values' }
-         />
-         <SettingsListEntry
-         type='email-address'
-         disabled={ !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
-         value={ values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER] }
-         onPress={ () => {
-         setSingleTextFieldDialogState({
-         isVisible: true,
-         initialValue: values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER],
-         inputType: 'email-address',
-         label: 'Receiver Address',
-         onFinish: (value) => {
-         setValue(AsyncStorageKeys.BACKUP_MAIL_RECEIVER, value)
-         },
-         })
-         } }
-         title='Receiver Address'
-         getSubTitle={ () => values[AsyncStorageKeys.BACKUP_MAIL_RECEIVER] || 'No address found' }
-         />
-         <SettingsListEntry
-         type='custom'
-         disabled={ !values[AsyncStorageKeys.ENABLE_BACKUP_MAIL] }
-         value={ values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL] }
-         onPress={ () => {
-         setIntervalDialogState({
-         isVisible: true,
-         initialValue: values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL],
-         title: 'Backup Interval',
-         onFinish: (value) => {
-         setValue(AsyncStorageKeys.BACKUP_MAIL_INTERVAL, value)
-         },
-         })
-         } }
-         title='Backup Interval'
-         getSubTitle={ () => intervalToString(values[AsyncStorageKeys.BACKUP_MAIL_INTERVAL]) }
-         />*/}
         </ScrollView>
 
         <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
