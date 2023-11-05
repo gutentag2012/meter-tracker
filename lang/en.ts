@@ -62,6 +62,8 @@ const lang = {
     input_placeholder_notes: 'Notes',
 
     default_building_name: 'Default',
+
+    no_address_provided: 'No address provided',
   },
   utils: {
     date: 'Date',
@@ -106,6 +108,11 @@ const lang = {
     reminder_notification_body: 'Please enter your meter readings',
     enable_reminder: 'Enable reminder',
     enable_reminder_description: 'A regular reminder to enter readings',
+
+    features: 'Features',
+    enable_multiple_buildings: 'Use multiple buildings',
+    enable_multiple_buildings_description:
+      'This will allow you to manage multiple buildings, to group meters and contracts together.',
 
     danger_zone: 'Danger Zone',
     enable_danger_zone: 'Enable danger zone',

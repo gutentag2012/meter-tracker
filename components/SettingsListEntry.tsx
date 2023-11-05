@@ -1,107 +1,103 @@
-import React, { FunctionComponent, ReactElement } from 'react'
+import React, { type ReactElement } from 'react'
 import { StyleSheet } from 'react-native'
 import Ripple from 'react-native-material-ripple'
 import { Colors, DateTimePicker, Text, View } from 'react-native-ui-lib'
 import Layout from '../constants/Layout'
 import { Typography } from '../setupTheme'
 import { CustomSwitch } from './CustomSwitch'
-import { ExportIcon } from './icons/ExportIcon'
 
 type SettingsType = 'text' | 'email-address' | 'checkbox' | 'date' | 'time' | 'custom'
 
-interface SettingsListEntryProps {
+type SettingsListEntryProps<T = unknown> = {
   type: SettingsType
-  onPress?: (value?: any) => void // Returns new value
+  onPress?: (value?: T) => void // Returns new value
   getIcon?: () => ReactElement
-  value?: any
+  value?: T
   title: string
-  getSubTitle: (value: any) => string
+  getSubTitle: (value?: T) => string
   disabled?: boolean
+  customHeight?: number
 }
 
-type Props = SettingsListEntryProps
-
-type SubProps = {
-  type?: SettingsType,
-  children?: ReactElement | Array<ReactElement | undefined | boolean> | undefined | boolean,
-  onChange?: (value?: any) => void,
-  value: any,
+type SubProps<T = unknown> = {
+  type?: SettingsType
+  children?: ReactElement | Array<ReactElement | undefined | boolean> | undefined | boolean
+  onChange?: (value?: T) => void
+  value?: T
   disabled?: boolean
+  customHeight?: number
 }
 
-const SettingsListEntryContainer: FunctionComponent<SubProps> = ({
-                                                                   type,
-                                                                   children,
-                                                                   onChange,
-                                                                   value,
-                                                                   disabled,
-                                                                 }) => {
-
-  return type !== 'time' && type !== 'date' ?
-         <Ripple
-           rippleColor={ Colors.primary }
-           onPress={ () => onChange?.() }
-           style={ [styles.container, { opacity: disabled ? 0.6 : 1 }] }
-           disabled={ disabled }
-         >
-           { children }
-         </Ripple> :
-         <DateTimePicker
-           disabled={ disabled }
-           mode={ type }
-           dateFormat={ 'DD/MM/yyyy' }
-           timeFormat={ 'HH:mm' }
-           value={ value }
-           onChange={ (date: Date) => onChange?.(date) }
-           renderInput={ () => <View style={ styles.container }>{ children }</View> }
-         />
-}
-
-export const SettingsListEntry: FunctionComponent<Props> = ({
-                                                              title,
-                                                              getSubTitle,
-                                                              type,
-                                                              onPress,
-                                                              getIcon,
-                                                              value,
-                                                              disabled,
-                                                            }) => {
-
-  return <SettingsListEntryContainer
-    type={ type }
-    onChange={ onPress }
-    value={ value }
-    disabled={ disabled }
-  >
-    <View
-      style={ {
-        width: 48,
-        height: 48,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      } }
+const SettingsListEntryContainer = <T = unknown,>({
+  type,
+  children,
+  onChange,
+  value,
+  disabled,
+  customHeight,
+}: SubProps<T>) => {
+  return type !== 'time' && type !== 'date' ? (
+    <Ripple
+      rippleColor={Colors.primary}
+      onPress={() => onChange?.()}
+      style={[styles.container, { opacity: disabled ? 0.6 : 1, height: customHeight ?? 56 }]}
+      disabled={disabled}
     >
-      { getIcon?.() }
-    </View>
-    <View>
-      <Text
-        style={ styles.title }
-        onSurface
+      {children}
+    </Ripple>
+  ) : (
+    <DateTimePicker
+      disabled={disabled}
+      mode={type}
+      dateFormat={'DD/MM/yyyy'}
+      timeFormat={'HH:mm'}
+      value={value}
+      onChange={(date: Date) => onChange?.(date as T)}
+      renderInput={() => <View style={styles.container}>{children}</View>}
+    />
+  )
+}
+
+export const SettingsListEntry = <T = unknown,>({
+  title,
+  getSubTitle,
+  type,
+  onPress,
+  getIcon,
+  value,
+  disabled,
+  customHeight,
+}: SettingsListEntryProps<T>) => {
+  return (
+    <SettingsListEntryContainer<T>
+      type={type}
+      onChange={onPress}
+      value={value}
+      disabled={disabled}
+      customHeight={customHeight}
+    >
+      <View
+        style={{
+          width: 48,
+          height: 48,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
-        { title }
-      </Text>
-      <Text
-        style={ styles.subtitle }
-        onSurface
-      >
-        { getSubTitle(value) }
-      </Text>
-    </View>
-    {
-      type === 'checkbox' && <CustomSwitch value={ value } />
-    }
-  </SettingsListEntryContainer>
+        {getIcon?.()}
+      </View>
+      <View>
+        <Text style={styles.title} onSurface>
+          {title}
+        </Text>
+        <Text style={styles.subtitle} onSurface>
+          {getSubTitle(value)}
+        </Text>
+      </View>
+      {type === 'checkbox' && <CustomSwitch value={!!value} />}
+    </SettingsListEntryContainer>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -109,13 +105,12 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    height: 56,
   },
   title: {
     ...Typography.BodyLarge,
   },
   subtitle: {
     ...Typography.BodySmall,
-    maxWidth: Layout.window.width - 96,
+    maxWidth: Layout.window.width - 96 - 24,
   },
 })

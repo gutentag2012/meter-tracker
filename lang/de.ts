@@ -63,6 +63,8 @@ const lang: Language = {
     input_placeholder_notes: 'Notizen',
 
     default_building_name: 'Standard',
+
+    no_address_provided: 'Keine Adresse hinterlegt',
   },
   utils: {
     date: 'Datum',
@@ -107,6 +109,11 @@ const lang: Language = {
     reminder_notification_body: 'Bitte geben Sie Ihre Zählerstände ein',
     enable_reminder: 'Erinnerung aktivieren',
     enable_reminder_description: 'Regelmäßige Erinnerung an die Eingabe der Zählerstande',
+
+    features: 'Feature',
+    enable_multiple_buildings: 'Mehrere Gebäude nutzen',
+    enable_multiple_buildings_description:
+      'Erlaubt Ihnen mehrere Gebäude zu verwalten um Messgeräte und Verträte zu gruppieren.',
 
     danger_zone: 'Gefahrenzone',
     enable_danger_zone: 'Gefahrenzone aktivieren',

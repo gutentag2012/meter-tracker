@@ -6,13 +6,13 @@ import {
   Dimensions,
   RefreshControl,
   SectionList,
-  SectionListRenderItem,
+  type SectionListRenderItem,
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { SceneMap, SceneRendererProps, TabView } from 'react-native-tab-view'
+import { SceneMap, type SceneRendererProps, TabView } from 'react-native-tab-view'
 import { Colors, Text, View } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
 import { FloatingActionButton } from '../components/FloatingActionButton'
@@ -30,9 +30,9 @@ import {
 } from '../components/meters/charts/MeasurementDailyUsagePerDayChart'
 import { MeasurementMonthlyHeatmap } from '../components/meters/charts/MeasurementMonthlyHeatmap'
 import { MeasurementTotalYearlyUsageChart } from '../components/meters/charts/MeasurementTotalYearlyUsageChart'
-import { HomeStackScreenProps } from '../navigation/types'
-import Measurement from '../services/database/entities/measurement'
-import Meter from '../services/database/entities/meter'
+import { type HomeStackScreenProps } from '../navigation/types'
+import type Measurement from '../services/database/entities/measurement'
+import type Meter from '../services/database/entities/meter'
 import { useManualUpdatedData, useRepository } from '../services/database/GenericRepository'
 import MeasurementService from '../services/database/services/MeasurementService'
 import MeterService from '../services/database/services/MeterService'
@@ -43,42 +43,48 @@ import { Typography } from '../setupTheme'
 export type MeasurementHistory = [Measurement, Measurement, Measurement]
 export type ClusteredMeasurements = Array<[string, Array<MeasurementHistory>]>
 
+type ChartProps = {
+  key: 'yearlyDailyUsage' | 'yearlyTotalUsage' | 'monthlyHeatmap'
+  measurements: ClusteredMeasurements
+  meter: Meter
+}
+
 type SceneProps = {
-  route: any;
-} & Omit<SceneRendererProps, 'layout'>;
+  route: ChartProps
+} & Omit<SceneRendererProps, 'layout'>
 
-const MeasurementDailyUsage = (props: SceneProps) => <View>
-  <Text style={ styles.sectionTitle }>
-    { t('meter:usage_per_day') }
-  </Text>
-  <MeasurementDailyUsagePerDayChart
-    measurements={ props.route.measurements }
-    isRefillable={ props.route.meter.isRefillable }
-    areValuesDepleting={ props.route.meter.areValuesDepleting }
-  />
-</View>
+const MeasurementDailyUsage = (props: SceneProps) => (
+  <View>
+    <Text style={styles.sectionTitle}>{t('meter:usage_per_day')}</Text>
+    <MeasurementDailyUsagePerDayChart
+      measurements={props.route.measurements}
+      isRefillable={props.route.meter.isRefillable}
+      areValuesDepleting={props.route.meter.areValuesDepleting}
+    />
+  </View>
+)
 
-const MeasurementTotalUsage = (props: SceneProps) => <View>
-  <Text style={ styles.sectionTitle }>
-    { t('meter:usage_per_year') }
-  </Text>
-  <MeasurementTotalYearlyUsageChart
-    measurements={ props.route.measurements }
-    isRefillable={ props.route.meter.isRefillable }
-    areValuesDepleting={ props.route.meter.areValuesDepleting }
-  />
-</View>
+const MeasurementTotalUsage = (props: SceneProps) => (
+  <View>
+    <Text style={styles.sectionTitle}>{t('meter:usage_per_year')}</Text>
+    <MeasurementTotalYearlyUsageChart
+      measurements={props.route.measurements}
+      isRefillable={props.route.meter.isRefillable}
+      areValuesDepleting={props.route.meter.areValuesDepleting}
+    />
+  </View>
+)
 
-const MonthlyHeatmap = (props: SceneProps) => <View>
-  <Text style={ styles.sectionTitle }>
-    { t('meter:heatmap_of_usage') }
-  </Text>
-  <MeasurementMonthlyHeatmap
-    measurements={ props.route.measurements }
-    isRefillable={ props.route.meter.isRefillable }
-    areValuesDepleting={ props.route.meter.areValuesDepleting }
-  />
-</View>
+const MonthlyHeatmap = (props: SceneProps) => (
+  <View>
+    <Text style={styles.sectionTitle}>{t('meter:heatmap_of_usage')}</Text>
+    <MeasurementMonthlyHeatmap
+      measurements={props.route.measurements}
+      isRefillable={props.route.meter.isRefillable}
+      areValuesDepleting={props.route.meter.areValuesDepleting}
+    />
+  </View>
+)
 
 const renderScene = SceneMap({
   yearlyDailyUsage: MeasurementDailyUsage,
@@ -87,32 +93,35 @@ const renderScene = SceneMap({
 })
 
 export default function MeterSummaryScreen({
-                                             navigation,
-                                             route,
-                                           }: HomeStackScreenProps<'MeterSummaryScreen'>) {
+  navigation,
+  route,
+}: HomeStackScreenProps<'MeterSummaryScreen'>) {
   const layout = useWindowDimensions()
 
   const [loading, setLoading] = useState(true)
   const [measurements, setMeasurements] = useState<ClusteredMeasurements>([])
 
   const [index, setIndex] = useState(0)
-  const routes = useMemo(() => [
-    {
-      key: 'yearlyDailyUsage',
-      measurements,
-      meter: route.params.meter
-    },
-    {
-      key: 'yearlyTotalUsage',
-      measurements,
-      meter: route.params.meter
-    },
-    {
-      key: 'monthlyHeatmap',
-      measurements,
-      meter: route.params.meter
-    },
-  ], [measurements])
+  const routes = useMemo(
+    (): Array<ChartProps> => [
+      {
+        key: 'yearlyDailyUsage',
+        measurements,
+        meter: route.params.meter,
+      },
+      {
+        key: 'yearlyTotalUsage',
+        measurements,
+        meter: route.params.meter,
+      },
+      {
+        key: 'monthlyHeatmap',
+        measurements,
+        meter: route.params.meter,
+      },
+    ],
+    [measurements]
+  )
 
   const [repo, service] = useRepository(MeasurementService)
   const [meterRepo] = useRepository(MeterService)
@@ -121,8 +130,9 @@ export default function MeterSummaryScreen({
     setLoading(true)
 
     const getMeasurementStatement = service.getMeasurementsForMeter(route.params.meter.id!)
-    const measurements = await repo.executeRaw<Array<unknown>>(getMeasurementStatement)
-      .then(res => res?.map(json => service.fromJSON(json)) ?? [])
+    const measurements = await repo
+      .executeRaw<Array<Record<string, unknown>>>(getMeasurementStatement)
+      .then((res) => res?.map((json) => service.fromJSON(json)) ?? [])
 
     const clusters: { [year: string]: Array<[Measurement, Measurement, Measurement]> } = {}
 
@@ -135,20 +145,15 @@ export default function MeterSummaryScreen({
       const previousMeasurement = measurementsShifted[i]
       const previousPreviousMeasurement = measurementsShiftedTwice[i]
 
-      const year = moment(measurement.createdAt)
-        .format('YYYY')
+      const year = moment(measurement.createdAt).format('YYYY')
       if (!clusters[year]) {
         clusters[year] = []
       }
 
-      clusters[year].push([
-        measurement, previousMeasurement, previousPreviousMeasurement,
-      ])
+      clusters[year].push([measurement, previousMeasurement, previousPreviousMeasurement])
     }
 
-    setMeasurements(Object.entries(clusters)
-      .sort(([a], [b]) => parseInt(b) - parseInt(a)),
-    )
+    setMeasurements(Object.entries(clusters).sort(([a], [b]) => parseInt(b) - parseInt(a)))
 
     setLoading(false)
   }, [route.params.meter.id])
@@ -160,198 +165,206 @@ export default function MeterSummaryScreen({
     const newMeter = await meterRepo.getDataById<Meter>(route.params.meter.id!)
     navigation.setParams({ meter: newMeter })
     setLoading(false)
-  }, [route.params.meter.id])
+  }, [meterRepo, navigation, route.params.meter.id])
 
-  const renderListItem: SectionListRenderItem<MeasurementHistory> = useCallback(({
-                                                                                   item: [measurement, previousMeasurement, previousPreviousMeasurement],
-                                                                                   section,
-                                                                                 }) => {
+  const renderListItem: SectionListRenderItem<MeasurementHistory> = useCallback(
+    ({ item: [measurement, previousMeasurement, previousPreviousMeasurement], section }) => {
+      const onPress = () =>
+        navigation.navigate('AddMeasurementModal', {
+          meter: measurement.meter,
+          editMeasurement: measurement,
+          onEndEditing: () => loadData(),
+        })
 
-    const onPress = useCallback(() => navigation.navigate('AddMeasurementModal', {
-        meter: measurement.meter,
-        editMeasurement: measurement,
-        onEndEditing: loadData,
-      }), [measurement, loadData, navigation],
-    )
-
-    const onDelete = useCallback(async () => {
-      if (!measurement.id) {
-        return
-      }
-      let didUndo = false
-
-      setMeasurements(measurements.map(([title, data]) => {
-        if (title !== section.title) {
-          return [title, data]
+      const onDelete = async () => {
+        if (!measurement.id) {
+          return
         }
-        return [title, data.filter(([m]) => m.id !== measurement.id)]
-      }))
+        let didUndo = false
 
-      await repo.deleteEntry(measurement.id)
+        setMeasurements(
+          measurements.map(([title, data]) => {
+            if (title !== section.title) {
+              return [title, data]
+            }
+            return [title, data.filter(([m]) => m.id !== measurement.id)]
+          })
+        )
 
-      EventEmitter.emitToast({
-        message: t('utils:deleted_reading'),
-        icon: CheckCircleIcon,
-        action: {
-          label: t('utils:undo'),
-          onPress: () => {
+        await repo.deleteEntry(measurement.id)
+
+        EventEmitter.emitToast({
+          message: t('utils:deleted_reading'),
+          icon: CheckCircleIcon,
+          action: {
+            label: t('utils:undo'),
+            onPress: () => {
+              if (didUndo) {
+                return
+              }
+
+              didUndo = true
+              EventEmitter.emitToast(undefined)
+              repo.insertData(measurement)
+            },
+          },
+          onDismiss: () => {
             if (didUndo) {
               return
             }
 
-            didUndo = true
-            EventEmitter.emitToast(undefined)
-            repo.insertData(measurement)
+            loadData()
           },
-        },
-        onDismiss: () => {
-          if (didUndo) {
-            return
-          }
+        })
+      }
 
-          loadData()
-        },
-      })
-    }, [measurement, loadData, repo, measurements, section.title])
-
-    return <MeasurementListEntry
-      measurement={ measurement }
-      previousMeasurement={ previousMeasurement }
-      previousPreviousMeasurement={ previousPreviousMeasurement }
-      onPress={ onPress }
-      onDelete={ onDelete }
-    />
-  }, [measurements])
+      return (
+        <MeasurementListEntry
+          measurement={measurement}
+          previousMeasurement={previousMeasurement}
+          previousPreviousMeasurement={previousPreviousMeasurement}
+          onPress={onPress}
+          onDelete={onDelete}
+        />
+      )
+    },
+    [measurements]
+  )
 
   // The height modifier is only used in the first screen, since it can have an overflow of years
-  const bottomHeightModifier = index === 0 ? Math.ceil((measurements?.length ?? 0) / YearlyChunkSize) : 1
+  const bottomHeightModifier =
+    index === 0 ? Math.ceil((measurements?.length ?? 0) / YearlyChunkSize) : 1
   return (
-    <SafeAreaView
-      style={ styles.container }
-      bg-backgroundColor
-    >
+    <SafeAreaView style={styles.container} bg-backgroundColor>
       <AppBar
-        title={ route.params.meter.name }
-        leftAction={ <>
-          <IconButton
-            style={ { marginRight: 8 } }
-            getIcon={ () => <BackIcon color={ Colors.onBackground } /> }
-            onPress={ () => navigation.pop() }
-          />
-        </> }
-        actions={ <>
-          <IconButton
-            getIcon={ () => <EditIcon color={ Colors.onBackground } /> }
-            onPress={ () => navigation.navigate('AddMeterModal', {
-              editMeter: route.params.meter,
-              onEndEditing,
-            }) }
-          />
-          <IconButton
-            getIcon={ () => <SettingsIcon color={ Colors.onBackground } /> }
-            onPress={ () => navigation.navigate('SettingsScreen') }
-          />
-        </> }
+        title={route.params.meter.name}
+        leftAction={
+          <>
+            <IconButton
+              style={{ marginRight: 8 }}
+              getIcon={() => <BackIcon color={Colors.onBackground} />}
+              onPress={() => navigation.pop()}
+            />
+          </>
+        }
+        actions={
+          <>
+            <IconButton
+              getIcon={() => <EditIcon color={Colors.onBackground} />}
+              onPress={() =>
+                navigation.navigate('AddMeterModal', {
+                  editMeter: route.params.meter,
+                  onEndEditing,
+                })
+              }
+            />
+            <IconButton
+              getIcon={() => <SettingsIcon color={Colors.onBackground} />}
+              onPress={() => navigation.navigate('SettingsScreen')}
+            />
+          </>
+        }
       />
 
       <View
-        style={ {
+        style={{
           height: Dimensions.get('window').width * 0.6 + 40 + 24 * bottomHeightModifier,
-        } }
+        }}
       >
         <TabView
-          navigationState={ {
+          navigationState={{
             index,
             routes,
-          } }
-          overScrollMode='always'
-          tabBarPosition='bottom'
-          renderTabBar={ (props) => {
+          }}
+          overScrollMode="always"
+          tabBarPosition="bottom"
+          renderTabBar={(props) => {
             const inputRange = props.navigationState.routes.map((x, i) => i)
 
             return (
               <View
-                style={ {
+                style={{
                   flexDirection: 'row',
                   justifyContent: 'center',
                   alignItems: 'center',
-                } }
+                }}
               >
-                { props.navigationState.routes.map((route, i) => {
-
+                {props.navigationState.routes.map((route, i) => {
                   const opacity = props.position.interpolate({
                     inputRange,
-                    outputRange: inputRange.map((inputIndex) =>
-                      inputIndex === i ? 1 : 0.25,
-                    ),
+                    outputRange: inputRange.map((inputIndex) => (inputIndex === i ? 1 : 0.25)),
                   })
                   const size = props.position.interpolate({
                     inputRange,
-                    outputRange: inputRange.map((inputIndex) =>
-                      inputIndex === i ? 6 : 4,
-                    ),
+                    outputRange: inputRange.map((inputIndex) => (inputIndex === i ? 6 : 4)),
                   })
 
                   return (
                     <TouchableOpacity
-                      key={ route.key }
-                      style={ {
+                      key={route.key}
+                      style={{
                         padding: 8,
-                      } }
-                      onPress={ () => setIndex(i) }
+                      }}
+                      onPress={() => setIndex(i)}
                     >
                       <Animated.View
-                        style={ [
+                        style={[
                           {
                             transform: [{ scale: size }],
                             width: 1,
                             height: 1,
                             backgroundColor: Colors.onBackground,
                             borderRadius: 8,
-                          }, { opacity },
-                        ] }
+                          },
+                          { opacity },
+                        ]}
                       />
                     </TouchableOpacity>
                   )
-                }) }
+                })}
               </View>
             )
-          } }
-          renderScene={ renderScene }
-          onIndexChange={ setIndex }
-          initialLayout={ { width: layout.width } }
+          }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={{ width: layout.width }}
         />
       </View>
 
       <SectionList<MeasurementHistory>
-        sections={ measurements.map(([title, data]) => ({
+        sections={measurements.map(([title, data]) => ({
           title,
           data,
-        })) }
-        keyExtractor={ ([item]) => `${ item.id }` }
-        initialNumToRender={ 15 }
-        renderItem={ renderListItem }
-        renderSectionHeader={ ({ section }) => <Text
-          style={ styles.sectionTitle }
-        >
-          { t('utils:history') } { section.title }
-        </Text> }
+        }))}
+        keyExtractor={([item]) => `${item.id}`}
+        initialNumToRender={15}
+        renderItem={renderListItem}
+        renderSectionHeader={({ section }) => (
+          <Text style={styles.sectionTitle}>
+            {t('utils:history')} {section.title}
+          </Text>
+        )}
         stickySectionHeadersEnabled
-        refreshControl={ <RefreshControl
-          refreshing={ loading }
-          onRefresh={ loadData }
-          tintColor={ Colors.onSecondaryContainer }
-          progressBackgroundColor={ Colors.secondaryContainer }
-          colors={ [Colors.onSecondaryContainer] }
-        /> }
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={loadData}
+            tintColor={Colors.onSecondaryContainer}
+            progressBackgroundColor={Colors.secondaryContainer}
+            colors={[Colors.onSecondaryContainer]}
+          />
+        }
       />
 
       <GlobalToast
-        renderAttachment={ () => <FloatingActionButton
-          icon={ AddIcon }
-          onPress={ () => navigation.navigate('AddMeasurementModal', { meter: route.params.meter }) }
-        />
-        }
+        renderAttachment={() => (
+          <FloatingActionButton
+            icon={AddIcon}
+            onPress={() =>
+              navigation.navigate('AddMeasurementModal', { meter: route.params.meter })
+            }
+          />
+        )}
       />
     </SafeAreaView>
   )

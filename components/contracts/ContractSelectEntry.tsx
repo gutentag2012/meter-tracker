@@ -1,68 +1,49 @@
-import React, { FunctionComponent } from 'react'
+import React, { type FunctionComponent } from 'react'
 import { StyleSheet } from 'react-native'
-import { Checkbox, Colors, Text, TouchableOpacity, View } from 'react-native-ui-lib'
-import Contract from '../../services/database/entities/contract'
+import { Checkbox, Colors, Text, TouchableOpacity } from 'react-native-ui-lib'
+import type Contract from '../../services/database/entities/contract'
 import { Typography } from '../../setupTheme'
 
-interface MeterListEntryProps {
-  contract: Contract,
-  selectedContract?: number,
-  setSelectedContract?: (contractId?: number) => void,
+type Props = {
+  contract: Contract
+  selectedContract?: number
+  setSelectedContract?: (contractId?: number) => void
 }
 
-type Props = MeterListEntryProps
-
 export const ContractSelectEntry: FunctionComponent<Props> = ({
-                                                                contract,
-                                                                setSelectedContract,
-                                                                selectedContract,
-                                                              }) => {
-  return <TouchableOpacity
-    style={ styles.container }
-    onPress={ () => setSelectedContract?.(selectedContract !== contract.id ? contract.id : undefined) }
-  >
-    <View
-      flex
-      row
+  contract,
+  setSelectedContract,
+  selectedContract,
+}) => {
+  return (
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() =>
+        setSelectedContract?.(selectedContract !== contract.id ? contract.id : undefined)
+      }
     >
       <Checkbox
-        color={ Colors.primary }
-        value={ selectedContract === contract.id }
-        onValueChange={ () => setSelectedContract?.(selectedContract !== contract.id ? contract.id : undefined) }
+        color={Colors.primary}
+        value={selectedContract === contract.id}
+        onValueChange={() =>
+          setSelectedContract?.(selectedContract !== contract.id ? contract.id : undefined)
+        }
+        label={contract.name}
       />
-      <Text
-        style={ styles.title }
-        onSurface
-      >
-        { contract.name }
+      <Text style={styles.value} onSurface>
+        {contract.pricePerUnit} Cent
       </Text>
-    </View>
-    <Text
-      style={ styles.value }
-      onSurface
-    >
-      { contract.pricePerUnit } Cent
-    </Text>
-  </TouchableOpacity>
+    </TouchableOpacity>
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: 56,
-    paddingVertical: 8,
-    paddingLeft: 16,
-    paddingRight: 24,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  title: {
-    ...Typography.BodyLarge,
-    marginLeft: 16,
-  },
-  subtitle: {
-    ...Typography.BodySmall,
   },
   value: {
     ...Typography.LabelSmall,
