@@ -101,26 +101,43 @@ export default function MeterSummaryScreen({
   const [loading, setLoading] = useState(true)
   const [measurements, setMeasurements] = useState<ClusteredMeasurements>([])
 
+  const yearlyGroupedMeasurements = useMemo(() => {
+    const groupedMeasurements = measurements.reduce(
+      (acc, [title, data]) => {
+        const year = title.split(' ')[1]
+        if (!acc[year]) {
+          acc[year] = []
+        }
+        acc[year].push(...data)
+
+        return acc
+      },
+      {} as Record<string, Array<MeasurementHistory>>
+    )
+
+    return Object.entries(groupedMeasurements)
+  }, [measurements])
+
   const [index, setIndex] = useState(0)
   const routes = useMemo(
     (): Array<ChartProps> => [
       {
         key: 'yearlyDailyUsage',
-        measurements,
+        measurements: yearlyGroupedMeasurements,
         meter: route.params.meter,
       },
       {
         key: 'yearlyTotalUsage',
-        measurements,
+        measurements: yearlyGroupedMeasurements,
         meter: route.params.meter,
       },
       {
         key: 'monthlyHeatmap',
-        measurements,
+        measurements: yearlyGroupedMeasurements,
         meter: route.params.meter,
       },
     ],
-    [measurements]
+    [measurements, route.params.meter]
   )
 
   const [repo, service] = useRepository(MeasurementService)
@@ -145,7 +162,7 @@ export default function MeterSummaryScreen({
       const previousMeasurement = measurementsShifted[i]
       const previousPreviousMeasurement = measurementsShiftedTwice[i]
 
-      const year = moment(measurement.createdAt).format('YYYY')
+      const year = moment(measurement.createdAt).format('MMM YYYY')
       if (!clusters[year]) {
         clusters[year] = []
       }
@@ -153,10 +170,19 @@ export default function MeterSummaryScreen({
       clusters[year].push([measurement, previousMeasurement, previousPreviousMeasurement])
     }
 
-    setMeasurements(Object.entries(clusters).sort(([a], [b]) => parseInt(b) - parseInt(a)))
+    setMeasurements(
+      Object.entries(clusters).sort(([a], [b]) => {
+        const [monthA, yearA] = a.split(' ')
+        const [monthB, yearB] = b.split(' ')
+
+        if (yearA !== yearB) return parseInt(yearB) - parseInt(yearA)
+
+        return moment().month(monthB).valueOf() - moment().month(monthA).valueOf()
+      })
+    )
 
     setLoading(false)
-  }, [route.params.meter.id])
+  }, [repo, route.params.meter.id, service])
 
   useManualUpdatedData(loadData, ['data-inserted'])
 
@@ -228,12 +254,12 @@ export default function MeterSummaryScreen({
         />
       )
     },
-    [measurements]
+    [loadData, measurements, navigation, repo]
   )
 
   // The height modifier is only used in the first screen, since it can have an overflow of years
   const bottomHeightModifier =
-    index === 0 ? Math.ceil((measurements?.length ?? 0) / YearlyChunkSize) : 1
+    index === 0 ? Math.ceil((yearlyGroupedMeasurements?.length ?? 0) / YearlyChunkSize) : 1
   return (
     <SafeAreaView style={styles.container} bg-backgroundColor>
       <AppBar
@@ -340,9 +366,7 @@ export default function MeterSummaryScreen({
         initialNumToRender={15}
         renderItem={renderListItem}
         renderSectionHeader={({ section }) => (
-          <Text style={styles.sectionTitle}>
-            {t('utils:history')} {section.title}
-          </Text>
+          <Text style={styles.sectionTitle}>{section.title}</Text>
         )}
         stickySectionHeadersEnabled
         refreshControl={
