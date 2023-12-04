@@ -47,6 +47,8 @@ type ChartProps = {
   key: 'yearlyDailyUsage' | 'yearlyTotalUsage' | 'monthlyHeatmap'
   measurements: ClusteredMeasurements
   meter: Meter
+  selectedYear: string
+  setSelectedYear: (value: string | ((prev: string) => string)) => void
 }
 
 type SceneProps = {
@@ -60,6 +62,8 @@ const MeasurementDailyUsage = (props: SceneProps) => (
       measurements={props.route.measurements}
       isRefillable={props.route.meter.isRefillable}
       areValuesDepleting={props.route.meter.areValuesDepleting}
+      selectedYear={props.route.selectedYear}
+      setSelectedYear={props.route.setSelectedYear}
     />
   </View>
 )
@@ -101,6 +105,8 @@ export default function MeterSummaryScreen({
   const [loading, setLoading] = useState(true)
   const [measurements, setMeasurements] = useState<ClusteredMeasurements>([])
 
+  const [selectedYear, setSelectedYear] = useState('')
+
   const yearlyGroupedMeasurements = useMemo(() => {
     const groupedMeasurements = measurements.reduce(
       (acc, [title, data]) => {
@@ -118,6 +124,7 @@ export default function MeterSummaryScreen({
     return Object.entries(groupedMeasurements)
   }, [measurements])
 
+  // TODO Improve performance
   const [index, setIndex] = useState(0)
   const routes = useMemo(
     (): Array<ChartProps> => [
@@ -125,19 +132,25 @@ export default function MeterSummaryScreen({
         key: 'yearlyDailyUsage',
         measurements: yearlyGroupedMeasurements,
         meter: route.params.meter,
+        selectedYear,
+        setSelectedYear,
       },
       {
         key: 'yearlyTotalUsage',
         measurements: yearlyGroupedMeasurements,
         meter: route.params.meter,
+        selectedYear,
+        setSelectedYear,
       },
       {
         key: 'monthlyHeatmap',
         measurements: yearlyGroupedMeasurements,
         meter: route.params.meter,
+        selectedYear,
+        setSelectedYear,
       },
     ],
-    [measurements, route.params.meter]
+    [route.params.meter, selectedYear, yearlyGroupedMeasurements]
   )
 
   const [repo, service] = useRepository(MeasurementService)
@@ -294,7 +307,7 @@ export default function MeterSummaryScreen({
 
       <View
         style={{
-          height: Dimensions.get('window').width * 0.6 + 40 + 24 * bottomHeightModifier,
+          height: Dimensions.get('window').width * 0.6 + 40 + 26 * bottomHeightModifier,
         }}
       >
         <TabView
@@ -358,10 +371,12 @@ export default function MeterSummaryScreen({
       </View>
 
       <SectionList<MeasurementHistory>
-        sections={measurements.map(([title, data]) => ({
-          title,
-          data,
-        }))}
+        sections={measurements
+          .filter(([title]) => !selectedYear || title.split(' ')[1] === selectedYear)
+          .map(([title, data]) => ({
+            title,
+            data,
+          }))}
         keyExtractor={([item]) => `${item.id}`}
         initialNumToRender={15}
         renderItem={renderListItem}

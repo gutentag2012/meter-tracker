@@ -18,16 +18,23 @@ interface MeasurementYearlyChartProps {
   measurements: ClusteredMeasurements
   isRefillable?: boolean
   areValuesDepleting?: boolean
+  selectedYear: string
+  setSelectedYear: (value: string | ((prev: string) => string)) => void
 }
 
 type Props = MeasurementYearlyChartProps
 
 export const YearlyChunkSize = 5
 
+// TODO Infinite scroll for list
+// TODO Aggregation through database for charts
+
 export const MeasurementDailyUsagePerDayChart: FunctionComponent<Props> = ({
   measurements,
   isRefillable,
   areValuesDepleting,
+  selectedYear,
+  setSelectedYear,
 }) => {
   const svgContainerWidth = Dimensions.get('window').width
   const svgContainerHeight = svgContainerWidth * 0.6
@@ -218,25 +225,43 @@ export const MeasurementDailyUsagePerDayChart: FunctionComponent<Props> = ({
               {chunk.map((year, index) => (
                 <G key={`legend-${year}-${index}`} translateX={index * 56}>
                   <Rect rx={2} width={8} height={8} fill={colorScale(year) ?? Colors.primary} />
-                  <SvgText fontWeight={400} x={8 + 4} y={8} fill={Colors.onSurface} opacity={0.8}>
+                  <SvgText
+                    fontWeight={400}
+                    x={8 + 4}
+                    y={8}
+                    fill={Colors.onSurface}
+                    opacity={selectedYear === year ? 1 : !selectedYear ? 0.8 : 0.6}
+                  >
                     {year}
                   </SvgText>
+                  <Rect
+                    y={-4}
+                    x={-4}
+                    rx={2}
+                    stroke={Colors.onSurface}
+                    opacity={selectedYear === year ? 1 : !selectedYear ? 0.8 : 0.6}
+                    width={48}
+                    height={15}
+                    onPress={() => setSelectedYear((prev) => (prev === year ? '' : year))}
+                  />
                 </G>
               ))}
             </G>
           ))}
         {colorScale &&
-          Object.entries(linesPerYear).map(([year, line]) => (
-            <G key={year}>
-              <Path
-                d={line}
-                stroke={colorScale(year) ?? Colors.primary}
-                strokeWidth={2}
-                strokeLinecap="round"
-                fill="none"
-              />
-            </G>
-          ))}
+          Object.entries(linesPerYear)
+            .filter(([year]) => !selectedYear || year === selectedYear)
+            .map(([year, line]) => (
+              <G key={year}>
+                <Path
+                  d={line}
+                  stroke={colorScale(year) ?? Colors.primary}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </G>
+            ))}
       </Svg>
     </View>
   )
