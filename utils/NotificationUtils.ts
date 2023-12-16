@@ -20,7 +20,7 @@ const getReminderId = (interval: Interval) => {
 }
 
 const getReminderInterval = async (): Promise<Interval> => {
-  return await AsyncStorage.getItem(AsyncStorageKeys.REMINDER_INTERVAL).then((res) =>
+  return await AsyncStorage.getItem(AsyncStorageKeys.reminderInterval).then((res) =>
     res ? JSON.parse(res) : DefaultIntervalSetting
   )
 }
@@ -99,7 +99,7 @@ export const removeReminderNotification = async () => {
 }
 
 export const scheduleReminderNotification = async (interval?: Interval) => {
-  const shouldSchedule = await AsyncStorage.getItem(AsyncStorageKeys.ENABLE_REMINDER).then(
+  const shouldSchedule = await AsyncStorage.getItem(AsyncStorageKeys.enableReminder).then(
     (res) => res === 'true'
   )
 
@@ -175,14 +175,14 @@ export const scheduleReminderNotification = async (interval?: Interval) => {
 
 effect(() => {
   if (
-    settings.ENABLE_REMINDER.isLoading.value ||
-    settings.REMINDER_INTERVAL.isLoading.value ||
-    !settings.REMINDER_INTERVAL.content.value
+    settings.enableReminder.isLoading.value ||
+    settings.reminderInterval.isLoading.value ||
+    !settings.reminderInterval.content.value
   ) {
     return
   }
 
   scheduleReminderNotification(
-    settings.ENABLE_REMINDER.content.value ? settings.REMINDER_INTERVAL.content.value : undefined
+    settings.enableReminder.content.value ? settings.reminderInterval.content.value : undefined
   )
 })

@@ -32,7 +32,7 @@ const BuildingPickerItems = computed(() => {
 export function BuildingPicker() {
   const open = useSignal(false)
 
-  if (!settings.FEATURE_FLAG_MULTIPLE_BUILDINGS.content.value) return null
+  if (!settings.featureFlagMultipleBuildings.content.value) return null
 
   return (
     <View

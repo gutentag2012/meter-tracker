@@ -88,7 +88,7 @@ export const dropDatabase = async () => {
 }
 
 export const runMigrations = async (force = RESET_DB) => {
-  const currentDatabaseVersion = force ? 0 : await getAsyncValue('DATABASE_VERSION', 0)
+  const currentDatabaseVersion = force ? 0 : await getAsyncValue('databaseVersion', 0)
 
   if (force) {
     await dropDatabase()
@@ -117,7 +117,7 @@ export const runMigrations = async (force = RESET_DB) => {
 
   await setForeignKeys('ON')
 
-  await setAsyncValue('DATABASE_VERSION', DATABASE_VERSION)
+  await setAsyncValue('databaseVersion', DATABASE_VERSION)
 }
 
 runMigrations()

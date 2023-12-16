@@ -107,11 +107,11 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
           <Text style={styles.sectionTitle}>{t('utils:reminder')}</Text>
           <SettingsListEntry
             type="checkbox"
-            value={settings.ENABLE_REMINDER.content}
-            disabled={settings.ENABLE_REMINDER.isLoading.value}
+            value={settings.enableReminder.content}
+            disabled={settings.enableReminder.isLoading.value}
             getIcon={() => <NotificationIcon />}
             onPress={() =>
-              setSetting(AsyncStorageKeys.ENABLE_REMINDER, !settings.ENABLE_REMINDER.content.peek())
+              setSetting(AsyncStorageKeys.enableReminder, !settings.enableReminder.content.peek())
             }
             title={t('utils:enable_reminder')}
             getSubTitle={() => t('utils:enable_reminder_description')}
@@ -119,33 +119,33 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
           <SettingsListEntry
             type="custom"
             disabled={
-              !settings.ENABLE_REMINDER.content.value || settings.REMINDER_INTERVAL.isLoading.value
+              !settings.enableReminder.content.value || settings.reminderInterval.isLoading.value
             }
-            value={settings.REMINDER_INTERVAL.content}
+            value={settings.reminderInterval.content}
             onPress={() => {
               batch(() => {
                 isIntervalDialogOpen.value = true
                 intervalDialogState.value = {
-                  initialValue: settings.REMINDER_INTERVAL.content.value,
+                  initialValue: settings.reminderInterval.content.value,
                   title: t('utils:reminder_interval'),
-                  onFinish: (value) => setSetting(AsyncStorageKeys.REMINDER_INTERVAL, value),
+                  onFinish: (value) => setSetting(AsyncStorageKeys.reminderInterval, value),
                 }
               })
             }}
             title={t('utils:reminder_interval')}
-            getSubTitle={() => intervalToString(settings.REMINDER_INTERVAL.content.value)}
+            getSubTitle={() => intervalToString(settings.reminderInterval.content.value)}
           />
 
           <Text style={styles.sectionTitle}>{t('utils:features')}</Text>
           <SettingsListEntry
             type="checkbox"
-            value={settings.FEATURE_FLAG_MULTIPLE_BUILDINGS.content}
-            disabled={settings.FEATURE_FLAG_MULTIPLE_BUILDINGS.isLoading.value}
+            value={settings.featureFlagMultipleBuildings.content}
+            disabled={settings.featureFlagMultipleBuildings.isLoading.value}
             getIcon={() => <NotificationIcon />}
             onPress={() =>
               setSetting(
-                AsyncStorageKeys.FEATURE_FLAG_MULTIPLE_BUILDINGS,
-                !settings.FEATURE_FLAG_MULTIPLE_BUILDINGS.content.peek()
+                AsyncStorageKeys.featureFlagMultipleBuildings,
+                !settings.featureFlagMultipleBuildings.content.peek()
               )
             }
             title={t('utils:enable_multiple_buildings')}

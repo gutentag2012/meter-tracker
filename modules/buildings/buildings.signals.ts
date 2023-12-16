@@ -20,8 +20,8 @@ effect(() => {
 
   // If the feature flag is enabled, then we want to load the buildings
   if (
-    !settings.FEATURE_FLAG_MULTIPLE_BUILDINGS.content.value ||
-    settings.FEATURE_FLAG_MULTIPLE_BUILDINGS.isLoading.value
+    !settings.featureFlagMultipleBuildings.content.value ||
+    settings.featureFlagMultipleBuildings.isLoading.value
   ) {
     console.log('[BUILDINGS] Feature flag disabled, not loading buildings')
     return

@@ -13,7 +13,7 @@ import {
 } from '@utils/AsyncStorageUtils'
 import { DefaultIntervalSetting } from '@utils/IntervalUtils'
 
-type SettingsKeys = Exclude<AsyncStorageKey, 'DATABASE_VERSION'>
+type SettingsKeys = Exclude<AsyncStorageKey, 'databaseVersion'>
 
 type AsyncSettingSignal<T> = {
   content: Signal<T | undefined>
@@ -23,16 +23,16 @@ type AsyncSettingSignal<T> = {
 export const settings: {
   [Key in SettingsKeys]: AsyncSettingSignal<AsyncStorageTypes[Key]>
 } = {
-  ENABLE_REMINDER: { content: signal(undefined), isLoading: signal(true) },
-  REMINDER_INTERVAL: { content: signal(undefined), isLoading: signal(true) },
+  enableReminder: { content: signal(undefined), isLoading: signal(true) },
+  reminderInterval: { content: signal(undefined), isLoading: signal(true) },
 
-  FEATURE_FLAG_MULTIPLE_BUILDINGS: { content: signal(undefined), isLoading: signal(true) },
+  featureFlagMultipleBuildings: { content: signal(undefined), isLoading: signal(true) },
 }
 
 export const SettingsDefaultValue = {
-  ENABLE_REMINDER: false,
-  REMINDER_INTERVAL: DefaultIntervalSetting,
-  FEATURE_FLAG_MULTIPLE_BUILDINGS: false,
+  enableReminder: false,
+  reminderInterval: DefaultIntervalSetting,
+  featureFlagMultipleBuildings: false,
 }
 
 export const resetSettings = async () => {
@@ -42,9 +42,9 @@ export const resetSettings = async () => {
 }
 
 const ResourceValues = {
-  ENABLE_REMINDER: SETTING_RESOURCE__ENABLE_REMINDER,
-  REMINDER_INTERVAL: SETTING_RESOURCE__REMINDER_INTERVAL,
-  FEATURE_FLAG_MULTIPLE_BUILDINGS: SETTING_RESOURCE__FEATURE_FLAG_MULTIPLE_BUILDINGS,
+  enableReminder: SETTING_RESOURCE__ENABLE_REMINDER,
+  reminderInterval: SETTING_RESOURCE__REMINDER_INTERVAL,
+  featureFlagMultipleBuildings: SETTING_RESOURCE__FEATURE_FLAG_MULTIPLE_BUILDINGS,
 }
 
 // Load all settings signals initially

@@ -84,7 +84,7 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
           icon={AddIcon}
           onPress={() => navigation.navigate('AddContractModal', {})}
         />
-        {settings.FEATURE_FLAG_MULTIPLE_BUILDINGS.content.value && (
+        {settings.featureFlagMultipleBuildings.content.value && (
           <View>
             <Text style={styles.sectionTitle} onSurface>
               Gebäude verwalten

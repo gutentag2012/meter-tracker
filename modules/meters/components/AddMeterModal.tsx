@@ -275,7 +275,7 @@ export default function AddMeterModal({
           />
         </View>
 
-        {settings.FEATURE_FLAG_MULTIPLE_BUILDINGS.content.value && (
+        {settings.featureFlagMultipleBuildings.content.value && (
           <View
             style={{
               paddingHorizontal: 16,

@@ -2,24 +2,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { type Interval } from './IntervalUtils'
 
 export type AsyncStorageTypes = {
-  DATABASE_VERSION: number
+  databaseVersion: number
 
-  ENABLE_REMINDER: boolean
-  REMINDER_INTERVAL: Interval
+  enableReminder: boolean
+  reminderInterval: Interval
 
-  FEATURE_FLAG_MULTIPLE_BUILDINGS: boolean
+  featureFlagMultipleBuildings: boolean
 }
-export type AsyncStorageKey = keyof AsyncStorageTypes
-export const AsyncStorageKeys: {
-  [Key in AsyncStorageKey]: Key
-} = {
-  DATABASE_VERSION: 'DATABASE_VERSION',
+export const AsyncStorageKeys = {
+  databaseVersion: 'databaseVersion',
 
-  ENABLE_REMINDER: 'ENABLE_REMINDER',
-  REMINDER_INTERVAL: 'REMINDER_INTERVAL',
+  enableReminder: 'enableReminder',
+  reminderInterval: 'reminderInterval',
 
-  FEATURE_FLAG_MULTIPLE_BUILDINGS: 'FEATURE_FLAG_MULTIPLE_BUILDINGS',
+  featureFlagMultipleBuildings: 'featureFlagMultipleBuildings',
 } as const
+export type AsyncStorageKey = keyof AsyncStorageTypes
 
 export const getAsyncValue = async <
   Key extends AsyncStorageKey,
