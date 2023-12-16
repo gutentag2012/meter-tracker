@@ -8,9 +8,9 @@ const lang = {
     meters_section_title: 'Meters',
     contracts_section_title: 'Contracts',
 
-    add_new_meter: 'Add Meter',
+    add_new_meter: 'Add MetersEntity',
     add_new_reading: 'Add Reading',
-    add_new_contract: 'Add Contract',
+    add_new_contract: 'Add ContractEntity',
   },
   meter: {
     meter: 'Meter',
@@ -25,7 +25,7 @@ const lang = {
     input_placeholder_digit: 'Digits*',
     input_placeholder_unit: 'Unit*',
     input_placeholder_is_positive: 'Higher usage is better',
-    input_placeholder_is_refillable: 'Meter can be reset',
+    input_placeholder_is_refillable: 'MetersEntity can be reset',
     input_placeholder_is_valid: 'Is active',
 
     reading: 'Reading',
@@ -43,6 +43,8 @@ const lang = {
     in_cents: 'in cents',
 
     contract: 'Contract',
+
+    delete_contract: 'Delete Contract',
 
     explain_conversion:
       'Conversion is used to convert the units of the meter to the units of the contract. For example, if your meter measures in kWh and your contract is in MWh, you would enter 0.001.',
@@ -71,6 +73,12 @@ const lang = {
 
     deleted_reading: 'Deleted reading',
     deleted_building: 'Deleted building',
+    deleted_contract: 'Deleted contract',
+
+    no_data_to_export: 'No data to export',
+
+    loading_data: 'Loading data...',
+    no_data: 'No data available',
 
     camera_permission: 'Camera Permissions',
     camera_permission_message:

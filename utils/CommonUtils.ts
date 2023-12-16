@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import EventEmitter from '../services/events'
+import EventEmitter from '@/events'
 
 export const Truthy = <T>(x: T | null | undefined): x is T => !!x
 

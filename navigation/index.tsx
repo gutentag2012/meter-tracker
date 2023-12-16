@@ -11,15 +11,15 @@ import { type ColorSchemeName } from 'react-native'
 import { Colors } from 'react-native-ui-lib'
 import HomeScreen from '../screens/HomeScreen'
 import MeterSummaryScreen from '../screens/MeterSummaryScreen'
-import AddContractModal from '../screens/modals/AddContractModal'
-import AddMeasurementModal from '../screens/modals/AddMeasurementModal'
-import AddMeterModal from '../screens/modals/AddMeterModal'
+import AddContractModal from '@/contracts/components/AddContractModal'
+import AddMeasurementModal from '@/measurements/components/AddMeasurementModal'
+import AddMeterModal from '@/meters/components/AddMeterModal'
 
 import NotFoundScreen from '../screens/NotFoundScreen'
 import SettingsScreen from '../screens/SettingsScreen'
 import type { HomeStackParamList, RootStackParamList } from './types'
 import LinkingConfiguration from './LinkingConfiguration'
-import AddBuildingModal from '../screens/modals/AddBuildingModal'
+import AddBuildingModal from '@/buildings/components/AddBuildingModal'
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const theme = useMemo(
@@ -50,8 +50,6 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
  * https://reactnavigation.org/docs/modal
  */
 const Stack = createNativeStackNavigator<RootStackParamList>()
-
-// TODO Create nested stack navigator for Homescreen
 
 function RootNavigator() {
   return (

@@ -35,6 +35,8 @@
             { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }
         ],
         "react/prop-types": "off",
-        "react/display-name": "off"
+        "react/display-name": "off",
+        "react/react-in-jsx-scope": "off",
+        "react/jsx-uses-react": "off"
     }
 }

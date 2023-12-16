@@ -4,7 +4,7 @@
 hide circle
 hide empty members
 
-class Meter {
+class MetersEntity {
    name: string
    identification: string
 
@@ -15,26 +15,26 @@ class Meter {
    isActive: boolean
 
    'Foreign keys
-   contract: Contract
+   contract: ContractEntity
 }
 
-class Contract {
+class ContractEntity {
    name: string
    identification: string
    pricePerUnit: double
 }
 
-Meter "*" -- "1" Contract
+MetersEntity "*" -- "1" ContractEntity
 
-class Measurement {
+class MeasurementsEntity {
    value: double
    timestamp: Date
 
    'Foreign keys
-   meter: Meter
+   meter: MetersEntity
 }
 
-Meter "1" -- "*" Measurement
+MetersEntity "1" -- "*" MeasurementsEntity
 
 class Settings {
    databaseVersion: int

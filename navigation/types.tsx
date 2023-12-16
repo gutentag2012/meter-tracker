@@ -3,13 +3,14 @@
  * https://reactnavigation.org/docs/typescript/
  */
 
+import { type DetailedBuilding } from '@/buildings/buildings.selector'
+import { type DetailedContract } from '@/contracts/contracts.selector'
+import { type DetailedMeter } from '@/meters/meters.selector'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
-import type Contract from '../services/database/entities/contract'
-import type Measurement from '../services/database/entities/measurement'
-import type Meter from '../services/database/entities/meter'
-import type Building from '../services/database/entities/building'
+import { type ReducedMeasurement } from '@/measurements/measurements.selector'
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
     interface RootParamList extends RootStackParamList {}
   }
@@ -24,24 +25,22 @@ export type HomeStackParamList = {
   Home: undefined
   SettingsScreen: undefined
   MeterSummaryScreen: {
-    meter: Meter
+    meter: DetailedMeter
   }
   AddMeterModal: {
-    editMeter?: Meter
-    onEndEditing?: (createdMeter: Meter) => void
+    editMeter?: DetailedMeter
   }
   AddMeasurementModal: {
-    meter?: Meter
-    editMeasurement?: Measurement
-    onEndEditing?: (createdMeasurement: Measurement) => void
+    meter?: DetailedMeter
+    editMeasurement?: ReducedMeasurement
   }
   AddContractModal: {
-    editContract?: Contract
-    onEndEditing?: (createdContract: Contract) => void
+    editContract?: DetailedContract
+    onEndEditing?: (contract: DetailedContract) => void
   }
   AddBuildingModal: {
-    editBuilding?: Building
-    onEndEditing?: (createdBuilding: Building) => void
+    editBuilding?: DetailedBuilding
+    onEndEditing?: (buildings: DetailedBuilding) => void
   }
 }
 
