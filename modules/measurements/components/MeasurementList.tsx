@@ -11,7 +11,8 @@ import {
   insertMeasurementsFromEntities,
 } from '@/measurements/measurements.persistor'
 import { type DetailedMeasurementWithSummaryAndContract } from '@/measurements/measurements.selector'
-import { useSignal, useSignalEffect } from '@preact/signals-react'
+import { computed, useSignal, useSignalEffect } from '@preact/signals-react'
+import moment from 'moment'
 import * as React from 'react'
 import { useCallback } from 'react'
 import {
@@ -24,6 +25,49 @@ import { Colors, Text, View } from 'react-native-ui-lib'
 import { CheckCircleIcon } from '../../../components/icons/CheckCircleIcon'
 import { type HomeStackScreenProps } from '../../../navigation/types'
 import { Typography } from '../../../setupTheme'
+
+const sectionedMeasurements = computed(() => {
+  const measurements = measurementsForSelectedMeterGroupedByMonth.value
+
+  return measurements.map(([title, data], index) => {
+    const [, previousData] = measurements[index - 1] ?? []
+
+    const innerDifference = data
+      .slice(0, data.length - 1)
+      .reduce((acc, curr) => acc + (curr.difference ?? 0), 0)
+
+    const lastEntry = data[data.length - 1]
+    const daysToStartOfMonthFromLastEntry = !lastEntry
+      ? 0
+      : -moment(lastEntry.createdAt).startOf('month').diff(lastEntry.createdAt, 'days')
+    const differenceAfter = !lastEntry
+      ? 0
+      : ((lastEntry?.difference ?? 0) / (lastEntry.daysBetween ?? 1)) *
+        (daysToStartOfMonthFromLastEntry + 1)
+
+    const firstEntry = data[0]
+    const previousEntry = previousData?.[previousData.length - 1]
+    const daysToEndOfMonthFromFirstEntry =
+      !previousEntry || !firstEntry
+        ? 0
+        : moment(firstEntry?.createdAt)
+            .endOf('month')
+            .diff(firstEntry?.createdAt, 'days')
+    const differenceBefore =
+      !previousEntry || !firstEntry
+        ? 0
+        : ((previousEntry?.difference ?? 0) / (previousEntry?.daysBetween ?? 1)) *
+          (daysToEndOfMonthFromFirstEntry + 1)
+
+    const totalDifference = innerDifference + differenceAfter + differenceBefore
+
+    return {
+      title,
+      data,
+      titleAddition: totalDifference,
+    }
+  })
+})
 
 export const MeasurementList = ({
   navigation,
@@ -92,13 +136,9 @@ export const MeasurementList = ({
       [navigation]
     )
 
-  const sections = measurementsForSelectedMeterGroupedByMonth.value
-    .filter(([title]) => !selectedYear.value || title.split(' ')[1] === selectedYear.value)
+  const sections = sectionedMeasurements.value
+    .filter(({ title }) => !selectedYear.value || title.split(' ')[1] === selectedYear.value)
     .slice(0, 3 * page.value)
-    .map(([title, data]) => ({
-      title,
-      data,
-    }))
 
   return (
     <SectionList<DetailedMeasurementWithSummaryAndContract>
@@ -107,10 +147,8 @@ export const MeasurementList = ({
       renderSectionHeader={({ section }) => (
         <View style={styles.sectionTitleContainer}>
           <Text style={styles.sectionTitle}>{section.title}</Text>
-          {/* TODO The calculation is not very accurate (include the first entry before and after, but only partially; the #days between partially based on the numbers left in the month for that "direction")*/}
           <Text style={styles.sectionTitle}>
-            {section.data.reduce((acc, curr) => acc + (curr.difference ?? 0), 0).toFixed(2)}{' '}
-            {section.data[0]?.meter?.unit}
+            {(section.titleAddition ?? 0).toFixed(2)} {section.data[0]?.meter?.unit}
           </Text>
         </View>
       )}
