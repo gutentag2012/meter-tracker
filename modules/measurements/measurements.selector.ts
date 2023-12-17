@@ -37,7 +37,8 @@ const detailedMeterContractSelect = tableSelector<ContractsEntity>(
   {
     pricePerUnit: '',
   },
-  'contract'
+  'contract',
+  'meter.contract'
 )
 
 const detailedMeasurementSelect = tableSelector<MeasurementsEntity>(
