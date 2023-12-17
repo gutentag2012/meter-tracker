@@ -212,9 +212,3 @@ const styles = StyleSheet.create({
     ...Typography.LabelSmall,
   },
 })
-
-console.log(
-  Object.keys(Colors)
-    .map((key) => `  ${key}: ${Colors[key]}`)
-    .join('\n')
-)

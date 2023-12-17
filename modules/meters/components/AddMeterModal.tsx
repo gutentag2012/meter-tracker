@@ -30,6 +30,8 @@ import { t } from '@/i18n'
 import { Typography } from '../../../setupTheme'
 import { Truthy } from '@utils/CommonUtils'
 
+// TODO Maybe add (Tag Nacht Tarif) IDEA: Add possibility to append multiple contracts, where you can add a percentage of the total consumption for each contract (must add up to 100%)
+
 export default function AddMeterModal({
   navigation,
   route: {
