@@ -128,13 +128,15 @@ export const MeasurementListEntry: FunctionComponent<Props> = React.memo(
               )}
             </View>
             {percentileChange !== undefined && (
-              <Text
-                style={[styles.value, { color: areValuesGood ? Colors.tertiary : Colors.error }]}
-                onSurface
-              >
-                {percentileChange > 0 && '+'}
-                {parseValueForDigits(percentileChange, 2)}%
-              </Text>
+              <View style={styles.valueContainer}>
+                <Text
+                  style={[styles.value, { color: areValuesGood ? Colors.tertiary : Colors.error }]}
+                  onSurface
+                >
+                  {percentileChange > 0 && '+'}
+                  {parseValueForDigits(percentileChange, 2)}%
+                </Text>
+              </View>
             )}
           </Ripple>
           <Animated.View
@@ -183,6 +185,9 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...Typography.LabelSmall,
+  },
+  valueContainer: {
+    marginLeft: 'auto',
   },
   value: {
     marginLeft: 'auto',
