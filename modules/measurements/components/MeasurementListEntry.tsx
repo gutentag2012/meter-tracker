@@ -111,10 +111,22 @@ export const MeasurementListEntry: FunctionComponent<Props> = React.memo(
             />
 
             <View>
-              <Text style={styles.title} onSurface>
-                {parseValueForDigits(measurement.value, measurement.meter?.digits)}{' '}
-                {measurement.meter?.unit}
-              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                }}
+              >
+                <Text style={styles.title} onSurface>
+                  {parseValueForDigits(measurement.value, measurement.meter?.digits)}{' '}
+                  {measurement.meter?.unit}
+                </Text>
+                <Text style={styles.titleAppendix}>
+                  {' '}
+                  ({(measurement.difference ?? 0) > 0 && '+'}
+                  {parseValueForDigits(measurement.difference ?? 0, 2)})
+                </Text>
+              </View>
               {deltaValue !== undefined && (
                 <Text style={styles.subtitle} onSurface>
                   {parseValueForDigits(deltaValue, measurement.meter?.digits)}{' '}
@@ -183,6 +195,12 @@ const styles = StyleSheet.create({
     ...Typography.LabelLarge,
     marginBottom: 2,
   },
+  titleAppendix: {
+    ...Typography.LabelSmall,
+    color: Colors.onSurfaceVariant,
+    fontStyle: 'italic',
+    marginBottom: 2,
+  },
   subtitle: {
     ...Typography.LabelSmall,
   },
@@ -194,3 +212,9 @@ const styles = StyleSheet.create({
     ...Typography.LabelSmall,
   },
 })
+
+console.log(
+  Object.keys(Colors)
+    .map((key) => `  ${key}: ${Colors[key]}`)
+    .join('\n')
+)
