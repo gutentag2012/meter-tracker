@@ -1,6 +1,6 @@
 import EventEmitter from '@/events'
 import { t } from '@/i18n'
-import { MeasurementListEntry } from '@/measurements/components'
+import { MeasurementListEntry } from '@/measurements/components/MeasurementListEntry'
 import {
   measurementsForSelectedMeterGroupedByMonth,
   selectedYear,
@@ -21,9 +21,9 @@ import {
   StyleSheet,
 } from 'react-native'
 import { Colors, Text, View } from 'react-native-ui-lib'
-import { CheckCircleIcon } from '../components/icons/CheckCircleIcon'
-import { type HomeStackScreenProps } from '../navigation/types'
-import { Typography } from '../setupTheme'
+import { CheckCircleIcon } from '../../../components/icons/CheckCircleIcon'
+import { type HomeStackScreenProps } from '../../../navigation/types'
+import { Typography } from '../../../setupTheme'
 
 export const MeasurementList = ({
   navigation,
@@ -107,6 +107,7 @@ export const MeasurementList = ({
       renderSectionHeader={({ section }) => (
         <View style={styles.sectionTitleContainer}>
           <Text style={styles.sectionTitle}>{section.title}</Text>
+          {/* TODO The calculation is not very accurate (include the first entry before and after, but only partially; the #days between partially based on the numbers left in the month for that "direction")*/}
           <Text style={styles.sectionTitle}>
             {section.data.reduce((acc, curr) => acc + (curr.difference ?? 0), 0).toFixed(2)}{' '}
             {section.data[0]?.meter?.unit}

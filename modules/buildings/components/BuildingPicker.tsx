@@ -29,6 +29,8 @@ const BuildingPickerItems = computed(() => {
     }))
 })
 
+const PICKER_WIDTH = 152
+
 export function BuildingPicker() {
   const open = useSignal(false)
 
@@ -41,7 +43,7 @@ export function BuildingPicker() {
         marginBottom: 'auto',
         display: 'flex',
         flexDirection: 'row',
-        width: 120 + 24 + 4,
+        width: PICKER_WIDTH + 24 + 4,
         alignItems: 'center',
         zIndex: 10,
       }}
@@ -68,27 +70,29 @@ export function BuildingPicker() {
         }}
         style={{
           minHeight: 32,
-          height: 32,
-          borderWidth: 0,
-
-          width: 120,
+          width: PICKER_WIDTH,
           marginRight: 8,
+
           backgroundColor: Colors.secondaryContainer,
+
+          borderWidth: 0,
         }}
         labelStyle={{
-          ...Typography.LabelLarge,
+          ...Typography.LabelMedium,
           color: Colors.onSecondaryContainer,
         }}
         dropDownContainerStyle={{
-          borderWidth: 0,
+          borderWidth: 1,
+          borderColor: Colors.outline,
 
           backgroundColor: Colors.secondaryContainer,
-          width: 120,
+          width: PICKER_WIDTH,
         }}
         listItemLabelStyle={{
-          ...Typography.LabelLarge,
+          ...Typography.LabelMedium,
           color: Colors.onSecondaryContainer,
         }}
+        listItemContainerStyle={{}}
         ArrowUpIconComponent={() => <ChevronUpIcon color={Colors.onSecondaryContainer} size={16} />}
         ArrowDownIconComponent={() => (
           <ChevronDownIcon color={Colors.onSecondaryContainer} size={16} />

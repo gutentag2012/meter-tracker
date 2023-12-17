@@ -32,8 +32,6 @@ import {
 } from '@/settings/components/SingleTextFieldDialog'
 import { IntervalDialog, type IntervalDialogProps } from '@/settings/components/IntervalDialog'
 
-// TODO Test if new settings are compatible with old ones
-
 export default function SettingsScreen({ navigation }: HomeStackScreenProps<'SettingsScreen'>) {
   const [singleTextFieldDialogState, setSingleTextFieldDialogState] = useState<
     Omit<SingleTextFieldDialogProps, 'onDismiss'>

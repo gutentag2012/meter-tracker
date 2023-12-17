@@ -28,7 +28,7 @@ import { EditIcon } from '../components/icons/EditIcon'
 import { SettingsIcon } from '../components/icons/SettingsIcon'
 import { type HomeStackScreenProps } from '../navigation/types'
 import { Typography } from '../setupTheme'
-import { MeasurementList } from './MeasurementList'
+import { MeasurementList } from '@/measurements/components/MeasurementList'
 
 const MeasurementDailyUsage = () => (
   <View>

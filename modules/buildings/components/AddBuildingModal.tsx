@@ -149,6 +149,10 @@ export default function AddBuildingModal({
             validationMessages={[t('validationMessage:required')]}
             onSubmit={onSave}
             initialValue={name.current}
+            textFieldProps={{
+              showCharCounter: true,
+              maxLength: 32,
+            }}
           />
           <Input
             ref={(ref) => (textFieldRefs.current.address = ref)}

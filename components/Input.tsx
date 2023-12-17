@@ -119,6 +119,10 @@ export const Input: FunctionComponent<Props> = forwardRef(
             marginTop: 12,
             color: Colors.error,
           }}
+          charCounterStyle={{
+            ...Typography.LabelSmall,
+            marginTop: 12,
+          }}
           cursorColor={Colors.primary}
           selectionColor={Colors.primary}
           floatingPlaceholderColor={{
