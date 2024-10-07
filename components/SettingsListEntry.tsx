@@ -5,6 +5,7 @@ import { Colors, DateTimePicker, Text, View } from 'react-native-ui-lib'
 import Layout from '../constants/Layout'
 import { Typography } from '../setupTheme'
 import { CustomSwitch } from './CustomSwitch'
+import { type Signal } from '@preact/signals-react'
 
 type SettingsType = 'text' | 'email-address' | 'checkbox' | 'date' | 'time' | 'custom'
 
@@ -12,7 +13,7 @@ type SettingsListEntryProps<T = unknown> = {
   type: SettingsType
   onPress?: (value?: T) => void // Returns new value
   getIcon?: () => ReactElement
-  value?: T
+  value?: Signal<T>
   title: string
   getSubTitle: (value?: T) => string
   disabled?: boolean
@@ -23,7 +24,7 @@ type SubProps<T = unknown> = {
   type?: SettingsType
   children?: ReactElement | Array<ReactElement | undefined | boolean> | undefined | boolean
   onChange?: (value?: T) => void
-  value?: T
+  value?: Signal<T>
   disabled?: boolean
   customHeight?: number
 }
@@ -47,11 +48,11 @@ const SettingsListEntryContainer = <T = unknown,>({
     </Ripple>
   ) : (
     <DateTimePicker
-      disabled={disabled}
+      editable={!disabled}
       mode={type}
-      dateFormat={'DD/MM/yyyy'}
-      timeFormat={'HH:mm'}
-      value={value}
+      dateFormat="DD/MM/yyyy"
+      timeFormat="HH:mm"
+      value={value?.value as Date | undefined}
       onChange={(date: Date) => onChange?.(date as T)}
       renderInput={() => <View style={styles.container}>{children}</View>}
     />
@@ -92,10 +93,10 @@ export const SettingsListEntry = <T = unknown,>({
           {title}
         </Text>
         <Text style={styles.subtitle} onSurface>
-          {getSubTitle(value)}
+          {getSubTitle(value?.value)}
         </Text>
       </View>
-      {type === 'checkbox' && <CustomSwitch value={!!value} />}
+      {type === 'checkbox' && <CustomSwitch value={!!value?.value} />}
     </SettingsListEntryContainer>
   )
 }

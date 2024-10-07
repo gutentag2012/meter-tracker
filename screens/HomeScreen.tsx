@@ -1,120 +1,36 @@
-import * as Notifications from 'expo-notifications'
-import * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { type DetailedBuilding } from '@/buildings/buildings.selector'
+import { BuildingsListView } from '@/buildings/components'
+import { ContractListView } from '@/contracts/components'
+import { selectedYear } from '@/measurements/measurement.signals'
+import { MeterListView } from '@/meters/components/MetersListView'
+import { selectedMeterSignal } from '@/meters/meters.signals'
+import { settings } from '@/settings'
+import { batch } from '@preact/signals-react'
 import { StyleSheet } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Text, View } from 'react-native-ui-lib'
 import { AppBar } from '../components/AppBar'
 import { Button } from '../components/Button'
-import { ContractListEntry } from '../components/contracts/ContractListEntry'
 import { FloatingActionButton } from '../components/FloatingActionButton'
 import { GlobalToast } from '../components/GlobalToast'
 import { IconButton } from '../components/IconButton'
 import { AddIcon } from '../components/icons/AddIcon'
 import { SettingsIcon } from '../components/icons/SettingsIcon'
-import { MeterListEntry } from '../components/meters/MeterListEntry'
 import { type HomeStackScreenProps } from '../navigation/types'
-import type Contract from '../services/database/entities/contract'
-import type Meter from '../services/database/entities/meter'
-import type GenericRepository from '../services/database/GenericRepository'
-import { useUpdatedData } from '../services/database/GenericRepository'
-import ContractService from '../services/database/services/ContractService'
-import MeterService from '../services/database/services/MeterService'
-import { t } from '../services/i18n'
+import { t } from '@/i18n'
 import { Typography } from '../setupTheme'
-import { scheduleReminderNotification } from '../utils/NotificationUtils'
-import type Building from '../services/database/entities/building'
-import { DEFAULT_BUILDING_ID } from '../services/database/entities/building'
-import BuildingService from '../services/database/services/BuildingService'
-import { BuildingPicker } from './BuildingPicker'
-import { BuildingListEntry } from '../components/buildings/BuildingListEntry'
-import { useAsyncStorageValue } from '../utils/CommonUtils'
-import AsyncStorageKeys from '../constants/AsyncStorageKeys'
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-})
+import { BuildingPicker } from '@/buildings/components/BuildingPicker'
 
 // TODO Order by drag and drop
 export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>) {
-  // Schedule Reminder Notification
-  useEffect(() => {
-    scheduleReminderNotification()
-  }, [])
-
-  const shouldShowBuildingsSelect = useAsyncStorageValue<boolean>(
-    AsyncStorageKeys.FEATURE_FLAG_MULTIPLE_BUILDINGS
-  )
-
-  const [buildings, reloadBuildings] = useUpdatedData<Building, BuildingService>(BuildingService)
-  const [selectedBuilding, setSelectedBuilding] = useState(DEFAULT_BUILDING_ID)
-
-  useEffect(() => {
-    if (buildings.some(({ id }) => id === selectedBuilding)) {
-      return
-    }
-
-    setSelectedBuilding(DEFAULT_BUILDING_ID)
-  }, [buildings, selectedBuilding])
-
-  const getMetersForSelectedBuilding = useCallback(
-    async (repo: GenericRepository<Meter>, service: MeterService) => {
-      if (!shouldShowBuildingsSelect) return await repo.getAllData()
-
-      const metersForBuildingQuery = service.getMetersForBuildingStatement(selectedBuilding)
-      const res = await repo.executeRaw<Array<Record<string, unknown>>>(metersForBuildingQuery)
-      if (!res) return []
-      return res.map((meter) => service.fromJSON(meter))
-    },
-    [selectedBuilding, shouldShowBuildingsSelect]
-  )
-  const [meters, reloadMeters] = useUpdatedData<Meter, MeterService>(
-    MeterService,
-    getMetersForSelectedBuilding
-  )
-
-  const getContractsForSelectedBuilding = useCallback(
-    async (repo: GenericRepository<Contract>, service: ContractService) => {
-      if (!shouldShowBuildingsSelect) return await repo.getAllData()
-
-      const contractsForBuildingQuery = service.getContractsForBuildingStatement(selectedBuilding)
-      const res = await repo.executeRaw<Array<Record<string, unknown>>>(contractsForBuildingQuery)
-      if (!res) return []
-      return res.map((contract) => service.fromJSON(contract))
-    },
-    [selectedBuilding, shouldShowBuildingsSelect]
-  )
-  const [contracts, reloadContracts] = useUpdatedData<Contract, ContractService>(
-    ContractService,
-    getContractsForSelectedBuilding
-  )
-
-  const loadData = useCallback(async () => {
-    await Promise.all([reloadMeters(), reloadContracts(), reloadBuildings()])
-  }, [reloadMeters, reloadContracts, reloadBuildings])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
   return (
     <SafeAreaView style={styles.container}>
       <AppBar
         title={t('home_screen:title')}
         actions={
           <>
-            {shouldShowBuildingsSelect && (
-              <BuildingPicker
-                value={selectedBuilding}
-                setValue={setSelectedBuilding}
-                buildings={buildings}
-              />
-            )}
+            <BuildingPicker />
             <IconButton
               getIcon={() => <SettingsIcon color={Colors.onBackground} />}
               onPress={() => navigation.navigate('SettingsScreen')}
@@ -127,14 +43,22 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
         <Text style={styles.sectionTitle} onSurface>
           {t('home_screen:meters_section_title')}
         </Text>
-        {meters.map((meter) => (
-          <MeterListEntry
-            key={meter.id}
-            meter={meter}
-            onPress={() => navigation.navigate('MeterSummaryScreen', { meter })}
-            navigateToAddMeasurement={() => navigation.navigate('AddMeasurementModal', { meter })}
-          />
-        ))}
+
+        <MeterListView
+          onPress={(meter) => {
+            batch(() => {
+              selectedYear.value = ''
+              selectedMeterSignal.value = meter
+            })
+            navigation.navigate('MeterSummaryScreen', {
+              meter,
+            })
+          }}
+          navigateToAddMeasurement={(meter) =>
+            navigation.navigate('AddMeasurementModal', { meter })
+          }
+        />
+
         <Button
           style={styles.button}
           label={t('home_screen:add_new_meter')}
@@ -145,44 +69,35 @@ export default function HomeScreen({ navigation }: HomeStackScreenProps<'Home'>)
         <Text style={styles.sectionTitle} onSurface>
           {t('home_screen:contracts_section_title')}
         </Text>
-        {contracts.map((contract) => (
-          <ContractListEntry
-            key={contract.id}
-            contract={contract}
-            onPress={() =>
-              navigation.navigate('AddContractModal', {
-                editContract: contract,
-                onEndEditing: () => reloadContracts(),
-              })
-            }
-          />
-        ))}
+
+        <ContractListView
+          onPress={(contract) =>
+            navigation.navigate('AddContractModal', {
+              editContract: contract,
+            })
+          }
+        />
+
         <Button
           style={styles.button}
           label={t('home_screen:add_new_contract')}
           icon={AddIcon}
           onPress={() => navigation.navigate('AddContractModal', {})}
         />
-        {shouldShowBuildingsSelect && (
+        {settings.featureFlagMultipleBuildings.content.value && (
           <View>
             <Text style={styles.sectionTitle} onSurface>
               Gebäude verwalten
             </Text>
 
-            {buildings
-              .filter(({ id }) => id !== DEFAULT_BUILDING_ID)
-              .map((building) => (
-                <BuildingListEntry
-                  building={building}
-                  key={building.id}
-                  onPress={() =>
-                    navigation.navigate('AddBuildingModal', {
-                      editBuilding: building,
-                      onEndEditing: () => loadData(),
-                    })
-                  }
-                />
-              ))}
+            <BuildingsListView
+              onPress={(building: DetailedBuilding) =>
+                navigation.navigate('AddBuildingModal', {
+                  editBuilding: building,
+                })
+              }
+            />
+
             <Button
               style={styles.button}
               label={t('buildings:add_building')}

@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { AsyncStorageKeys } from '@utils/AsyncStorageUtils'
 import { StatusBar } from 'expo-status-bar'
 import * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Platform, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Text, View } from 'react-native-ui-lib'
@@ -17,108 +17,37 @@ import { ImportIcon } from '../components/icons/ImportIcon'
 import { InfoCircleIcon } from '../components/icons/InfoCircleIcon'
 import { NotificationIcon } from '../components/icons/NotificationIcon'
 import { SettingsListEntry } from '../components/SettingsListEntry'
-import AsyncStorageKeys from '../constants/AsyncStorageKeys'
 import { type HomeStackScreenProps } from '../navigation/types'
-import { clearDatabase, dropDatabase, reloadDatabase, setupDatabase } from '../services/database'
-import EventEmitter from '../services/events'
-import { t } from '../services/i18n'
+import EventEmitter from '@/events'
+import { t } from '@/i18n'
 import { Typography } from '../setupTheme'
-import { databaseFromCSV, databaseToCSVString, shareCSVFile } from '../utils/DataUtils'
-import { DefaultIntervalSetting, intervalToString } from '../utils/IntervalUtils'
-import {
-  checkNotificationPermissions,
-  removeReminderNotification,
-  scheduleReminderNotification,
-} from '../utils/NotificationUtils'
-import { IntervalDialog, type IntervalDialogProps } from './dialogs/IntervalDialog'
+import { databaseFromCSV, databaseToCSVString, shareCSVFile } from '@utils/DataUtils'
+import { intervalToString } from '@utils/IntervalUtils'
+import { reloadDatabase, runMigrations } from '@/database'
+import { batch, useSignal } from '@preact/signals-react'
+import { resetSettings, setSetting, settings } from '@/settings/settings.signals'
 import {
   SingleTextFieldDialog,
   type SingleTextFieldDialogProps,
-} from './dialogs/SingleTextFieldDialog'
+} from '@/settings/components/SingleTextFieldDialog'
+import { IntervalDialog, type IntervalDialogProps } from '@/settings/components/IntervalDialog'
 
 export default function SettingsScreen({ navigation }: HomeStackScreenProps<'SettingsScreen'>) {
-  const [values, setValues] = useState({
-    [AsyncStorageKeys.ENABLE_REMINDER]: false,
-    [AsyncStorageKeys.FEATURE_FLAG_MULTIPLE_BUILDINGS]: false,
-    [AsyncStorageKeys.REMINDER_INTERVAL]: DefaultIntervalSetting,
-    [AsyncStorageKeys.ENABLE_BACKUP_MAIL]: false,
-  })
-
   const [singleTextFieldDialogState, setSingleTextFieldDialogState] = useState<
     Omit<SingleTextFieldDialogProps, 'onDismiss'>
   >({
     isVisible: false,
   })
-  const [intervalDialogState, setIntervalDialogState] = useState<
-    Omit<IntervalDialogProps, 'onDismiss'>
-  >({
-    isVisible: false,
-  })
-  const [enteredDangerZone, setEnteredDangerZone] = useState(false)
 
-  const loadInitialValues = useCallback(async () => {
-    const enableReminderPromise = AsyncStorage.getItem(AsyncStorageKeys.ENABLE_REMINDER).then(
-      (v) => (v ? JSON.parse(v) : false)
-    )
-    const reminderIntervalPromise = AsyncStorage.getItem(AsyncStorageKeys.REMINDER_INTERVAL).then(
-      (v) => (v ? JSON.parse(v) : DefaultIntervalSetting)
-    )
-    const enableBackupMailPromise = AsyncStorage.getItem(AsyncStorageKeys.ENABLE_BACKUP_MAIL).then(
-      (v) => (v ? JSON.parse(v) : false)
-    )
-    const enableMultipleBuildingsPromise = AsyncStorage.getItem(
-      AsyncStorageKeys.FEATURE_FLAG_MULTIPLE_BUILDINGS
-    ).then((v) => (v ? JSON.parse(v) : false))
+  const isIntervalDialogOpen = useSignal(false)
+  const intervalDialogState = useSignal<IntervalDialogProps>({})
 
-    const [enableReminder, reminderInterval, enableBackupMail, enableMultipleBuildings] =
-      await Promise.all([
-        enableReminderPromise,
-        reminderIntervalPromise,
-        enableBackupMailPromise,
-        enableMultipleBuildingsPromise,
-      ])
-
-    setValues({
-      [AsyncStorageKeys.ENABLE_REMINDER]: enableReminder,
-      [AsyncStorageKeys.REMINDER_INTERVAL]: reminderInterval,
-      [AsyncStorageKeys.ENABLE_BACKUP_MAIL]: enableBackupMail,
-      [AsyncStorageKeys.FEATURE_FLAG_MULTIPLE_BUILDINGS]: enableMultipleBuildings,
-    })
-  }, [])
-
-  useEffect(() => {
-    loadInitialValues()
-  }, [loadInitialValues])
-
-  const setValue = useCallback(
-    (key: keyof typeof values, value: unknown) => {
-      EventEmitter.emit(`settings-${key}`, value)
-      AsyncStorage.setItem(key, JSON.stringify(value)).then(() => {
-        setValues({
-          ...values,
-          [key]: value,
-        })
-      })
-    },
-    [values]
-  )
-
-  useEffect(() => {
-    if (!values[AsyncStorageKeys.ENABLE_REMINDER]) {
-      return
-    }
-    checkNotificationPermissions()
-  }, [values[AsyncStorageKeys.ENABLE_REMINDER]])
+  const enteredDangerZone = useSignal(false)
 
   return (
     <>
-      <IntervalDialog
-        isVisible={intervalDialogState.isVisible}
-        initialValue={intervalDialogState.initialValue}
-        title={intervalDialogState.title}
-        onFinish={intervalDialogState.onFinish}
-        onDismiss={() => setIntervalDialogState({ isVisible: false })}
-      />
+      <IntervalDialog isVisible={isIntervalDialogOpen} state={intervalDialogState} />
+
       <SafeAreaView style={styles.container} bg-backgroundColor>
         <AppBar
           title={t('utils:settings')}
@@ -149,7 +78,18 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
             type="custom"
             getIcon={() => <ExportIcon />}
             onPress={async () => {
-              await databaseToCSVString().then(shareCSVFile)
+              await databaseToCSVString().then((data) => {
+                if (data) {
+                  shareCSVFile(data)
+                  return
+                }
+
+                EventEmitter.emitToast({
+                  message: t('utils:no_data_to_export'),
+                  duration: 3000,
+                  icon: ErrorCircleIcon,
+                })
+              })
             }}
             title={t('utils:export_data')}
             getSubTitle={() => t('utils:export_data_description')}
@@ -165,46 +105,45 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
           <Text style={styles.sectionTitle}>{t('utils:reminder')}</Text>
           <SettingsListEntry
             type="checkbox"
-            value={values[AsyncStorageKeys.ENABLE_REMINDER]}
+            value={settings.enableReminder.content}
+            disabled={settings.enableReminder.isLoading.value}
             getIcon={() => <NotificationIcon />}
             onPress={() =>
-              setValue(AsyncStorageKeys.ENABLE_REMINDER, !values[AsyncStorageKeys.ENABLE_REMINDER])
+              setSetting(AsyncStorageKeys.enableReminder, !settings.enableReminder.content.peek())
             }
             title={t('utils:enable_reminder')}
             getSubTitle={() => t('utils:enable_reminder_description')}
           />
           <SettingsListEntry
             type="custom"
-            disabled={!values[AsyncStorageKeys.ENABLE_REMINDER]}
-            value={values[AsyncStorageKeys.REMINDER_INTERVAL]}
+            disabled={
+              !settings.enableReminder.content.value || settings.reminderInterval.isLoading.value
+            }
+            value={settings.reminderInterval.content}
             onPress={() => {
-              setIntervalDialogState({
-                isVisible: true,
-                initialValue: values[AsyncStorageKeys.REMINDER_INTERVAL],
-                title: t('utils:reminder_interval'),
-                onFinish: async (value) => {
-                  setValue(AsyncStorageKeys.REMINDER_INTERVAL, value)
-                  if (value) {
-                    await scheduleReminderNotification(value)
-                  } else {
-                    await removeReminderNotification()
-                  }
-                },
+              batch(() => {
+                isIntervalDialogOpen.value = true
+                intervalDialogState.value = {
+                  initialValue: settings.reminderInterval.content.value,
+                  title: t('utils:reminder_interval'),
+                  onFinish: (value) => setSetting(AsyncStorageKeys.reminderInterval, value),
+                }
               })
             }}
             title={t('utils:reminder_interval')}
-            getSubTitle={() => intervalToString(values[AsyncStorageKeys.REMINDER_INTERVAL])}
+            getSubTitle={() => intervalToString(settings.reminderInterval.content.value)}
           />
 
           <Text style={styles.sectionTitle}>{t('utils:features')}</Text>
           <SettingsListEntry
             type="checkbox"
-            value={values[AsyncStorageKeys.FEATURE_FLAG_MULTIPLE_BUILDINGS]}
+            value={settings.featureFlagMultipleBuildings.content}
+            disabled={settings.featureFlagMultipleBuildings.isLoading.value}
             getIcon={() => <NotificationIcon />}
             onPress={() =>
-              setValue(
-                AsyncStorageKeys.FEATURE_FLAG_MULTIPLE_BUILDINGS,
-                !values[AsyncStorageKeys.FEATURE_FLAG_MULTIPLE_BUILDINGS]
+              setSetting(
+                AsyncStorageKeys.featureFlagMultipleBuildings,
+                !settings.featureFlagMultipleBuildings.content.peek()
               )
             }
             title={t('utils:enable_multiple_buildings')}
@@ -217,7 +156,7 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
             type="checkbox"
             value={enteredDangerZone}
             getIcon={() => <ErrorCircleIcon />}
-            onPress={() => setEnteredDangerZone(!enteredDangerZone)}
+            onPress={() => (enteredDangerZone.value = !enteredDangerZone.peek())}
             title={t('utils:enable_danger_zone')}
             getSubTitle={() => t('utils:enable_danger_zone_description')}
           />
@@ -230,7 +169,7 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
             <Button
               color="error"
               label={t('utils:delete_all_data')}
-              disabled={!enteredDangerZone}
+              disabled={!enteredDangerZone.value}
               onPress={async () => {
                 EventEmitter.emitToast({
                   message: t('utils:deleting_data'),
@@ -238,17 +177,11 @@ export default function SettingsScreen({ navigation }: HomeStackScreenProps<'Set
                   icon: InfoCircleIcon,
                 })
 
-                await clearDatabase()
-                await dropDatabase()
-
-                await AsyncStorage.getAllKeys()
-                  .then(AsyncStorage.multiRemove)
-                  .then(loadInitialValues)
-
-                await setupDatabase()
+                await resetSettings()
+                await runMigrations(true)
                 reloadDatabase()
 
-                setEnteredDangerZone(false)
+                enteredDangerZone.value = false
 
                 EventEmitter.emit(`data-removed`)
                 EventEmitter.emitToast({

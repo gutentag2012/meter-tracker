@@ -88,7 +88,6 @@ export const Input: FunctionComponent<Props> = forwardRef(
       []
     )
 
-    // TODO Figure out how to hide the hint when there is a validation message shown
     return (
       <View style={outerContainerStyle}>
         <Incubator.TextField
@@ -116,9 +115,13 @@ export const Input: FunctionComponent<Props> = forwardRef(
           validate={validation}
           validationMessage={validationMessages}
           validationMessageStyle={{
-            marginTop: 8,
+            ...Typography.LabelSmall,
+            marginTop: 12,
             color: Colors.error,
-            ...Typography.BodySmall,
+          }}
+          charCounterStyle={{
+            ...Typography.LabelSmall,
+            marginTop: 12,
           }}
           cursorColor={Colors.primary}
           selectionColor={Colors.primary}
@@ -151,22 +154,20 @@ export const Input: FunctionComponent<Props> = forwardRef(
               backgroundColor: Colors.surfaceVariant,
               borderTopLeftRadius: 2,
               borderTopRightRadius: 2,
-              marginBottom: 16,
+              marginBottom: 24,
             },
             innerContainerStyle,
           ]}
         />
-        {hint && (
-          <Text
-            style={{
-              ...Typography.LabelSmall,
-              marginTop: isValid ? -8 : 8,
-              marginBottom: 16,
-            }}
-          >
-            {hint}
-          </Text>
-        )}
+        <Text
+          style={{
+            ...Typography.LabelSmall,
+            marginTop: -20,
+            marginBottom: 12,
+          }}
+        >
+          {hint && isValid ? hint : ''}
+        </Text>
       </View>
     )
   }

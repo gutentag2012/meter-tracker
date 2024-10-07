@@ -1,0 +1,2 @@
+export const METER_TABLE_NAME = 'meter'
+export const EVENT_INVALIDATE_METERS = 'EVENT_INVALIDATE_METERS'

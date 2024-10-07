@@ -1,21 +1,28 @@
+import { settings } from '@/settings'
+import { effect } from '@preact/signals-react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { AsyncStorageKeys } from '@utils/AsyncStorageUtils'
 import * as Notifications from 'expo-notifications'
 import { Alert, Linking, Platform } from 'react-native'
 import { Colors } from 'react-native-ui-lib'
-import AsyncStorageKeys from '../constants/AsyncStorageKeys'
-import { t } from '../services/i18n'
-import { Interval } from './IntervalUtils'
+import { t } from '@/i18n'
+import { DefaultIntervalSetting, type Interval } from './IntervalUtils'
 
 const REMINDER_NOTIFICATION_CHANNEL_ID = 'reminder'
 const REMINDER_NOTIFICATION_ID = 'reminder_notification'
 
 const getReminderId = (interval: Interval) => {
-  return REMINDER_NOTIFICATION_ID + (interval.type === 'Yearly' ? `_${ interval.monthOfYear }` : '')
+  return REMINDER_NOTIFICATION_ID + interval
+    ? interval.type === 'Yearly'
+      ? `_${interval.monthOfYear}`
+      : ''
+    : ''
 }
 
 const getReminderInterval = async (): Promise<Interval> => {
-  return await AsyncStorage.getItem(AsyncStorageKeys.REMINDER_INTERVAL)
-    .then(res => res ? JSON.parse(res) : undefined)
+  return await AsyncStorage.getItem(AsyncStorageKeys.reminderInterval).then((res) =>
+    res ? JSON.parse(res) : DefaultIntervalSetting
+  )
 }
 
 const createNotificationChannel = async () => {
@@ -23,9 +30,11 @@ const createNotificationChannel = async () => {
     return
   }
 
-  const notificationChannel = await Notifications.getNotificationChannelAsync(REMINDER_NOTIFICATION_CHANNEL_ID)
+  const notificationChannel = await Notifications.getNotificationChannelAsync(
+    REMINDER_NOTIFICATION_CHANNEL_ID
+  )
 
-  if (!!notificationChannel) {
+  if (notificationChannel) {
     return
   }
 
@@ -54,47 +63,52 @@ export const checkNotificationPermissions = async () => {
     return finalRes.granted
   }
 
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     Alert.alert(
-      t("utils:notification_permission_dialog_title"), t("utils:notification_permission_dialog_message"), [
+      t('utils:notification_permission_dialog_title'),
+      t('utils:notification_permission_dialog_message'),
+      [
         {
-          text: t("utils:notification_permission_dialog_cancel"),
+          text: t('utils:notification_permission_dialog_cancel'),
           onPress: () => {
             resolve(false)
           },
         },
         {
-          text: t("utils:notification_permission_dialog_goto_settings"),
+          text: t('utils:notification_permission_dialog_goto_settings'),
           onPress: () => {
             Linking.openSettings()
             resolve(false)
           },
         },
-      ], { cancelable: false })
+      ],
+      { cancelable: false }
+    )
   })
-}
-
-export const alreadyScheduledReminderNotification = async () => {
-  const [interval, scheduled] = await Promise.all([
-    getReminderInterval(), Notifications.getAllScheduledNotificationsAsync(),
-  ])
-  return scheduled.some(({ identifier }) => identifier === getReminderId(interval))
 }
 
 export const removeReminderNotification = async () => {
   const interval = await getReminderInterval()
-  await Notifications.cancelScheduledNotificationAsync(getReminderId(interval))
-}
-
-export const scheduleReminderNotification = async (interval?: Interval) => {
-  const shouldSchedule = await AsyncStorage.getItem(AsyncStorageKeys.ENABLE_REMINDER)
-    .then(res => res === 'true')
-
-  if (!shouldSchedule) {
+  if (!interval) {
     return
   }
 
-  if (!await checkNotificationPermissions()) {
+  const reminderId = getReminderId(interval)
+  console.log(`Removing reminder notification for "${reminderId}"`)
+  await Notifications.cancelScheduledNotificationAsync(reminderId)
+}
+
+export const scheduleReminderNotification = async (interval?: Interval) => {
+  const shouldSchedule = await AsyncStorage.getItem(AsyncStorageKeys.enableReminder).then(
+    (res) => res === 'true'
+  )
+
+  if (!shouldSchedule) {
+    await removeReminderNotification()
+    return
+  }
+
+  if (!(await checkNotificationPermissions())) {
     console.error('No notification permissions')
     return
   }
@@ -108,8 +122,6 @@ export const scheduleReminderNotification = async (interval?: Interval) => {
     return
   }
 
-  const reminderId = getReminderId(interval)
-
   // There is no monthly reminder, therefore 12 yearly reminders are scheduled
   if (interval.type === 'Monthly') {
     const promises = []
@@ -121,7 +133,7 @@ export const scheduleReminderNotification = async (interval?: Interval) => {
           dayOfMonth: interval.dayOfMonth,
           hour: interval.hour,
           minute: interval.minute,
-        }),
+        })
       )
     }
     await Promise.all(promises)
@@ -132,12 +144,15 @@ export const scheduleReminderNotification = async (interval?: Interval) => {
   // ! If new notifications are added, change here
   await Notifications.cancelAllScheduledNotificationsAsync()
 
+  const reminderId = getReminderId(interval)
+  console.log(`Scheduling reminder notification for "${reminderId}"`)
+
   const trigger = {
     repeats: true,
     channelId: REMINDER_NOTIFICATION_CHANNEL_ID,
     hour: interval.hour,
     minute: interval.minute,
-  } as Record<string, any>
+  } as Record<string, unknown>
 
   if (interval.type === 'Weekly') {
     trigger.weekday = interval.dayOfWeek + 1
@@ -150,10 +165,24 @@ export const scheduleReminderNotification = async (interval?: Interval) => {
   await Notifications.scheduleNotificationAsync({
     identifier: reminderId,
     content: {
-      title: t("utils:reminder"),
+      title: t('utils:reminder'),
       color: Colors.primary,
-      body: t("utils:reminder_notification_body"),
+      body: t('utils:reminder_notification_body'),
     },
     trigger,
   })
 }
+
+effect(() => {
+  if (
+    settings.enableReminder.isLoading.value ||
+    settings.reminderInterval.isLoading.value ||
+    !settings.reminderInterval.content.value
+  ) {
+    return
+  }
+
+  scheduleReminderNotification(
+    settings.enableReminder.content.value ? settings.reminderInterval.content.value : undefined
+  )
+})

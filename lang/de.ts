@@ -45,6 +45,8 @@ const lang: Language = {
 
     contract: 'Vertrag',
 
+    delete_contract: 'Vertrag löschen',
+
     explain_conversion:
       'Die Umrechnung wird verwendet, um die Einheiten des Messgeräts in die Einheiten des Vertrags umzurechnen. Wenn Ihr Messgerät beispielsweise in kWh misst und Ihr Vertrag in MWh ist, geben Sie 0,001 ein.',
   },
@@ -72,6 +74,12 @@ const lang: Language = {
 
     deleted_reading: 'Zählerstand gelöscht',
     deleted_building: 'Gebäude gelöscht',
+    deleted_contract: 'Vertrag gelöscht',
+
+    no_data_to_export: 'Keine Daten zum Exportieren',
+
+    loading_data: 'Lade Daten...',
+    no_data: 'Keine Daten vorhanden',
 
     camera_permission: 'Kameraberechtigung',
     camera_permission_message:
