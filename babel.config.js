@@ -3,18 +3,9 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      [
-        'module-resolver',
-        {
-          extensions: ['.tsx', '.ts', '.js', '.json'],
-          alias: {
-            '@': './modules',
-            '@ui': './ui',
-            '@utils': './utils',
-          },
-        },
-      ],
-      'react-native-reanimated/plugin',
+      ['inline-import', { extensions: ['.sql'] }],
+      ['module:@preact/signals-react-transform'],
+      ['react-native-reanimated/plugin'],
     ],
   }
 }

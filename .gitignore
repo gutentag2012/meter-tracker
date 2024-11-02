@@ -1,20 +1,42 @@
+# dependencies
 node_modules/
+
+# Expo
 .expo/
 dist/
-npm-debug.*
+
+# Native
+*.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-*.orig.*
-web-build/
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
 # macOS
 .DS_Store
+*.pem
 
-*.log
-.idea/
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+expo-env.d.ts
+
+.idea
 
 # Google Service Account
 pc-api-6736822767242653081-358-51c5d838394f.json
+
+android
+ios

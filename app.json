@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "MeterTracker",
+    "name": "Meter Tracker",
     "slug": "meter-tracker-expo",
     "version": "1.0.10",
     "orientation": "portrait",
@@ -34,19 +34,24 @@
       ]
     },
     "web": {
+      "bundler": "metro",
+      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "expo-router",
       [
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 33,
-            "targetSdkVersion": 33,
-            "buildToolsVersion": "33.0.0"
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0",
+            "newArchEnabled": true
           },
           "ios": {
-            "deploymentTarget": "13.0"
+            "deploymentTarget": "13.4",
+            "newArchEnabled": true
           }
         }
       ],
@@ -222,12 +227,17 @@
       ],
       [
         "./plugins/withAndroidGradle"
-      ]
+      ],
+      "expo-localization",
+      "expo-font"
     ],
     "extra": {
       "eas": {
         "projectId": "20ea4956-3406-4d9a-aaa6-119902d70601"
       }
+    },
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }

@@ -1,0 +1,56 @@
+diff --git a/node_modules/drizzle-orm/sqlite-core/dialect.cjs b/node_modules/drizzle-orm/sqlite-core/dialect.cjs
+index a185e84..77c730e 100644
+--- a/node_modules/drizzle-orm/sqlite-core/dialect.cjs
++++ b/node_modules/drizzle-orm/sqlite-core/dialect.cjs
+@@ -556,9 +556,9 @@ class SQLiteSyncDialect extends SQLiteDialect {
+     const migrationsTable = config === void 0 ? "__drizzle_migrations" : typeof config === "string" ? "__drizzle_migrations" : config.migrationsTable ?? "__drizzle_migrations";
+     const migrationTableCreate = import_sql2.sql`
+ 			CREATE TABLE IF NOT EXISTS ${import_sql2.sql.identifier(migrationsTable)} (
+-				id SERIAL PRIMARY KEY,
++				id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+ 				hash text NOT NULL,
+-				created_at numeric
++				created_at INTEGER
+ 			)
+ 		`;
+     session.run(migrationTableCreate);
+@@ -591,9 +591,9 @@ class SQLiteAsyncDialect extends SQLiteDialect {
+     const migrationsTable = config === void 0 ? "__drizzle_migrations" : typeof config === "string" ? "__drizzle_migrations" : config.migrationsTable ?? "__drizzle_migrations";
+     const migrationTableCreate = import_sql2.sql`
+ 			CREATE TABLE IF NOT EXISTS ${import_sql2.sql.identifier(migrationsTable)} (
+-				id SERIAL PRIMARY KEY,
++				id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+ 				hash text NOT NULL,
+-				created_at numeric
++				created_at INTEGER
+ 			)
+ 		`;
+     await session.run(migrationTableCreate);
+diff --git a/node_modules/drizzle-orm/sqlite-core/dialect.js b/node_modules/drizzle-orm/sqlite-core/dialect.js
+index 85adc96..ff7a06e 100644
+--- a/node_modules/drizzle-orm/sqlite-core/dialect.js
++++ b/node_modules/drizzle-orm/sqlite-core/dialect.js
+@@ -537,9 +537,9 @@ class SQLiteSyncDialect extends SQLiteDialect {
+     const migrationsTable = config === void 0 ? "__drizzle_migrations" : typeof config === "string" ? "__drizzle_migrations" : config.migrationsTable ?? "__drizzle_migrations";
+     const migrationTableCreate = sql`
+ 			CREATE TABLE IF NOT EXISTS ${sql.identifier(migrationsTable)} (
+-				id SERIAL PRIMARY KEY,
++				id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+ 				hash text NOT NULL,
+-				created_at numeric
++				created_at INTEGER
+ 			)
+ 		`;
+     session.run(migrationTableCreate);
+@@ -572,9 +572,9 @@ class SQLiteAsyncDialect extends SQLiteDialect {
+     const migrationsTable = config === void 0 ? "__drizzle_migrations" : typeof config === "string" ? "__drizzle_migrations" : config.migrationsTable ?? "__drizzle_migrations";
+     const migrationTableCreate = sql`
+ 			CREATE TABLE IF NOT EXISTS ${sql.identifier(migrationsTable)} (
+-				id SERIAL PRIMARY KEY,
++				id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+ 				hash text NOT NULL,
+-				created_at numeric
++				created_at INTEGER
+ 			)
+ 		`;
+     await session.run(migrationTableCreate);
