@@ -12,6 +12,16 @@ import { ContractList } from '@/modules/contracts/components/ContractList'
 import { ActiveBuildingSelector } from '@/modules/buildings/components/ActiveBuildingSelector'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useSeed } from '@/database/seed'
+import {
+  HeaderBackButton,
+  makeHeaderBackButton,
+  makeHeaderDialogBackButton,
+} from '@/lib/components/header/HeaderBackButton'
+import {
+  HeaderButtons,
+  HeaderButtonsOnlySettings,
+  HeaderButtonsWithEdit,
+} from '@/lib/components/header/HeaderButtons'
 
 export default function App() {
   const defaultStyles = useDefaultStyles()
@@ -38,15 +48,9 @@ export default function App() {
       <Stack.Screen
         options={{
           title: translate('pages.home'),
-          headerRight: () => (
-            <>
-              <Link href='/settings' asChild>
-                <TouchableOpacity>
-                  <Settings2Icon color={colors.text} />
-                </TouchableOpacity>
-              </Link>
-            </>
-          ),
+          headerTitleStyle: defaultStyles.pageHeader,
+          headerLeft: makeHeaderBackButton(),
+          headerRight: HeaderButtonsOnlySettings(),
         }}
       />
 
@@ -58,12 +62,14 @@ export default function App() {
               marginBottom: 8,
             },
           ]}>
-          <TouchableOpacity style={[defaultStyles.ghostButton, { marginLeft: 'auto' }]}>
-            <PlusIcon size={defaultStyles.detail.fontSize} stroke={colors.primary} />
-            <Text style={[defaultStyles.detail, { color: colors.primary }]}>
-              {translate('meters.createButton')}
-            </Text>
-          </TouchableOpacity>
+          <Link href='/meter/create' style={{ marginLeft: 'auto' }} asChild>
+            <TouchableOpacity style={defaultStyles.ghostButton}>
+              <PlusIcon size={defaultStyles.detail.fontSize} stroke={colors.primary} />
+              <Text style={[defaultStyles.detail, { color: colors.primary }]}>
+                {translate('meters.createButton')}
+              </Text>
+            </TouchableOpacity>
+          </Link>
         </View>
 
         <MeterGrid />
@@ -76,12 +82,14 @@ export default function App() {
               marginBottom: 8,
             },
           ]}>
-          <TouchableOpacity style={[defaultStyles.ghostButton, { marginLeft: 'auto' }]}>
-            <PlusIcon size={defaultStyles.detail.fontSize} stroke={colors.primary} />
-            <Text style={[defaultStyles.detail, { color: colors.primary }]}>
-              {translate('contracts.createButton')}
-            </Text>
-          </TouchableOpacity>
+          <Link href='/contract/create' style={{ marginLeft: 'auto' }} asChild>
+            <TouchableOpacity style={defaultStyles.ghostButton}>
+              <PlusIcon size={defaultStyles.detail.fontSize} stroke={colors.primary} />
+              <Text style={[defaultStyles.detail, { color: colors.primary }]}>
+                {translate('contracts.createButton')}
+              </Text>
+            </TouchableOpacity>
+          </Link>
         </View>
 
         <ContractList />

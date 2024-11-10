@@ -65,6 +65,8 @@ export function ReadingList() {
     .map((item, index) => 'type' in item && item.type === 'header' && index)
     .filter((val): val is number => val !== false)
 
+  const unit = readings.at(0)?.unitAbbreviation ?? ''
+
   return (
     <FlashList
       contentContainerStyle={{ paddingBottom: 16 }}
@@ -84,7 +86,7 @@ export function ReadingList() {
               <Text style={[defaultStyles.cardTitle, { flex: 1 }]}>{item.title}</Text>
               <Text style={[defaultStyles.detail, { flex: 1, textAlign: 'right' }]}>
                 {item.value.toFixed(2)}
-                <Text style={defaultStyles.detailSmall}> kwh</Text>
+                <Text style={defaultStyles.detailSmall}> {unit}</Text>
               </Text>
             </View>
           )

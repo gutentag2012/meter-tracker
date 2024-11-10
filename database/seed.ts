@@ -1,6 +1,7 @@
 import { db } from '@/database/db'
-import { building, contract, contractRevision, meter, reading } from '@/database/schema'
+import { building, contract, contractRevision, meter, reading, unit } from '@/database/schema'
 import { useEffect } from 'react'
+import { eq } from 'drizzle-orm'
 
 export async function seed() {
   await db.delete(contract).execute()
@@ -11,8 +12,6 @@ export async function seed() {
         id: 1,
         name: 'meinSWK DIREKT Gas',
         identifier: 'contract1',
-        currency: 'Cent',
-        cancellationTime: 2,
         buildingId: 1,
         unitId: 1,
       },
@@ -20,8 +19,6 @@ export async function seed() {
         id: 2,
         name: 'meinSWK DIREKT Strom',
         identifier: 'contract2',
-        currency: 'Cent',
-        cancellationTime: 1,
         buildingId: 1,
         unitId: 1,
       },
@@ -34,7 +31,7 @@ export async function seed() {
     .values([
       {
         id: 1,
-        pricePerUnit: 15.46,
+        pricePerUnit: 0.1546,
         basePayment: 184.69,
         monthlyPayment: 55,
         startDate: new Date(1729008406000),
@@ -43,7 +40,7 @@ export async function seed() {
       },
       {
         id: 2,
-        pricePerUnit: 34.88,
+        pricePerUnit: 0.3488,
         basePayment: 211.11,
         monthlyPayment: 89,
         startDate: new Date(1728908906000),

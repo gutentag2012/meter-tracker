@@ -6,7 +6,7 @@ const horizontalPadding = 16
 export const CELL_AMOUNT_OF_COLUMNS = 2
 export const CELL_GAP = 8
 
-export const cellHeight = 92 - CELL_GAP / 2
+export const cellHeight = 96 - CELL_GAP / 2
 export const cellWidth =
   (windowWidth - horizontalPadding * 2) / CELL_AMOUNT_OF_COLUMNS - CELL_GAP / 2
 

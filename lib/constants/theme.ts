@@ -8,11 +8,13 @@ const colors = {
     text: '#171a1a',
     textMuted: '#2f3636',
     textStatic: '#4e5959',
+    outline: '#becccc',
     primary: '#0284c7',
     primaryContainer: '#0ea5e9',
     onPrimaryContainer: '#e0f2fe',
-    positiv: '#22c55e',
-    negative: '#FF5449',
+    positive: '#059669',
+    warning: '#d97706',
+    negative: '#dc2626',
   },
   dark: {
     background: '#111415',
@@ -20,13 +22,18 @@ const colors = {
     text: '#D4D7D8',
     textMuted: '#a0a6a8',
     textStatic: '#7e8385',
+    outline: '#494c4d',
     primary: '#0ea5e9',
     primaryContainer: '#075985',
     onPrimaryContainer: '#e0f2fe',
-    positiv: '#34d399',
+    positive: '#34d399',
+    warning: '#fbbf24',
     negative: '#f87171',
   },
 }
+
+export const LightColors = colors.light
+export const DarkColors = colors.dark
 
 export const ChartColorsLight = [
   '#15768c',
@@ -65,7 +72,7 @@ export function useDefaultStyles() {
       StyleSheet.create({
         pageHeader: {
           fontFamily: 'Mona-Medium',
-          fontSize: 22,
+          fontSize: 18,
           color: colors.text,
         },
         cardTitle: {
@@ -73,8 +80,8 @@ export function useDefaultStyles() {
           fontSize: 16,
           color: colors.text,
         },
-        listEntry: {
-          fontFamily: 'Mona-Medium',
+        bodyText: {
+          fontFamily: 'Mona-Regular',
           fontSize: 14,
           color: colors.text,
         },
@@ -88,6 +95,8 @@ export function useDefaultStyles() {
         detailSmall: {
           fontFamily: 'Mona-Medium',
           fontSize: 10,
+          lineHeight: 12,
+          letterSpacing: 0.1,
           color: colors.textStatic,
         },
         iconText: {
@@ -117,7 +126,7 @@ export function useDefaultStyles() {
           shadowOpacity: 0.25,
           shadowRadius: 3.84,
 
-          borderRadius: 6,
+          borderRadius: 4,
           backgroundColor: colors.primaryContainer,
           alignItems: 'center',
           justifyContent: 'center',
@@ -131,11 +140,11 @@ export function useDefaultStyles() {
           alignItems: 'center',
         },
         outlineButton: {
-          borderColor: colors.textMuted,
+          borderColor: colors.outline,
           color: colors.text,
           borderWidth: 1,
           borderStyle: 'solid',
-          borderRadius: 6,
+          borderRadius: 4,
           paddingHorizontal: 6,
           paddingVertical: 2,
           gap: 4,

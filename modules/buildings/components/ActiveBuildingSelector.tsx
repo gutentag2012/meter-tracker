@@ -15,6 +15,7 @@ import {
 import { translate } from '@/lib/translations/i18n'
 import { activeBuilding } from '@/modules/buildings/buildings.signals'
 
+const snapPoints = ['30%', '90%']
 export function ActiveBuildingSelector() {
   const defaultStyles = useDefaultStyles()
   const colors = useColors()
@@ -38,7 +39,6 @@ export function ActiveBuildingSelector() {
 
   const [allBuildings] = useAllBuildings()
   const [activeBuildingEntity] = useActiveBuilding()
-  const snapPoints = useMemo(() => ['30%', '90%'], [])
 
   function getBuildingName(name: string | undefined) {
     return name === 'default' ? translate('buildings.defaultName') : name
@@ -49,7 +49,7 @@ export function ActiveBuildingSelector() {
         onPress={() => bottomSheetRef.current?.present()}
         style={{
           backgroundColor: colors.card,
-          borderRadius: 8,
+          borderRadius: 4,
           marginHorizontal: 16,
           marginBottom: 8,
           marginTop: 16,
@@ -107,14 +107,14 @@ export function ActiveBuildingSelector() {
                   gap: 0,
                   backgroundColor:
                     building.id === activeBuilding.value ? colors.background : undefined,
-                  borderRadius: 8,
+                  borderRadius: 4,
                 },
               ]}
               onPress={() => {
                 activeBuilding.value = building.id
                 bottomSheetRef.current?.dismiss()
               }}>
-              <Text style={[defaultStyles.listEntry, { marginLeft: 8, marginRight: 'auto' }]}>
+              <Text style={[defaultStyles.bodyText, { marginLeft: 8, marginRight: 'auto' }]}>
                 {getBuildingName(building.name)}
               </Text>
 
@@ -136,7 +136,7 @@ export function ActiveBuildingSelector() {
               )}
 
               <TouchableOpacity style={{ padding: 8 }}>
-                <PencilIcon size={defaultStyles.listEntry.fontSize} stroke={colors.textMuted} />
+                <PencilIcon size={defaultStyles.bodyText.fontSize} stroke={colors.textMuted} />
               </TouchableOpacity>
             </TouchableOpacity>
           ))}

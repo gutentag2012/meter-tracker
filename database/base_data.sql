@@ -11,4 +11,5 @@ VALUES
     (4, 'units.w', 'W', 0.001, 1),
     (5, 'units.l', 'l', 1, NULL),
     (6, 'units.m3', 'm³', 1000, 5),
-    (7, 'units-m3-gas-natural', 'm³', 10.55, 1);
+    (7, 'units.m3-gas-natural', 'm³', 10.55, 1),
+    (8, 'units.percent', '%', 1, null);

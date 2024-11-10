@@ -2,7 +2,7 @@
 
 import journal from './meta/_journal.json';
 import m0000 from './0000_initial.sql';
-import m0001 from './0001_default-data.sql';
+import m0001 from './0001_initial_data.sql';
 
   export default {
     journal,

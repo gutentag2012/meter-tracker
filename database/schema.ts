@@ -9,13 +9,11 @@ export const building = sqliteTable('building', {
   address: text('address'),
   notes: text('notes'),
 })
-// TODO Seed default building
 
 export const meterType = sqliteTable('meterType', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   category: text('category').notNull(),
 })
-// TODO Seed the database with some default meter
 
 // @ts-expect-error This is a circular reference but should work
 export const unit = sqliteTable('unit', {
@@ -25,15 +23,11 @@ export const unit = sqliteTable('unit', {
   conversionFactor: real('conversion_factor'), // This is the conversion factor to the base unit (kWh)
   baseUnitId: integer('base_unit_id').references(() => unit.id, { onDelete: 'set null' }),
 })
-// TODO Seed the database with some default units
 
 export const contract = sqliteTable('contract', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   identifier: text('identifier'),
-  // TODO Add conversion table for currencies and available currencies
-  currency: text('currency').notNull(),
-  cancellationTime: integer('cancellation_time'),
   buildingId: integer('building_id')
     .default(1)
     .references(() => building.id, { onDelete: 'cascade' }),
@@ -63,6 +57,7 @@ export const meter = sqliteTable('meter', {
   valueBeforeReset: real('value_before_reset').default(0),
   isActive: integer('is_active', { mode: 'boolean' }).default(sql`1`),
   sortOrder: integer('sort_order').default(0),
+  customUnitConversion: real('custom_unit_conversion'),
   buildingId: integer('building_id')
     .default(1)
     .references(() => building.id, { onDelete: 'cascade' }),

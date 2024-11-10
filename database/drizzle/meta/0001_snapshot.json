@@ -1,6 +1,6 @@
 {
-  "id": "2e25fe3e-275c-49f1-96d8-35e1da448027",
-  "prevId": "5ea95d3f-32a4-45c0-b88e-2e553fc88f28",
+  "id": "7a88f582-cf15-440e-8ae7-f3d215e19bec",
+  "prevId": "cd4f68be-c6f0-4cb8-b7c5-ac93652e4e63",
   "version": "6",
   "dialect": "sqlite",
   "tables": {
@@ -69,20 +69,6 @@
         "identifier": {
           "name": "identifier",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "currency": {
-          "name": "currency",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "cancellation_time": {
-          "name": "cancellation_time",
-          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -263,6 +249,13 @@
           "notNull": false,
           "autoincrement": false,
           "default": 0
+        },
+        "custom_unit_conversion": {
+          "name": "custom_unit_conversion",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "building_id": {
           "name": "building_id",

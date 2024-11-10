@@ -1,6 +1,6 @@
 import { db } from '@/database/db'
 import { contract, contractRevision, meter, reading, unit } from '@/database/schema'
-import { aliasedTable, and, eq, getTableName, sql } from 'drizzle-orm'
+import { aliasedTable, and, desc, eq, getTableName, isNotNull, sql } from 'drizzle-orm'
 import { useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 import { useSignalEffect } from '@preact/signals-react'
@@ -28,6 +28,7 @@ export async function getAllContractsForBuilding(buildingId: number) {
       .innerJoin(meter, eq(reading.meterId, meter.id))
       .where(
         and(
+          isNotNull(meter.contractId),
           eq(meter.buildingId, buildingId),
           sql`"month" in (
               strftime('%Y-%m', 'now', 'localtime'),
@@ -71,6 +72,9 @@ export async function getAllContractsForBuilding(buildingId: number) {
         contractMonthlyPayment: contractRevision.monthlyPayment,
         contractStartDate: contractRevision.startDate,
         contractEndDate: contractRevision.endDate,
+        row: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${contractRevision.contractId} ORDER BY ${contractRevision.startDate} DESC)`.as(
+          'row'
+        ),
       })
       .from(contractRevision)
       .leftJoin(contract, eq(contractRevision.contractId, contract.id))
@@ -81,6 +85,7 @@ export async function getAllContractsForBuilding(buildingId: number) {
           sql`${contractRevision.startDate} <= unixepoch()`
         )
       )
+      .orderBy(desc(contractRevision.startDate))
   )
   const meterUnit = aliasedTable(unit, 'meterUnit')
   const contractUnit = aliasedTable(unit, 'contractUnit')
@@ -88,7 +93,10 @@ export async function getAllContractsForBuilding(buildingId: number) {
     db
       .select({
         meterId: meter.id,
-        meterConversionFactor: sql`${meterUnit.conversionFactor}`.as('meter_conversion_factor'),
+        meterConversionFactor:
+          sql`IFNULL(${meter.customUnitConversion}, ${meterUnit.conversionFactor})`.as(
+            'meter_conversion_factor'
+          ),
         contractConversionFactor: sql`${contractUnit.conversionFactor}`.as(
           'contract_conversion_factor'
         ),
@@ -203,9 +211,12 @@ export async function getAllContractsForBuilding(buildingId: number) {
       })
       .from(summedMonthlyUsages)
       .leftJoin(meter, eq(summedMonthlyUsages.meterId, meter.id))
-      .leftJoin(contract, eq(meter.contractId, contract.id))
+      .rightJoin(contract, eq(meter.contractId, contract.id))
       .leftJoin(contractUnit, eq(contract.unitId, contractUnit.id))
-      .leftJoin(activeContractRevision, eq(contract.id, activeContractRevision.contractId))
+      .leftJoin(
+        activeContractRevision,
+        and(eq(contract.id, activeContractRevision.contractId), eq(activeContractRevision.row, 1))
+      )
       .leftJoin(unitConversionFactors, eq(meter.id, unitConversionFactors.meterId))
   )
   return db
@@ -219,8 +230,9 @@ export async function getAllContractsForBuilding(buildingId: number) {
       meterStats
     )
     .select({
-      contractId: meterStats.contractId,
+      contractId: contract.id,
       contractName: contract.name,
+      contractIdentifier: contract.identifier,
       contractUnit: contractUnit.abbreviation,
       pricePerUnit: activeContractRevision.contractPricePerUnit,
       basePayment: activeContractRevision.contractBasePayment,
@@ -233,10 +245,92 @@ export async function getAllContractsForBuilding(buildingId: number) {
       ),
     })
     .from(meterStats)
-    .leftJoin(contract, eq(meterStats.contractId, contract.id))
+    .rightJoin(contract, eq(meterStats.contractId, contract.id))
     .leftJoin(contractUnit, eq(contract.unitId, contractUnit.id))
-    .leftJoin(activeContractRevision, eq(contract.id, activeContractRevision.contractId))
+    .leftJoin(
+      activeContractRevision,
+      and(eq(contract.id, activeContractRevision.contractId), eq(activeContractRevision.row, 1))
+    )
     .groupBy(meterStats.contractId)
+}
+
+export function getAllContracts() {
+  return db
+    .select()
+    .from(contract)
+    .leftJoin(
+      contractRevision,
+      and(
+        eq(contract.id, contractRevision.contractId),
+        sql`${contractRevision.endDate} IS NULL OR ${contractRevision.endDate} >= unixepoch()`,
+        sql`${contractRevision.startDate} <= unixepoch()`
+      )
+    )
+    .leftJoin(unit, eq(contract.unitId, unit.id))
+}
+
+export async function createContract(values: {
+  contract: typeof contract.$inferInsert
+  contractRevision: Omit<typeof contractRevision.$inferInsert, 'id' | 'contractId'>
+}) {
+  const insertionRes = await db.insert(contract).values(values.contract).execute()
+  await createContractRevision({
+    ...values.contractRevision,
+    contractId: insertionRes.lastInsertRowId,
+  })
+  return insertionRes.lastInsertRowId
+}
+
+export async function updateContract(
+  contractId: number,
+  values: Partial<typeof contract.$inferInsert>
+) {
+  return db.update(contract).set(values).where(eq(contract.id, contractId)).execute()
+}
+
+export async function createContractRevision(values: typeof contractRevision.$inferInsert) {
+  return db.insert(contractRevision).values(values).execute()
+}
+
+export async function updateContractRevision(
+  revisionId: number,
+  values: Partial<Omit<typeof contractRevision.$inferInsert, 'id'>>
+) {
+  return db
+    .update(contractRevision)
+    .set(values)
+    .where(eq(contractRevision.id, revisionId))
+    .execute()
+}
+
+export async function getContractById(contractId: number) {
+  const res = await db
+    .select()
+    .from(contract)
+    .leftJoin(
+      contractRevision,
+      and(
+        eq(contract.id, contractRevision.contractId),
+        sql`${contractRevision.endDate} IS NULL OR ${contractRevision.endDate} >= unixepoch()`,
+        sql`${contractRevision.startDate} <= unixepoch()`
+      )
+    )
+    .leftJoin(unit, eq(contract.unitId, unit.id))
+    .where(eq(contract.id, contractId))
+    .orderBy(desc(contractRevision.startDate))
+  return res[0] as
+    | {
+        contract: typeof contract.$inferSelect
+        contractRevision: typeof contractRevision.$inferSelect
+      }
+    | undefined
+}
+
+export async function getAllContractRevisionsForContract(contractId: number) {
+  return db.query.contractRevision.findMany({
+    where: eq(contractRevision.contractId, contractId),
+    orderBy: contractRevision.startDate,
+  })
 }
 
 export function useContractsForBuilding() {
@@ -255,11 +349,117 @@ export function useContractsForBuilding() {
       if (
         change.tableName !== getTableName(reading) &&
         change.tableName !== getTableName(meter) &&
+        change.tableName !== getTableName(contractRevision) &&
         change.tableName !== getTableName(contract)
       ) {
         return
       }
       getAllContractsForBuilding(activeBuilding.value)
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
+  return [data, error] as const
+}
+
+export function useAllContractRevisionsForContract(contractId?: number) {
+  const [data, setData] = useState<Awaited<ReturnType<typeof getAllContractRevisionsForContract>>>(
+    []
+  )
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    if (!contractId) return
+    getAllContractRevisionsForContract(contractId)
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (
+        change.tableName !== getTableName(contractRevision) &&
+        change.tableName !== getTableName(contract)
+      ) {
+        return
+      }
+      getAllContractRevisionsForContract(contractId)
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
+  return [data, error] as const
+}
+
+export function useAllContracts() {
+  const [data, setData] = useState<Awaited<ReturnType<typeof getAllContracts>>>([])
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    getAllContracts()
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (
+        change.tableName !== getTableName(contract) &&
+        change.tableName !== getTableName(contractRevision)
+      ) {
+        return
+      }
+      getAllContracts()
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
+  return [data, error] as const
+}
+
+export function useContractById(contractId: number) {
+  const [data, setData] = useState<Awaited<ReturnType<typeof getContractById>>>()
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    getContractById(contractId)
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (
+        change.tableName !== getTableName(contract) &&
+        change.tableName !== getTableName(contractRevision)
+      ) {
+        return
+      }
+      getContractById(contractId)
         .then((res) => {
           setData(res)
           setError(null)

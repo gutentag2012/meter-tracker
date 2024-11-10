@@ -1,6 +1,6 @@
 import { db } from '@/database/db'
-import { contract, meter, reading, unit } from '@/database/schema'
-import { eq, getTableName, lte, sql } from 'drizzle-orm'
+import { contract, meter, meterType, reading, unit } from '@/database/schema'
+import { and, desc, eq, getTableName, lte, sql } from 'drizzle-orm'
 import { useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 import { useSignalEffect } from '@preact/signals-react'
@@ -13,7 +13,7 @@ export async function getAllMetersForBuilding(buildingId: number) {
         meterId: meter.id,
         readingValue: reading.value,
         readingDate: reading.timestamp,
-        row: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${reading.meterId} ORDER BY ${reading.timestamp} DESC)`.as(
+        row: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${meter.id} ORDER BY ${reading.timestamp} DESC)`.as(
           'row'
         ),
       })
@@ -57,8 +57,9 @@ export async function getAllMetersForBuilding(buildingId: number) {
     .select({
       meterId: readingDifferences.meterId,
       meterName: meter.name,
-      meterUnit: unit.abbreviation,
       meterPrecision: meter.precision,
+      identifier: meter.identifier,
+      meterUnit: unit.abbreviation,
       lastReading: readingDifferences.lastReading,
       lastReadingDate: readingDifferences.lastReadingDate,
       lastDifferencePerDay: readingDifferences.lastDifferencePerDay,
@@ -71,7 +72,15 @@ export async function getAllMetersForBuilding(buildingId: number) {
     .from(readingDifferences)
     .leftJoin(meter, eq(readingDifferences.meterId, meter.id))
     .leftJoin(unit, eq(meter.unitId, unit.id))
-    .orderBy(meter.sortOrder)
+    .orderBy(meter.sortOrder, desc(meter.id))
+}
+
+export async function getMeterById(meterId: number) {
+  return db.query.meter.findFirst({ where: eq(meter.id, meterId) })
+}
+
+export function getAllMeterTypes() {
+  return db.query.meterType.findMany()
 }
 
 export function updateMeterOrders(newOrder: Record<number, number>) {
@@ -83,6 +92,45 @@ export function updateMeterOrders(newOrder: Record<number, number>) {
         .where(eq(meter.id, meterId as unknown as number))
     }
   })
+}
+
+export function deleteMeter(meterId: number) {
+  return db.delete(meter).where(eq(meter.id, meterId)).execute()
+}
+
+export async function resetMeterValue(meterId: number) {
+  const lastReadings = await db
+    .select({ value: reading.value })
+    .from(reading)
+    .where(
+      eq(
+        reading.timestamp,
+        db
+          .select({ maxTimestamp: sql`MAX(${reading.timestamp})` })
+          .from(reading)
+          .where(eq(reading.meterId, meterId))
+      )
+    )
+    .catch((err) => console.error(err))
+  if (!lastReadings) {
+    return
+  }
+  const [lastReading] = lastReadings
+  return db
+    .update(meter)
+    .set({
+      valueBeforeReset: lastReading.value,
+    })
+    .where(eq(meter.id, meterId))
+    .execute()
+}
+
+export async function createMeter(values: typeof meter.$inferInsert) {
+  return db.insert(meter).values(values).execute()
+}
+
+export async function updateMeter(meterId: number, values: Partial<typeof meter.$inferInsert>) {
+  return db.update(meter).set(values).where(eq(meter.id, meterId)).execute()
 }
 
 export function useMetersForBuilding() {
@@ -106,6 +154,71 @@ export function useMetersForBuilding() {
         return
       }
       getAllMetersForBuilding(activeBuilding.value)
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
+  return [data, error] as const
+}
+
+export function useAllMeterTypes() {
+  const [data, setData] = useState<Awaited<ReturnType<typeof getAllMeterTypes>>>([])
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    getAllMeterTypes()
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (change.tableName !== getTableName(meterType)) {
+        return
+      }
+      getAllMeterTypes()
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
+  return [data, error] as const
+}
+
+export function useMeterById(meterId: number) {
+  const [data, setData] = useState<Awaited<ReturnType<typeof getMeterById>>>()
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    getMeterById(meterId)
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (
+        change.tableName !== getTableName(meterType) &&
+        change.tableName !== getTableName(meter)
+      ) {
+        return
+      }
+      getMeterById(meterId)
         .then((res) => {
           setData(res)
           setError(null)

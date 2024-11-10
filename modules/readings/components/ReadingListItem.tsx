@@ -1,12 +1,16 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { ChangeIndicatorIcon } from '@/lib/components/ChangeIndicatorIcon'
 import { CalendarIcon, DiffIcon } from 'lucide-react-native'
-import { formateDate } from '@/lib/translations/i18n'
+import { formateDate, translate } from '@/lib/translations/i18n'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
+import { Link, useLocalSearchParams } from 'expo-router'
+import { useReadingById } from '@/modules/readings/readings.query'
 
 type ReadingListItemProps = {
   reading: {
+    readingId: number
     readingValue: number
+    precision: number
     difference: number | null
     unitAbbreviation: string
     percentileChange: number | null
@@ -23,60 +27,50 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
     (reading.percentileChange ?? 0) > 0
       ? colors.negative
       : (reading.percentileChange ?? 0) < 0
-        ? colors.positiv
+        ? colors.positive
         : colors.textMuted
 
   return (
-    <TouchableOpacity
-      style={[{ backgroundColor: colors.card, borderRadius: 8, padding: 8, height: 56 }]}>
-      <View style={defaultStyles.row}>
-        <Text style={[defaultStyles.listEntry, { flex: 1 }]}>
-          {reading.readingValue?.toFixed(2)}
-          <Text style={defaultStyles.detail}>
-            {' '}
-            {reading.difference !== null && (
-              <>
-                ({reading.difference >= 0 && '+'}
-                {reading.difference.toFixed(2)}){' '}
-              </>
-            )}
+    <Link
+      href={`/reading/${reading.readingId}/edit`}
+      style={[{ backgroundColor: colors.card, borderRadius: 4, padding: 8, height: 56 }]}
+      asChild>
+      <TouchableOpacity>
+        <View style={defaultStyles.row}>
+          <Text style={[defaultStyles.bodyText, { flex: 1 }]}>
+            {reading.readingValue?.toFixed(reading.precision ?? 2)}
+            <Text style={defaultStyles.detail}>
+              {' '}
+              {reading.difference !== null && (
+                <>
+                  ({reading.difference >= 0 && '+'}
+                  {reading.difference.toFixed(reading.precision ?? 2)}){' '}
+                </>
+              )}
+            </Text>
+            <Text style={defaultStyles.detailSmall}>{reading.unitAbbreviation}</Text>
           </Text>
-          <Text style={defaultStyles.detailSmall}>{reading.unitAbbreviation}</Text>
-        </Text>
-        {reading.percentileChange !== null && (
-          <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            <View style={defaultStyles.iconText}>
-              <ChangeIndicatorIcon change={reading.percentileChange ?? 0} />
-              <Text
-                style={[
-                  defaultStyles.detail,
-                  {
-                    color: changeColor,
-                  },
-                ]}>
-                {reading.percentileChange.toFixed(2)} %
-              </Text>
+          {reading.percentileChange !== null && (
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+              <View style={defaultStyles.iconText}>
+                <ChangeIndicatorIcon change={reading.percentileChange ?? 0} />
+                <Text
+                  style={[
+                    defaultStyles.detail,
+                    {
+                      color: changeColor,
+                    },
+                  ]}>
+                  {reading.percentileChange.toFixed(2)} %
+                </Text>
+              </View>
             </View>
-          </View>
-        )}
-      </View>
-
-      <View style={{ flexDirection: 'row', gap: 16, marginTop: 'auto' }}>
-        <View style={defaultStyles.iconText}>
-          <CalendarIcon color={colors.textMuted} size={defaultStyles.detail.fontSize} />
-          <Text
-            style={[
-              defaultStyles.detail,
-              {
-                color: colors.textMuted,
-              },
-            ]}>
-            {formateDate(reading.readingTimestamp, 'PP')}
-          </Text>
+          )}
         </View>
-        {reading.differencePerDay !== null && (
+
+        <View style={{ flexDirection: 'row', gap: 16, marginTop: 'auto' }}>
           <View style={defaultStyles.iconText}>
-            <DiffIcon color={colors.textMuted} size={defaultStyles.detail.fontSize} />
+            <CalendarIcon color={colors.textMuted} size={defaultStyles.detail.fontSize} />
             <Text
               style={[
                 defaultStyles.detail,
@@ -84,12 +78,30 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
                   color: colors.textMuted,
                 },
               ]}>
-              {reading.differencePerDay.toFixed(2)}
-              <Text style={defaultStyles.detailSmall}> {reading.unitAbbreviation}/day</Text>
+              {formateDate(reading.readingTimestamp, 'PP')}
             </Text>
           </View>
-        )}
-      </View>
-    </TouchableOpacity>
+          {reading.differencePerDay !== null && (
+            <View style={defaultStyles.iconText}>
+              <DiffIcon color={colors.textMuted} size={defaultStyles.detail.fontSize} />
+              <Text
+                style={[
+                  defaultStyles.detail,
+                  {
+                    color: colors.textMuted,
+                  },
+                ]}>
+                {reading.differencePerDay.toFixed(reading.precision ?? 2)}
+                <Text style={defaultStyles.detailSmall}>
+                  {' '}
+                  {reading.unitAbbreviation}
+                  {translate('general.perDay')}
+                </Text>
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    </Link>
   )
 }

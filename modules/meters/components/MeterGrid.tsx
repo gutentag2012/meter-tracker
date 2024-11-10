@@ -5,9 +5,8 @@ import { LibraryIcon } from 'lucide-react-native'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { translate } from '@/lib/translations/i18n'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { useEffect } from 'react'
 import { getCellContainerHeight } from '@/modules/meters/meters.constants'
-import { useSharedValue } from 'react-native-reanimated'
+import { useAnimatedReaction, useSharedValue } from 'react-native-reanimated'
 
 export function MeterGrid() {
   const colors = useColors()
@@ -15,15 +14,19 @@ export function MeterGrid() {
   const [meters] = useMetersForBuilding()
 
   const positions = useSharedValue({} as Record<number, number>)
-  useEffect(() => {
-    positions.value = meters.reduce(
-      (acc, meter, index) => {
-        acc[meter.meterId] = index
-        return acc
-      },
-      {} as Record<number, number>
-    )
-  }, [meters, positions])
+  useAnimatedReaction(
+    () => meters,
+    () => {
+      positions.value = meters.reduce(
+        (acc, meter, index) => {
+          acc[meter.meterId] = index
+          return acc
+        },
+        {} as Record<number, number>
+      )
+    },
+    [meters, positions]
+  )
 
   return (
     <GestureHandlerRootView style={{ height: getCellContainerHeight(meters.length) }}>
@@ -51,7 +54,7 @@ export function MeterGrid() {
             gap: 8,
             padding: 24,
             backgroundColor: colors.card,
-            borderRadius: 8,
+            borderRadius: 4,
             flex: 1,
           }}>
           <LibraryIcon color={colors.textMuted} />

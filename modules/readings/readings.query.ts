@@ -1,10 +1,10 @@
 import { db } from '@/database/db'
-import { contract, meter, reading, unit } from '@/database/schema'
-import { desc, eq, getTableName, sql } from 'drizzle-orm'
+import { meter, reading, unit } from '@/database/schema'
+import { and, desc, eq, getTableName, lt, lte, sql } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
-
-// TODO Add costs
+import { useSignalEffect } from '@preact/signals-react'
+import { Signal } from '@preact/signals-core'
 
 export function getAllReadingsForMeter(meterId: number) {
   const allReadings = db.$with('allReadings').as(
@@ -22,6 +22,7 @@ export function getAllReadingsForMeter(meterId: number) {
     db
       .select({
         meterId: allReadings.meterId,
+        readingId: allReadings.readingId,
         readingValue: allReadings.value,
         timestamp: allReadings.timestamp,
         previousReadingValue:
@@ -47,6 +48,7 @@ export function getAllReadingsForMeter(meterId: number) {
     db
       .select({
         meterId: lastReading.meterId,
+        readingId: lastReading.readingId,
         readingValue: lastReading.readingValue,
         readingTimestamp: lastReading.timestamp,
         difference:
@@ -67,7 +69,9 @@ export function getAllReadingsForMeter(meterId: number) {
   return db
     .with(allReadings, lastReading, readingDifferences)
     .select({
+      readingId: readingDifferences.readingId,
       unitAbbreviation: unit.abbreviation,
+      precision: meter.precision,
       readingValue: readingDifferences.readingValue,
       readingTimestamp: readingDifferences.readingTimestamp,
       difference: readingDifferences.difference,
@@ -86,6 +90,32 @@ export function getAllReadingsForMeter(meterId: number) {
     .orderBy(desc(readingDifferences.readingTimestamp))
 }
 
+export async function getLastReadingForDateAndMeter(meterId: number, timestamp: Date) {
+  let res = await db
+    .select()
+    .from(reading)
+    .where(and(eq(reading.meterId, meterId), lt(reading.timestamp, timestamp)))
+    .orderBy(desc(reading.timestamp), desc(reading.id))
+    .limit(1)
+  return res[0]
+}
+
+export function deleteReading(readingId: number) {
+  return db.delete(reading).where(eq(reading.id, readingId)).execute()
+}
+
+export function createReading(values: typeof reading.$inferInsert) {
+  return db.insert(reading).values(values).execute()
+}
+
+export function updateReading(readingId: number, values: Partial<typeof reading.$inferInsert>) {
+  return db.update(reading).set(values).where(eq(reading.id, readingId)).execute()
+}
+
+export function getReadingById(readingId: number) {
+  return db.query.reading.findFirst({ where: eq(reading.id, readingId) })
+}
+
 export function useReadingsForMeter(meterId: number) {
   const [data, setData] = useState<Awaited<ReturnType<typeof getAllReadingsForMeter>>>([])
   const [error, setError] = useState<string | null>(null)
@@ -99,7 +129,11 @@ export function useReadingsForMeter(meterId: number) {
       .catch(setError)
 
     const listener = addDatabaseChangeListener((change) => {
-      if (change.tableName !== getTableName(reading)) {
+      if (
+        change.tableName !== getTableName(reading) &&
+        change.tableName !== getTableName(meter) &&
+        change.tableName !== getTableName(unit)
+      ) {
         return
       }
       getAllReadingsForMeter(meterId)
@@ -114,5 +148,69 @@ export function useReadingsForMeter(meterId: number) {
       listener.remove()
     }
   }, [meterId])
+  return [data, error] as const
+}
+
+export function useLastReadingForDateAndMeter(meterId: Signal<number>, timestamp: Signal<Date>) {
+  const [data, setData] = useState<Awaited<ReturnType<typeof getLastReadingForDateAndMeter>>>()
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    const meterIdValue = meterId.value
+    const timestampValue = timestamp.value
+    getLastReadingForDateAndMeter(meterIdValue, timestampValue)
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (change.tableName !== getTableName(reading)) {
+        return
+      }
+      getLastReadingForDateAndMeter(meterIdValue, timestampValue)
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
+  return [data, error] as const
+}
+
+export function useReadingById(readingId: number) {
+  const [data, setData] = useState<Awaited<ReturnType<typeof getReadingById>>>()
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    getReadingById(readingId)
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (change.tableName !== getTableName(reading)) {
+        return
+      }
+      getReadingById(readingId)
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
   return [data, error] as const
 }

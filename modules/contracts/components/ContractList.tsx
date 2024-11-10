@@ -11,12 +11,20 @@ export function ContractList() {
   const [contracts] = useContractsForBuilding()
 
   return (
-    <View style={[{ backgroundColor: colors.card, padding: 8, borderRadius: 8, gap: 16 }]}>
+    <View style={[{ backgroundColor: 'transparent', gap: 8 }]}>
       {contracts.map((contract) => (
         <ContractListItem key={contract.contractId} contract={contract} />
       ))}
       {contracts.length === 0 && (
-        <View style={{ alignItems: 'center', gap: 8, padding: 16 }}>
+        <View
+          style={{
+            alignItems: 'center',
+            gap: 8,
+            padding: 24,
+            backgroundColor: colors.card,
+            borderRadius: 4,
+            flex: 1,
+          }}>
           <LibraryIcon color={colors.textMuted} />
           <Text style={[defaultStyles.detail, { color: colors.textMuted, textAlign: 'center' }]}>
             {translate('contracts.emptyList')}

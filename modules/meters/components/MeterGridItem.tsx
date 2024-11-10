@@ -1,6 +1,6 @@
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { CalendarIcon, DiffIcon, PlusIcon } from 'lucide-react-native'
-import { formateDate } from '@/lib/translations/i18n'
+import { formateDate, translate } from '@/lib/translations/i18n'
 import { isToday } from 'date-fns'
 import { Link } from 'expo-router'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
@@ -25,6 +25,7 @@ interface Props {
   meter: {
     meterId: number
     meterName: string | null
+    identifier: string | null
     meterUnit: string | null
     lastReading: number | null
     lastReadingDate: Date | null
@@ -47,13 +48,12 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
           position: 'absolute',
           width: cellWidth,
           height: cellHeight,
-          borderRadius: 6,
+          borderRadius: 4,
           backgroundColor: colors.card,
           padding: 8,
         },
         meterContainerInner: {
           flex: 1,
-          justifyContent: 'space-between',
         },
       }),
     [colors]
@@ -131,8 +131,10 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
     (meter.percentileChange ?? 0) > 0
       ? colors.negative
       : (meter.percentileChange ?? 0) < 0
-        ? colors.positiv
+        ? colors.positive
         : colors.textMuted
+
+  const hasLongTitle = (meter.meterName?.length ?? 0) > 9
 
   return (
     <Animated.View style={[styles.meterContainer, animatedStyle]}>
@@ -140,8 +142,22 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
         <Animated.View style={{ flex: 1 }}>
           <Link key={meter.meterId} href={`/meter/${meter.meterId}` as any} asChild>
             <TouchableOpacity style={styles.meterContainerInner}>
-              <View style={defaultStyles.row}>
-                <Text style={[defaultStyles.cardTitle, { flex: 1 }]}>{meter.meterName}</Text>
+              {hasLongTitle && (
+                <Text style={[defaultStyles.cardTitle, { marginBottom: 0 }]}>
+                  {meter.meterName}
+                </Text>
+              )}
+              <View style={[defaultStyles.row, { alignItems: 'flex-start' }]}>
+                <View style={{ flex: 1 }}>
+                  {!hasLongTitle && (
+                    <Text style={[defaultStyles.cardTitle, { marginBottom: 0 }]}>
+                      {meter.meterName}
+                    </Text>
+                  )}
+                  {meter.identifier && (
+                    <Text style={[defaultStyles.detailSmall]}>{meter.identifier}</Text>
+                  )}
+                </View>
                 {!isNaN(meter.percentileChange ?? 0) && (
                   <View style={defaultStyles.iconText}>
                     <ChangeIndicatorIcon change={meter.percentileChange ?? 0} />
@@ -152,20 +168,23 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                           color: changeColor,
                         },
                       ]}>
-                      {(meter.percentileChange ?? 0).toFixed(2)} %
+                      {(meter.percentileChange ?? 0).toFixed(meter.meterPrecision ?? 2)} %
                     </Text>
                   </View>
                 )}
               </View>
 
-              <View style={[defaultStyles.row]}>
+              <View style={[defaultStyles.row, { marginTop: 'auto' }]}>
                 <View>
                   {meter.lastDifferencePerDay !== null && (
                     <View style={defaultStyles.iconText}>
                       <DiffIcon size={defaultStyles.detail.fontSize} stroke={colors.textMuted} />
                       <Text style={defaultStyles.detail}>
                         {meter.lastDifferencePerDay?.toFixed(meter.meterPrecision ?? 2)}{' '}
-                        {meter.meterUnit}
+                        <Text style={defaultStyles.detailSmall}>
+                          {meter.meterUnit}
+                          {translate('general.perDay')}
+                        </Text>
                       </Text>
                     </View>
                   )}
@@ -182,9 +201,14 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                   )}
                 </View>
                 {(!meter.lastReadingDate || !isToday(meter.lastReadingDate)) && (
-                  <TouchableOpacity style={[defaultStyles.fab, { marginLeft: 'auto' }]}>
-                    <PlusIcon size={16} stroke={colors.onPrimaryContainer} />
-                  </TouchableOpacity>
+                  <Link
+                    href={`/meter/${meter.meterId}/reading`}
+                    asChild
+                    style={[defaultStyles.fab, { marginLeft: 'auto' }]}>
+                    <TouchableOpacity>
+                      <PlusIcon size={16} stroke={colors.onPrimaryContainer} />
+                    </TouchableOpacity>
+                  </Link>
                 )}
               </View>
             </TouchableOpacity>
