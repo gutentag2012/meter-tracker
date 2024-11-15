@@ -1,5 +1,5 @@
 import { Alert, Text, TouchableOpacity, View } from 'react-native'
-import { translate } from '@/lib/translations/i18n'
+import { formatNumber, translate } from '@/lib/translations/i18n'
 import { useRouter } from 'expo-router'
 import {
   ChevronDownIcon,
@@ -82,7 +82,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
   const [contracts] = useAllContracts()
   const contractOptions = contracts.map((contract) => ({
     label: contract.contract.name,
-    textRight: contract.contractRevision?.pricePerUnit?.toFixed(2),
+    textRight: formatNumber(contract.contractRevision?.pricePerUnit),
     description: contract.contract.identifier,
     value: contract.contract.id,
   }))
@@ -257,7 +257,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                 </View>
                 <View style={{ minWidth: 0 }}>
                   <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {selectedContract.contractRevision?.pricePerUnit?.toFixed(2)} €/
+                    {formatNumber(selectedContract.contractRevision?.pricePerUnit)} €/
                     {selectedContract.unit?.abbreviation}
                   </Text>
                 </View>
@@ -266,10 +266,10 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                 </View>
                 <View style={{ minWidth: 0 }}>
                   <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {(
+                    {formatNumber(
                       (conversionFactor / (selectedContract.unit?.conversionFactor ?? 1)) *
-                      (selectedContract.contractRevision?.pricePerUnit ?? 1)
-                    ).toFixed(2)}{' '}
+                        (selectedContract.contractRevision?.pricePerUnit ?? 1)
+                    )}{' '}
                     €
                   </Text>
                 </View>

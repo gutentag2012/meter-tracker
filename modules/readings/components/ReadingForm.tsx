@@ -1,5 +1,5 @@
 import { Alert, Text, TouchableOpacity, View } from 'react-native'
-import { formateDate, translate } from '@/lib/translations/i18n'
+import { formatDate, formatNumber, translate } from '@/lib/translations/i18n'
 import { Link, useRouter } from 'expo-router'
 import {
   CalendarIcon,
@@ -72,7 +72,9 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
   const meterOptions = meters.map((meter) => ({
     label: meter.meterName!,
     description: meter.identifier,
-    textRight: meter.lastReading ? meter.lastReading.toFixed(2) + ' ' + meter.meterUnit : '-',
+    textRight: meter.lastReading
+      ? formatNumber(meter.lastReading, meter.meterPrecision) + ' ' + meter.meterUnit
+      : '-',
     value: meter.meterId,
   }))
 
@@ -129,7 +131,7 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
                 lastReading
                   ? translate('readings.lastReadingHint', {
                       value: lastReading.value,
-                      timestamp: formateDate(lastReading.timestamp),
+                      timestamp: formatDate(lastReading.timestamp),
                     })
                   : translate('readings.noLastReadingHint')
               }

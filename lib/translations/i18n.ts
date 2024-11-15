@@ -11,7 +11,16 @@ const Translator = new I18n({
   de,
 })
 
-const locale = ('de' || getLocales()[0].languageCode) ?? 'en'
+const locales = getLocales()
+export const currencyData = {
+  currencyCode: locales[0]?.currencyCode ?? 'USD',
+  currencySymbol: locales[0]?.currencySymbol ?? '$',
+  decimalSeparator: locales[0]?.decimalSeparator ?? '.',
+  groupingSeparator: locales[0]?.digitGroupingSeparator ?? ',',
+}
+
+// TODO Remove static locale
+const locale = ('de' || locales[0]?.languageCode) ?? 'en'
 Translator.locale = locale
 Translator.enableFallback = true
 
@@ -20,14 +29,19 @@ export function translate(key: LangKey, options?: TranslateOptions) {
 }
 
 const dateFormateLocale = locale === 'de' ? dateDe : dateEn
-const relativeFormatLocale = {
-  ...dateFormateLocale,
-}
 
-export function formateDate(date: Date, dateFormat = 'PPP') {
+export function formatDate(date: Date, dateFormat = 'PPP') {
   return format(date, dateFormat, { locale: dateFormateLocale })
 }
 
-export function formateDateRelative(date: Date, dateSecond: Date) {
-  return formatRelative(date, dateSecond, { locale: relativeFormatLocale })
+export function formatNumber(number: number, precision?: number | null, ifNull = '-') {
+  if (number === null) {
+    return ifNull
+  }
+  precision ??= 2
+  return Translator.numberToRounded(number, {
+    precision,
+    separator: currencyData.decimalSeparator,
+    delimiter: currencyData.groupingSeparator,
+  })
 }

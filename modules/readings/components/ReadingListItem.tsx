@@ -1,7 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { ChangeIndicatorIcon } from '@/lib/components/ChangeIndicatorIcon'
 import { CalendarIcon, DiffIcon } from 'lucide-react-native'
-import { formateDate, translate } from '@/lib/translations/i18n'
+import { formatDate, formatNumber, translate } from '@/lib/translations/i18n'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { Link, useLocalSearchParams } from 'expo-router'
 import { useReadingById } from '@/modules/readings/readings.query'
@@ -10,7 +10,7 @@ type ReadingListItemProps = {
   reading: {
     readingId: number
     readingValue: number
-    precision: number
+    precision: number | null
     difference: number | null
     unitAbbreviation: string
     percentileChange: number | null
@@ -38,13 +38,13 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
       <TouchableOpacity>
         <View style={defaultStyles.row}>
           <Text style={[defaultStyles.bodyText, { flex: 1 }]}>
-            {reading.readingValue?.toFixed(reading.precision ?? 2)}
+            {formatNumber(reading.readingValue, reading.precision)}
             <Text style={defaultStyles.detail}>
               {' '}
               {reading.difference !== null && (
                 <>
                   ({reading.difference >= 0 && '+'}
-                  {reading.difference.toFixed(reading.precision ?? 2)}){' '}
+                  {formatNumber(reading.difference, reading.precision)}){' '}
                 </>
               )}
             </Text>
@@ -61,7 +61,7 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
                       color: changeColor,
                     },
                   ]}>
-                  {reading.percentileChange.toFixed(2)} %
+                  {formatNumber(reading.percentileChange)} %
                 </Text>
               </View>
             </View>
@@ -78,7 +78,7 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
                   color: colors.textMuted,
                 },
               ]}>
-              {formateDate(reading.readingTimestamp, 'PP')}
+              {formatDate(reading.readingTimestamp, 'PP')}
             </Text>
           </View>
           {reading.differencePerDay !== null && (
@@ -91,7 +91,7 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
                     color: colors.textMuted,
                   },
                 ]}>
-                {reading.differencePerDay.toFixed(reading.precision ?? 2)}
+                {formatNumber(reading.differencePerDay, reading.precision)}
                 <Text style={defaultStyles.detailSmall}>
                   {' '}
                   {reading.unitAbbreviation}

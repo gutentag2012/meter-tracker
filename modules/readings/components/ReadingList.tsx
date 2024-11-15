@@ -1,7 +1,7 @@
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { useLocalSearchParams } from 'expo-router'
 import { useReadingsForMeter } from '@/modules/readings/readings.query'
-import { formateDate } from '@/lib/translations/i18n'
+import { formatDate, formatNumber } from '@/lib/translations/i18n'
 import { Text, View } from 'react-native'
 import { FlashList } from '@shopify/flash-list'
 import { ReadingListItem } from '@/modules/readings/components/ReadingListItem'
@@ -16,7 +16,7 @@ export function ReadingList() {
 
   const aggregatedReadingValues = readings.reduce(
     (acc, reading, index) => {
-      const monthString = formateDate(reading.readingTimestamp, 'MMMM yyyy')
+      const monthString = formatDate(reading.readingTimestamp, 'MMMM yyyy')
       if (!(monthString in acc)) {
         acc[monthString] = []
       }
@@ -85,7 +85,7 @@ export function ReadingList() {
               ]}>
               <Text style={[defaultStyles.cardTitle, { flex: 1 }]}>{item.title}</Text>
               <Text style={[defaultStyles.detail, { flex: 1, textAlign: 'right' }]}>
-                {item.value.toFixed(2)}
+                {formatNumber(item.value)}
                 <Text style={defaultStyles.detailSmall}> {unit}</Text>
               </Text>
             </View>

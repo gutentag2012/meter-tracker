@@ -2,6 +2,8 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { CoinsIcon, HistoryIcon } from 'lucide-react-native'
 import { Link } from 'expo-router'
+import { formatNumber } from '@/lib/translations/i18n'
+import { currency } from '@/modules/general/settings.signals'
 
 type ContractListItemProps = {
   contract: {
@@ -39,10 +41,12 @@ export function ContractListItem({ contract }: ContractListItemProps) {
           {costCurrentMonth !== null && (
             <Text
               style={[defaultStyles.detail, { flex: 1, textAlign: 'right', color: colors.text }]}>
-              {costCurrentMonth.toFixed(2)}
+              {formatNumber(costCurrentMonth)}
               <Text style={defaultStyles.detailSmall}>
-                {contract.monthlyPayment !== null ? ` /${contract.monthlyPayment.toFixed(2)}` : ''}{' '}
-                €
+                {contract.monthlyPayment !== null
+                  ? ` /${formatNumber(contract.monthlyPayment)}`
+                  : ''}{' '}
+                {currency.value.currencyCode}
               </Text>
             </Text>
           )}
@@ -54,7 +58,7 @@ export function ContractListItem({ contract }: ContractListItemProps) {
               <>
                 <CoinsIcon size={defaultStyles.detail.fontSize} stroke={colors.textMuted} />
                 <Text style={defaultStyles.detail}>
-                  {contract.pricePerUnit?.toFixed(4)}
+                  {formatNumber(contract.pricePerUnit, 4)}
                   <Text style={defaultStyles.detailSmall}> €/{contract.contractUnit}</Text>
                 </Text>
               </>
@@ -65,7 +69,7 @@ export function ContractListItem({ contract }: ContractListItemProps) {
             <View style={[defaultStyles.iconText, { alignSelf: 'flex-end' }]}>
               <HistoryIcon size={defaultStyles.detail.fontSize} stroke={colors.textMuted} />
               <Text style={defaultStyles.detail}>
-                {contract.totalCostLastMonth.toFixed(2)}
+                {formatNumber(contract.totalCostLastMonth, 2)}
                 <Text style={defaultStyles.detailSmall}> €</Text>
               </Text>
             </View>

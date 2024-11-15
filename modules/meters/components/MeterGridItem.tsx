@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { CalendarIcon, DiffIcon, PlusIcon } from 'lucide-react-native'
-import { formateDate, translate } from '@/lib/translations/i18n'
+import { formatDate, formatNumber, translate } from '@/lib/translations/i18n'
 import { isToday } from 'date-fns'
 import { Link } from 'expo-router'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
@@ -168,7 +168,7 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                           color: changeColor,
                         },
                       ]}>
-                      {(meter.percentileChange ?? 0).toFixed(meter.meterPrecision ?? 2)} %
+                      {formatNumber(meter.percentileChange ?? 0, meter.meterPrecision)} %
                     </Text>
                   </View>
                 )}
@@ -180,7 +180,7 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                     <View style={defaultStyles.iconText}>
                       <DiffIcon size={defaultStyles.detail.fontSize} stroke={colors.textMuted} />
                       <Text style={defaultStyles.detail}>
-                        {meter.lastDifferencePerDay?.toFixed(meter.meterPrecision ?? 2)}{' '}
+                        {formatNumber(meter.lastDifferencePerDay, meter.meterPrecision)}{' '}
                         <Text style={defaultStyles.detailSmall}>
                           {meter.meterUnit}
                           {translate('general.perDay')}
@@ -195,7 +195,7 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                         stroke={colors.textMuted}
                       />
                       <Text style={defaultStyles.detail}>
-                        {formateDate(meter.lastReadingDate, 'PP')}
+                        {formatDate(meter.lastReadingDate, 'PP')}
                       </Text>
                     </View>
                   )}

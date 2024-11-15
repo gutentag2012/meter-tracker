@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { Signal } from '@preact/signals-core'
 import { useFieldContext } from '@formsignals/form-react'
-import { formateDate, translate } from '@/lib/translations/i18n'
+import { formatDate, translate } from '@/lib/translations/i18n'
 import { LangKey } from '@/lib/translations/en'
 import { AndroidNativeProps, DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { CalendarIcon } from 'lucide-react-native'
@@ -111,7 +111,7 @@ export function DatePicker({
         style={[styles.inputBase, isError && { borderColor: colors.negative }, style].flat()}>
         <CalendarIcon size={16} color={colors.textStatic} />
         <Text style={defaultStyles.bodyText}>
-          {value.value ? formateDate(value.value, format) : '-'}
+          {value.value ? formatDate(value.value, format) : '-'}
         </Text>
       </TouchableOpacity>
       {hint && (
