@@ -52,16 +52,18 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
           </Text>
           {reading.percentileChange !== null && (
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
-              <View style={defaultStyles.iconText}>
+              <View style={[defaultStyles.iconText, { flex: 1 }]}>
                 <ChangeIndicatorIcon change={reading.percentileChange ?? 0} />
                 <Text
                   style={[
                     defaultStyles.detail,
                     {
                       color: changeColor,
+                      minWidth: 0,
                     },
                   ]}>
-                  {formatNumber(reading.percentileChange)} %
+                  {formatNumber(reading.percentileChange)} %{' '}
+                  {/*This is a workaround, since the % for some reason is hidden for larger numbers*/}
                 </Text>
               </View>
             </View>

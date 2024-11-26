@@ -2,7 +2,7 @@ import { Dimensions, Text, View } from 'react-native'
 import { Canvas, useFont, Line, Rect } from '@shopify/react-native-skia'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { Fragment } from 'react'
-import { useYearlyUsagesForMeter } from '@/modules/readings/readings.query'
+import { getYearlyUsagesForMeter } from '@/modules/readings/readings.query'
 import { AxisText } from '@/modules/meters/components/graphs/AxisText'
 import { translate } from '@/lib/translations/i18n'
 import { useUsagePerYearData } from '@/modules/meters/hooks/useUsagePerYearData'
@@ -14,12 +14,16 @@ const CHART_FOOTER_HEIGHT = 16
 const CHART_HEIGHT = 220
 const TOTAL_CHART_HEIGHT = CHART_HEIGHT + CHART_FOOTER_HEIGHT
 
-export function UsagePerYear({ meterId }: { meterId: number }) {
+export function UsagePerYear({
+  yearlyUsages,
+}: {
+  yearlyUsages: Awaited<ReturnType<typeof getYearlyUsagesForMeter>>
+}) {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
   const font = useFont(require('@/assets/fonts/SpaceMono-Regular.ttf'), 12)
-
-  const [yearlyUsages] = useYearlyUsagesForMeter(meterId)
+  const fontBold = useFont(require('@/assets/fonts/SpaceMono-Bold.ttf'), 12)
+  const yearWidth = font && font.measureText('0000').width
 
   const unit = yearlyUsages?.[0]?.unitAbbreviation ?? ''
 
@@ -104,24 +108,41 @@ export function UsagePerYear({ meterId }: { meterId: number }) {
               />
             )
           })}
-        {chartData.yScale &&
+        {fontBold &&
+          chartData.yScale &&
           chartData.xScale &&
           yearlyUsages?.map(({ year, usage }) => {
             const start = chartData.xScale(0)
             const end = chartData.xScale(usage)
-            const width = end - start
+            const barWidth = end - start
+            const usageText = usage.toFixed(2)
+            const fontSize = fontBold.measureText(usageText)
+            const labelXPos = Math.max(
+              CHART_PADDING_X + (yearWidth ?? 0) + 16,
+              Math.min(end + 8, width - fontSize.width - CHART_PADDING_X - 8)
+            )
             return (
-              <Rect
-                width={width}
-                height={chartData.yScale.bandwidth()}
-                rect={{
-                  width,
-                  height: chartData.yScale.bandwidth(),
-                  x: start,
-                  y: chartData.yScale(`${year}`)!,
-                }}
-                color={chartData.colorScale(`${year}`) as string}
-              />
+              <Fragment key={year}>
+                <Rect
+                  width={barWidth}
+                  height={chartData.yScale.bandwidth()}
+                  rect={{
+                    width: barWidth,
+                    height: chartData.yScale.bandwidth(),
+                    x: start,
+                    y: chartData.yScale(`${year}`)!,
+                  }}
+                  color={chartData.colorScale(`${year}`) as string}
+                />
+                <AxisText
+                  x={labelXPos}
+                  y={chartData.yScale(`${year}`)! + chartData.yScale.bandwidth() / 2}
+                  text={usageText}
+                  color={labelXPos < end && labelXPos > start ? colors.background : colors.text} // TODO Improve contrast
+                  font={fontBold}
+                  axis='y'
+                />
+              </Fragment>
             )
           })}
       </Canvas>

@@ -27,7 +27,12 @@ export function useUsagePerYearData(
 
     const years = data.map((r) => `${r.year}`)
 
-    const interpolator = piecewise(interpolateHcl, chartColors)
+    // Add more colors if there are more years than colors
+    const colorPalettesToAdd = Math.ceil(years.length / chartColors.length)
+    const colorsTOUse = Array.from<string>({ length: colorPalettesToAdd }).flatMap(
+      () => chartColors
+    )
+    const interpolator = piecewise(interpolateHcl, colorsTOUse)
     const amountOfYears = Math.max(2, years.length)
     const colors = quantize(interpolator, amountOfYears)
     const colorScale = scaleOrdinal().domain(years).range(colors)
@@ -38,7 +43,8 @@ export function useUsagePerYearData(
     const yScale = scaleBand()
       .domain(years)
       .range([height - paddingY, paddingY])
-      .padding(0.25)
+      .paddingInner(0.125)
+      .paddingOuter(0.5)
     const xScale = scaleLinear()
       .domain(globalXDomain)
       .range([paddingX + yearWidth + 8, width - paddingX])

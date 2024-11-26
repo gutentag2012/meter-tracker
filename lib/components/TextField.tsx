@@ -1,5 +1,5 @@
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, Text, TextInput, TextInputProps, View, ViewProps } from 'react-native'
 import { Signal } from '@preact/signals-core'
 import { useFieldContext } from '@formsignals/form-react'
@@ -30,7 +30,21 @@ export function TextField({
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
+  const inputRef = useRef<TextInput>(null)
   const [isFocussed, setIsFocussed] = useState(false)
+
+  // TODO Does not work well
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => {
+    if (!props.autoFocus || !inputRef.current || !props.selectTextOnFocus || isMounted) {
+      return
+    }
+    setIsMounted(true)
+    setTimeout(() => {
+      inputRef.current?.setSelection(0, defaultValue?.length ?? 0)
+      inputRef.current?.focus()
+    }, 0)
+  }, [defaultValue?.length, inputRef, props.autoFocus, props.selectTextOnFocus])
 
   const styles = useMemo(
     () =>
@@ -63,6 +77,7 @@ export function TextField({
     <View style={[styles.container, containerStyle].flat()}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
+        ref={inputRef}
         defaultValue={defaultValue}
         style={[styles.inputBase, isError && { borderColor: colors.negative }, style].flat()}
         placeholderTextColor={colors.textMuted}

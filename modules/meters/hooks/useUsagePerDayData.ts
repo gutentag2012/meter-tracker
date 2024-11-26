@@ -52,10 +52,18 @@ export function useUsagePerDayData(
         {} as Record<number, typeof relevantChartData>
       )
 
-    const interpolator = piecewise(interpolateHcl, chartColors)
-    const amountOfYears = Math.max(2, Object.keys(dataPerYear).length)
+    const years = Object.keys(dataPerYear)
+    if (!years.length) return { linesPerYear: {}, xScale: null, yScale: null, colorScale: null }
+
+    // Add more colors if there are more years than colors
+    const colorPalettesToAdd = Math.ceil(years.length / chartColors.length)
+    const colorsTOUse = Array.from<string>({ length: colorPalettesToAdd }).flatMap(
+      () => chartColors
+    )
+    const interpolator = piecewise(interpolateHcl, colorsTOUse)
+    const amountOfYears = Math.max(2, years.length)
     const colors = quantize(interpolator, amountOfYears)
-    const colorScale = scaleOrdinal().domain(Object.keys(dataPerYear)).range(colors)
+    const colorScale = scaleOrdinal().domain(years).range(colors)
 
     const globalYDomain = extent(relevantChartData.map((r) => r[1])) as [number, number]
 

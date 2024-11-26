@@ -29,7 +29,10 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DatePicker } from '@/lib/components/DatePicker'
 import { useSignal } from '@preact/signals-react'
-import { useReadingsForMeterFiltered } from '@/modules/readings/readings.query'
+import {
+  useReadingsForMeterFiltered,
+  useYearlyUsagesForMeter,
+} from '@/modules/readings/readings.query'
 import { StatusBar } from '@/lib/components/StatusBar'
 
 const snapPoints = ['40%', '60%']
@@ -46,8 +49,9 @@ export default function Page() {
   const selectedYears = useSignal<string[]>([])
 
   const [readings] = useReadingsForMeterFiltered(meterId, from, until, selectedYears)
+  const [yearlyUsages] = useYearlyUsagesForMeter(meterId, from, until, selectedYears)
 
-  const [allYeats, setAllYeats] = useState<string[]>([])
+  const [allYears, setAllYears] = useState<string[]>([])
   useEffect(() => {
     const newYears = [
       ...readings
@@ -58,10 +62,10 @@ export default function Page() {
           return acc
         }, new Set<string>()),
     ]
-    if (newYears.length >= allYeats.length) {
-      setAllYeats(newYears)
+    if (newYears.length >= allYears.length) {
+      setAllYears(newYears)
     }
-  }, [allYeats.length, readings])
+  }, [allYears.length, readings])
 
   const styles = useMemo(
     () =>
@@ -92,7 +96,7 @@ export default function Page() {
           }}
         />
 
-        <PaginatedGraphs readings={readings} meterId={meterId} />
+        <PaginatedGraphs readings={readings} yearlyUsages={yearlyUsages} />
 
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 }}>
           <TouchableOpacity
@@ -178,7 +182,7 @@ export default function Page() {
                 defaultStyles.row,
                 { flexWrap: 'wrap', paddingVertical: 8, paddingHorizontal: 16 },
               ]}>
-              {allYeats.map((year) => (
+              {allYears.map((year) => (
                 <Button
                   key={year}
                   variant='ghost'

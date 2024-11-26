@@ -10,7 +10,7 @@ import Animated, {
 import { MotiView } from 'moti'
 import { interpolateColor } from 'react-native-reanimated/src'
 import { UsagePerDay } from '@/modules/meters/components/graphs/UsagePerDay'
-import { getAllReadingsForMeter } from '@/modules/readings/readings.query'
+import { getAllReadingsForMeter, getYearlyUsagesForMeter } from '@/modules/readings/readings.query'
 import { UsagePerYear } from '@/modules/meters/components/graphs/UsagePerYear'
 import { translate } from '@/lib/translations/i18n'
 
@@ -18,19 +18,22 @@ const width = Dimensions.get('window').width - 32
 
 export function PaginatedGraphs({
   readings,
-  meterId,
+  yearlyUsages,
 }: {
+  yearlyUsages: Awaited<ReturnType<typeof getYearlyUsagesForMeter>>
   readings: Awaited<ReturnType<typeof getAllReadingsForMeter>>
-  meterId: number
 }) {
   const colors = useColors()
 
   const graphs = useMemo(
     () => [
       { label: translate('meters.graphs.perDayTitle'), item: <UsagePerDay readings={readings} /> },
-      { label: translate('meters.graphs.perYearTitle'), item: <UsagePerYear meterId={meterId} /> },
+      {
+        label: translate('meters.graphs.perYearTitle'),
+        item: <UsagePerYear yearlyUsages={yearlyUsages} />,
+      },
     ],
-    [meterId, readings]
+    [yearlyUsages, readings]
   )
 
   // A number where the index of the selected graph is stored and where the decimal part is the progress of the scroll

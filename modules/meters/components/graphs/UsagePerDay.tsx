@@ -89,6 +89,7 @@ export function UsagePerDay({
           />
         )}
         {font &&
+          chartData.yScale &&
           chartData.yScale.ticks(6).map((tick) => {
             const tickText = tick.toFixed(1)
             const fontSize = font.measureText(tickText)
@@ -140,7 +141,8 @@ export function UsagePerDay({
               />
             )
           })}
-        {chartData.linesPerYear &&
+        {chartData.colorScale &&
+          chartData.linesPerYear &&
           Object.entries(chartData.linesPerYear).map(([year, linePath]) => (
             <Path
               key={year}
@@ -153,6 +155,7 @@ export function UsagePerDay({
             />
           ))}
         {font &&
+          chartData.colorScale &&
           years.toReversed().map((year, index) => {
             const xRaw = CHART_PADDING_X + index * 52
             const yOffsetLocal = Math.floor(xRaw / (width - CHART_PADDING_X * 2))

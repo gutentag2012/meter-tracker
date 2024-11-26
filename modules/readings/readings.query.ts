@@ -122,7 +122,30 @@ export async function getLastReadingForDateAndMeter(meterId: number, timestamp: 
   return res[0]
 }
 
-export async function getYearlyUsagesForMeter(meterId: number) {
+export async function getYearlyUsagesForMeter(
+  meterId: number,
+  filter?: {
+    from: Date | null
+    until: Date | null
+    selectedYears: string[]
+  }
+) {
+  const sqlFilter = filter
+    ? filter.selectedYears && filter.selectedYears.length > 0
+      ? or(
+          ...filter.selectedYears.map((year) =>
+            and(
+              gte(reading.timestamp, new Date(+year, 0, 1)),
+              lt(reading.timestamp, new Date(+year + 1, 0, 1))
+            )
+          )
+        )
+      : and(
+          filter.from ? gte(reading.timestamp, filter.from) : undefined,
+          filter.until ? lt(reading.timestamp, filter.until) : undefined
+        )
+    : undefined
+
   const yearlyReadings = db.$with('yearlyReadings').as(
     db
       .select({
@@ -138,7 +161,7 @@ export async function getYearlyUsagesForMeter(meterId: number) {
                                     ORDER BY ${reading.timestamp} DESC)`.as('row_num_last'),
       })
       .from(reading)
-      .where(eq(reading.meterId, meterId))
+      .where(and(eq(reading.meterId, meterId), sqlFilter))
   )
   const aggregatedReadings = db.$with('aggregatedReadings').as(
     db
@@ -343,12 +366,32 @@ export function useReadingsForMeterFiltered(
   return [data, error] as const
 }
 
-export function useYearlyUsagesForMeter(meterId: number) {
+export function useYearlyUsagesForMeter(
+  meterId: number,
+  from: Signal<Date | null>,
+  until: Signal<Date | null>,
+  selectedYears: Signal<string[]>
+) {
   const [data, setData] = useState<Awaited<ReturnType<typeof getYearlyUsagesForMeter>>>([])
   const [error, setError] = useState<string | null>(null)
 
+  const meterIdSignal = useSignal(meterId)
   useEffect(() => {
-    getYearlyUsagesForMeter(meterId)
+    meterIdSignal.value = meterId
+  }, [meterId])
+
+  useSignalEffect(() => {
+    const meterIdValue = meterIdSignal.value
+    const fromValue = from.value
+    const untilValue = until.value
+    const selectedYearValue = selectedYears.value
+    const filter = {
+      from: fromValue,
+      until: untilValue,
+      selectedYears: selectedYearValue,
+    }
+
+    getYearlyUsagesForMeter(meterIdValue, filter)
       .then((res) => {
         setData(res)
         setError(null)
@@ -359,7 +402,7 @@ export function useYearlyUsagesForMeter(meterId: number) {
       if (change.tableName !== getTableName(reading) && change.tableName !== getTableName(unit)) {
         return
       }
-      getYearlyUsagesForMeter(meterId)
+      getYearlyUsagesForMeter(meterIdValue, filter)
         .then((res) => {
           setData(res)
           setError(null)
@@ -370,7 +413,7 @@ export function useYearlyUsagesForMeter(meterId: number) {
     return () => {
       listener.remove()
     }
-  }, [meterId])
+  })
   return [data, error] as const
 }
 

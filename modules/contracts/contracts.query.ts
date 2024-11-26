@@ -251,6 +251,7 @@ export async function getAllContractsForBuilding(buildingId: number) {
       activeContractRevision,
       and(eq(contract.id, activeContractRevision.contractId), eq(activeContractRevision.row, 1))
     )
+    .where(eq(contract.buildingId, buildingId))
     .groupBy(contract.id)
     .orderBy(contract.name)
 }

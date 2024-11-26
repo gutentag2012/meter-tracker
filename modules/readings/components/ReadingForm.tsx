@@ -122,9 +122,9 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
             }}
             validator={ReadingSchema.value}>
             <FormTextField
+              autoFocus
               selectTextOnFocus
               useTransformed
-              autoFocus
               enterKeyHint='done'
               onSubmitEditing={() => form.handleSubmit()}
               hint={
