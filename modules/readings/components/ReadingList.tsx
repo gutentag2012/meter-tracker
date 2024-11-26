@@ -1,32 +1,36 @@
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { useLocalSearchParams } from 'expo-router'
-import { useReadingsForMeter } from '@/modules/readings/readings.query'
+import { getAllReadingsForMeter } from '@/modules/readings/readings.query'
 import { formatDate, formatNumber } from '@/lib/translations/i18n'
 import { Text, View } from 'react-native'
 import { FlashList } from '@shopify/flash-list'
 import { ReadingListItem } from '@/modules/readings/components/ReadingListItem'
 import { endOfMonth, startOfMonth } from 'date-fns'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSignalEffect } from '@preact/signals-react'
+import { theme } from '@/modules/general/settings/theme.signals'
 
-export function ReadingList() {
+export function ReadingList({
+  readings,
+}: {
+  readings: Awaited<ReturnType<typeof getAllReadingsForMeter>>
+}) {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
-  const { meterId } = useLocalSearchParams()
 
-  const [readings] = useReadingsForMeter(parseInt(meterId as string))
+  const readingsWithHeadings = useMemo(() => {
+    const aggregatedReadingValues = readings.reduce(
+      (acc, reading) => {
+        const monthString = formatDate(reading.readingTimestamp, 'MMMM yyyy')
+        if (!(monthString in acc)) {
+          acc[monthString] = []
+        }
+        acc[monthString].push(reading)
+        return acc
+      },
+      {} as Record<string, typeof readings>
+    )
 
-  const aggregatedReadingValues = readings.reduce(
-    (acc, reading, index) => {
-      const monthString = formatDate(reading.readingTimestamp, 'MMMM yyyy')
-      if (!(monthString in acc)) {
-        acc[monthString] = []
-      }
-      acc[monthString].push(reading)
-      return acc
-    },
-    {} as Record<string, typeof readings>
-  )
-  const readingsWithHeadings = Object.entries(aggregatedReadingValues).flatMap(
-    ([monthString, items], index, array) => {
+    return Object.entries(aggregatedReadingValues).flatMap(([monthString, items], index, array) => {
       const nextItems = array.at(index - 1)?.[1] ?? []
       const previousItems = array.at(index + 1)?.[1] ?? []
       const previousFirst = previousItems.at(0)
@@ -59,11 +63,36 @@ export function ReadingList() {
 
       const value = partialValueToPrevious + combinedValue + partialValueToNext
       return [{ type: 'header' as const, title: monthString, value }, ...items]
-    }
+    })
+  }, [readings])
+
+  // This is a workaround to update the sticky headers when the list is updated
+  const [stickyIndices, setStickyIndices] = useState<number[]>([])
+  const getStickyIndices = useCallback(
+    (indexToAdd = 0) => {
+      return readingsWithHeadings
+        .map((item, index) => 'type' in item && item.type === 'header' && index + indexToAdd)
+        .filter((val): val is number => val !== false)
+    },
+    [readingsWithHeadings]
   )
-  const stickyIndices = readingsWithHeadings
-    .map((item, index) => 'type' in item && item.type === 'header' && index)
-    .filter((val): val is number => val !== false)
+  useEffect(() => {
+    setStickyIndices(getStickyIndices(1))
+    setTimeout(() => setStickyIndices(getStickyIndices()), 0)
+  }, [getStickyIndices])
+
+  // This should work as stated in https://github.com/Shopify/flash-list/issues/814#issuecomment-2395233934, but does not
+  // const stickyIndices: number[] = new Array(
+  //   ...(readingsWithHeadings
+  //     .map((item, index) => {
+  //       if ('type' in item && item.type === 'header') {
+  //         return index
+  //       } else {
+  //         return null
+  //       }
+  //     })
+  //     .filter((item) => item !== null) as number[])
+  // )
 
   const unit = readings.at(0)?.unitAbbreviation ?? ''
 

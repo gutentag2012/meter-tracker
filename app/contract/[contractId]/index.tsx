@@ -1,7 +1,7 @@
 import { Dimensions, Text, View } from 'react-native'
 import { Stack } from 'expo-router/stack'
 import { Href, useLocalSearchParams, useRouter } from 'expo-router'
-import { StatusBar } from 'expo-status-bar'
+import { StatusBar } from '@/lib/components/StatusBar'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { useContractById } from '@/modules/contracts/contracts.query'
 import {

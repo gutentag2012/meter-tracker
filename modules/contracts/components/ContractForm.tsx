@@ -10,7 +10,7 @@ import {
   Trash2Icon,
   TriangleAlertIcon,
 } from 'lucide-react-native'
-import { StatusBar } from 'expo-status-bar'
+import { StatusBar } from '@/lib/components/StatusBar'
 import { DarkColors, LightColors, useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { FormTextField } from '@/lib/components/TextField'
 import { useSelectField } from '@/lib/components/SelectField'
@@ -30,6 +30,8 @@ import { FormDatePicker } from '@/lib/components/DatePicker'
 import { useComputed } from '@preact/signals-react'
 import { formatDate } from 'date-fns'
 import { Signal } from '@preact/signals-core'
+import { deleteContract } from '@/modules/contracts/contracts.query'
+import { useRouter } from 'expo-router'
 
 // TODO Either add a confirm alert for the delete action or add a checkbox to enable the delete button
 
@@ -108,6 +110,7 @@ export function ContractForm({
   revisionSectionSaveAction,
   revisionSectionCancelAction,
 }: ContractFormProps) {
+  const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -374,7 +377,8 @@ export function ContractForm({
                           text: translate('general.delete'),
                           style: 'destructive',
                           onPress: async () => {
-                            // router.back()
+                            await deleteContract(contractId)
+                            router.navigate('/')
                           },
                         },
                       ]

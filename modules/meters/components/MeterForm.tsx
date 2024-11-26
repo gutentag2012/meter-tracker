@@ -9,7 +9,7 @@ import {
   Trash2Icon,
   XIcon,
 } from 'lucide-react-native'
-import { StatusBar } from 'expo-status-bar'
+import { StatusBar } from '@/lib/components/StatusBar'
 import { DarkColors, LightColors, useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { FormTextField } from '@/lib/components/TextField'
 import { useSelectField } from '@/lib/components/SelectField'
@@ -28,6 +28,7 @@ import { z } from 'zod'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
 import { Button } from '@/lib/components/Button'
 import type { FormContextType } from '@formsignals/form-react'
+import { currency } from '@/modules/general/settings/currency.signals'
 
 // TODO Either add a confirm alert for the delete action or add a checkbox to enable the delete button
 
@@ -257,8 +258,8 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                 </View>
                 <View style={{ minWidth: 0 }}>
                   <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {formatNumber(selectedContract.contractRevision?.pricePerUnit)} €/
-                    {selectedContract.unit?.abbreviation}
+                    {formatNumber(selectedContract.contractRevision?.pricePerUnit)}{' '}
+                    {currency.value.currencySymbol}/{selectedContract.unit?.abbreviation}
                   </Text>
                 </View>
                 <View style={{ minWidth: 16 }}>
@@ -270,7 +271,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                       (conversionFactor / (selectedContract.unit?.conversionFactor ?? 1)) *
                         (selectedContract.contractRevision?.pricePerUnit ?? 1)
                     )}{' '}
-                    €
+                    {currency.value.currencySymbol}
                   </Text>
                 </View>
               </View>

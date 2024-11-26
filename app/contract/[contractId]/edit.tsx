@@ -3,7 +3,7 @@ import { Stack } from 'expo-router/stack'
 import { translate } from '@/lib/translations/i18n'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SaveIcon, XIcon } from 'lucide-react-native'
-import { StatusBar } from 'expo-status-bar'
+import { StatusBar } from '@/lib/components/StatusBar'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { updateMeter, useMeterById } from '@/modules/meters/meters.query'
 import { useFieldGroup, useForm } from '@formsignals/form-react'
@@ -92,7 +92,6 @@ export default function Page() {
     {
       onSubmit: async (values) => {
         const revisionId = selectedContractRevision.peek()
-        console.log('revisionId', revisionId, values.contractRevision)
         if (!revisionId) await createContractRevision({ ...values.contractRevision, contractId })
         else await updateContractRevision(revisionId, values.contractRevision)
       },

@@ -1,5 +1,5 @@
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   StyleSheet,
   Text,
@@ -15,6 +15,7 @@ import { formatDate, translate } from '@/lib/translations/i18n'
 import { LangKey } from '@/lib/translations/en'
 import { AndroidNativeProps, DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { CalendarIcon } from 'lucide-react-native'
+import { runOnJS } from 'react-native-reanimated'
 
 type DatePickerProps = Omit<AndroidNativeProps, 'value' | 'onChange'> & {
   label?: string
@@ -23,6 +24,7 @@ type DatePickerProps = Omit<AndroidNativeProps, 'value' | 'onChange'> & {
   isError?: boolean
   hint?: string
   withTime?: boolean
+  disabled?: boolean
 }
 
 // TODO Make support iOS once necessary
@@ -34,6 +36,7 @@ export function DatePicker({
   hint,
   withTime,
   isError,
+  disabled,
   ...props
 }: DatePickerProps) {
   const colors = useColors()
@@ -46,6 +49,7 @@ export function DatePicker({
           flex: 1,
           gap: 4,
           marginBottom: 8,
+          opacity: disabled ? 0.5 : 1,
         },
         inputBase: {
           ...defaultStyles.bodyText,
@@ -61,8 +65,11 @@ export function DatePicker({
         label: {
           ...defaultStyles.detail,
         },
+        disabled: {
+          color: disabled ? colors.textMuted : colors.textStatic,
+        },
       }),
-    [colors, defaultStyles]
+    [disabled, colors, defaultStyles]
   )
 
   const hintTranslation = translate(hint as LangKey)
@@ -110,7 +117,7 @@ export function DatePicker({
         }
         style={[styles.inputBase, isError && { borderColor: colors.negative }, style].flat()}>
         <CalendarIcon size={16} color={colors.textStatic} />
-        <Text style={defaultStyles.bodyText}>
+        <Text style={[defaultStyles.bodyText, disabled && styles.disabled]}>
           {value.value ? formatDate(value.value, format) : '-'}
         </Text>
       </TouchableOpacity>

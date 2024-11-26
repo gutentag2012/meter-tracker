@@ -1,5 +1,6 @@
-import { Platform, StyleSheet, useColorScheme } from 'react-native'
+import { Platform, StyleSheet } from 'react-native'
 import { useMemo } from 'react'
+import { useSettingsTheme } from '@/modules/general/settings/theme.signals'
 
 const colors = {
   light: {
@@ -36,30 +37,37 @@ export const LightColors = colors.light
 export const DarkColors = colors.dark
 
 export const ChartColorsLight = [
-  '#15768c',
-  '#6B9A91',
-  '#A9C4AB',
-  '#E4DDA3',
-  '#d9b84c',
-  '#EA8520',
-  '#DC6921',
-  '#b33702',
-  '#993308',
+  '#dc2626',
+  '#991b1b',
+  '#d97706',
+  '#92400e',
+  '#65a30d',
+  '#3f6212',
+  '#0284c7',
+  '#075985',
+  '#7c3aed',
+  '#5b21b6',
 ]
 export const ChartColorsDark = [
-  '#0d819e',
-  '#6B9A91',
-  '#A9C4AB',
-  '#E4DDA3',
-  '#D8C27B',
-  '#EA8520',
-  '#DC6921',
-  '#c83e07',
-  '#9f3202',
+  '#f87171',
+  '#dc2626',
+  '#fbbf24',
+  '#d97706',
+  '#a3e635',
+  '#65a30d',
+  '#38bdf8',
+  '#0284c7',
+  '#a78bfa',
+  '#7c3aed',
 ]
 
+export function useChartColors() {
+  const schema = useSettingsTheme()
+  return schema === 'light' ? ChartColorsLight : ChartColorsDark
+}
+
 export function useColors() {
-  const schema = useColorScheme()
+  const schema = useSettingsTheme()
   return schema === 'light' ? colors.light : colors.dark
 }
 

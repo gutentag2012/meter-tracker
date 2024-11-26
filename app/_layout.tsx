@@ -26,6 +26,7 @@ export default function Layout() {
     'Mona-Medium': require('../assets/fonts/Mona-Sans-Medium.ttf'),
     'Mona-Regular': require('../assets/fonts/Mona-Sans-Regular.ttf'),
     'Mona-SemiBold': require('../assets/fonts/Mona-Sans-SemiBold.ttf'),
+    'SpaceMono-Regular': require('../assets/fonts/SpaceMono-Regular.ttf'),
   })
 
   useEffect(() => {

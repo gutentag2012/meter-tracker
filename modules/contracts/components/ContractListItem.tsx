@@ -3,7 +3,7 @@ import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { CoinsIcon, HistoryIcon } from 'lucide-react-native'
 import { Link } from 'expo-router'
 import { formatNumber } from '@/lib/translations/i18n'
-import { currency } from '@/modules/general/settings.signals'
+import { currency } from '@/modules/general/settings/currency.signals'
 
 type ContractListItemProps = {
   contract: {
@@ -46,7 +46,7 @@ export function ContractListItem({ contract }: ContractListItemProps) {
                 {contract.monthlyPayment !== null
                   ? ` /${formatNumber(contract.monthlyPayment)}`
                   : ''}{' '}
-                {currency.value.currencyCode}
+                {currency.value.currencySymbol}
               </Text>
             </Text>
           )}
@@ -59,7 +59,10 @@ export function ContractListItem({ contract }: ContractListItemProps) {
                 <CoinsIcon size={defaultStyles.detail.fontSize} stroke={colors.textMuted} />
                 <Text style={defaultStyles.detail}>
                   {formatNumber(contract.pricePerUnit, 4)}
-                  <Text style={defaultStyles.detailSmall}> €/{contract.contractUnit}</Text>
+                  <Text style={defaultStyles.detailSmall}>
+                    {' '}
+                    {currency.value.currencySymbol}/{contract.contractUnit}
+                  </Text>
                 </Text>
               </>
             )}
@@ -70,7 +73,7 @@ export function ContractListItem({ contract }: ContractListItemProps) {
               <HistoryIcon size={defaultStyles.detail.fontSize} stroke={colors.textMuted} />
               <Text style={defaultStyles.detail}>
                 {formatNumber(contract.totalCostLastMonth, 2)}
-                <Text style={defaultStyles.detailSmall}> €</Text>
+                <Text style={defaultStyles.detailSmall}> {currency.value.currencySymbol}</Text>
               </Text>
             </View>
           )}

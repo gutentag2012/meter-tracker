@@ -22,28 +22,37 @@ import { markBuildingAsDefault } from '@/modules/buildings/buildings.query'
 import { Signal } from '@preact/signals-core'
 import { LangKey } from '@/lib/translations/en'
 
-type SelectFieldProps = ViewProps & {
-  value: Signal<string | number | null>
+export type SelectOption<T = string | number | null> = {
+  value: T
+  label: string
+  textRight?: string | null
+  description?: string | null
+}
+
+type SelectFieldProps<T = string | number | null> = ViewProps & {
+  value: Signal<T>
   label?: string
-  options: {
-    value: string | number | null
-    label: string
-    textRight?: string | null
-    description?: string | null
-  }[]
+  options: SelectOption<T>[]
   snapPoints?: (string | number)[]
   containerStyle?: ViewProps['style']
   modalTitle?: string
   ModalAction?: ReactNode
   isError?: Signal<boolean>
   hint?: string | Signal<string>
+  renderField?: (props: {
+    label: string
+    onOpen: () => void
+    selectedValue: SelectOption<T>
+    hintValue: string
+  }) => ReactNode
+  ListHeaderComponent?: ReactNode
 }
 
-type SelectFieldPropsInternal = SelectFieldProps & {
+type SelectFieldPropsInternal<T = string | number | null> = SelectFieldProps<T> & {
   bottomSheetRef: RefObject<BottomSheetModal>
 }
 
-export function SelectField({
+export function SelectField<T = string | number | null>({
   style,
   label,
   snapPoints = ['50%'],
@@ -53,10 +62,12 @@ export function SelectField({
   value,
   isError,
   hint,
+  renderField,
   modalTitle: _,
   ModalAction: _1,
+  ListHeaderComponent: _2,
   ...props
-}: SelectFieldPropsInternal) {
+}: SelectFieldPropsInternal<T>) {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -93,6 +104,15 @@ export function SelectField({
 
   const hintValue = typeof hint === 'string' ? hint : hint?.value
 
+  if (renderField) {
+    return renderField({
+      label: label ?? '',
+      selectedValue: selectedValueOption!,
+      hintValue: hintValue ?? '',
+      onOpen: () => bottomSheetRef.current?.present(),
+    })
+  }
+
   return (
     <View style={[styles.inputContainer, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -113,14 +133,15 @@ export function SelectField({
   )
 }
 
-export function SelectFieldSheet({
+export function SelectFieldSheet<T = string | number | null>({
   snapPoints = ['50%'],
   options,
   bottomSheetRef,
   modalTitle,
   ModalAction,
   value,
-}: SelectFieldPropsInternal) {
+  ListHeaderComponent,
+}: SelectFieldPropsInternal<T>) {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -155,7 +176,7 @@ export function SelectFieldSheet({
           marginBottom: 16,
         },
       }),
-    [colors]
+    []
   )
 
   return (
@@ -180,9 +201,11 @@ export function SelectFieldSheet({
             {ModalAction}
           </View>
 
+          {ListHeaderComponent}
+
           {options.map((option) => (
             <TouchableOpacity
-              key={option.value}
+              key={`${option.value}`}
               onPress={() => {
                 value.value = option.value
                 bottomSheetRef.current?.dismiss()
@@ -212,12 +235,24 @@ export function SelectFieldSheet({
   )
 }
 
-export function useSelectField(props: SelectFieldProps) {
+export function useSelectField<T = string | number | null>(
+  props: Omit<SelectFieldProps<T>, 'renderField' | 'ListHeaderComponent'>
+) {
   const bottomSheetRef = useRef<BottomSheetModal>(null)
   return useMemo(
     () => ({
-      SelectField: () => <SelectField {...props} bottomSheetRef={bottomSheetRef} />,
-      SelectFieldSheet: () => <SelectFieldSheet {...props} bottomSheetRef={bottomSheetRef} />,
+      SelectField: ({ renderField }: Pick<SelectFieldProps<T>, 'renderField'>) => (
+        <SelectField<T> {...props} bottomSheetRef={bottomSheetRef} renderField={renderField} />
+      ),
+      SelectFieldSheet: ({
+        ListHeaderComponent,
+      }: Pick<SelectFieldProps<T>, 'ListHeaderComponent'>) => (
+        <SelectFieldSheet<T>
+          {...props}
+          bottomSheetRef={bottomSheetRef}
+          ListHeaderComponent={ListHeaderComponent}
+        />
+      ),
     }),
     [props]
   )

@@ -1,4 +1,4 @@
-import { StatusBar } from 'expo-status-bar'
+import { StatusBar } from '@/lib/components/StatusBar'
 
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { Stack } from 'expo-router/stack'

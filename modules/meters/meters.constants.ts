@@ -13,8 +13,8 @@ export const cellWidth =
 export function getCellPositionFromIndex(index: number) {
   'worklet'
   return {
-    x: (index % CELL_AMOUNT_OF_COLUMNS) * (cellWidth + CELL_GAP),
-    y: Math.floor(index / CELL_AMOUNT_OF_COLUMNS) * (cellHeight + CELL_GAP),
+    x: index ? (index % CELL_AMOUNT_OF_COLUMNS) * (cellWidth + CELL_GAP) : 0,
+    y: index ? Math.floor(index / CELL_AMOUNT_OF_COLUMNS) * (cellHeight + CELL_GAP) : 0,
   }
 }
 

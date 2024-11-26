@@ -244,14 +244,15 @@ export async function getAllContractsForBuilding(buildingId: number) {
         'total_cost_current_month'
       ),
     })
-    .from(meterStats)
-    .rightJoin(contract, eq(meterStats.contractId, contract.id))
+    .from(contract)
+    .leftJoin(meterStats, eq(meterStats.contractId, contract.id))
     .leftJoin(contractUnit, eq(contract.unitId, contractUnit.id))
     .leftJoin(
       activeContractRevision,
       and(eq(contract.id, activeContractRevision.contractId), eq(activeContractRevision.row, 1))
     )
-    .groupBy(meterStats.contractId)
+    .groupBy(contract.id)
+    .orderBy(contract.name)
 }
 
 export function getAllContracts() {
@@ -279,6 +280,10 @@ export async function createContract(values: {
     contractId: insertionRes.lastInsertRowId,
   })
   return insertionRes.lastInsertRowId
+}
+
+export async function deleteContract(contractId: number) {
+  return db.delete(contract).where(eq(contract.id, contractId)).execute()
 }
 
 export async function updateContract(

@@ -10,7 +10,7 @@ import {
   SaveIcon,
   XIcon,
 } from 'lucide-react-native'
-import { StatusBar } from 'expo-status-bar'
+import { StatusBar } from '@/lib/components/StatusBar'
 import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { updateMeter, useMeterById } from '@/modules/meters/meters.query'
 import { useForm } from '@formsignals/form-react'

@@ -33,6 +33,7 @@
         "android.permission.POST_NOTIFICATIONS"
       ]
     },
+    "newArchEnabled": true,
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -46,12 +47,10 @@
           "android": {
             "compileSdkVersion": 34,
             "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0",
-            "newArchEnabled": true
+            "buildToolsVersion": "34.0.0"
           },
           "ios": {
-            "deploymentTarget": "13.4",
-            "newArchEnabled": true
+            "deploymentTarget": "15.1"
           }
         }
       ],

@@ -11,7 +11,7 @@ import {
   RefreshCcwIcon,
   Trash2Icon,
 } from 'lucide-react-native'
-import { StatusBar } from 'expo-status-bar'
+import { StatusBar } from '@/lib/components/StatusBar'
 import { DarkColors, LightColors, useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { FormTextField } from '@/lib/components/TextField'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
