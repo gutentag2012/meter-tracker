@@ -33,18 +33,24 @@ export function TextField({
   const inputRef = useRef<TextInput>(null)
   const [isFocussed, setIsFocussed] = useState(false)
 
-  // TODO Does not work well
-  const [isMounted, setIsMounted] = useState(false)
+  // This is a workaround for the autoFocus prop not working with selectTextOnFocus
+  const [selectedLength, setSelectedLength] = useState(0)
   useEffect(() => {
-    if (!props.autoFocus || !inputRef.current || !props.selectTextOnFocus || isMounted) {
+    const lengthToSelect = defaultValue?.length ?? 0
+    if (
+      !props.autoFocus ||
+      !inputRef.current ||
+      !props.selectTextOnFocus ||
+      selectedLength === lengthToSelect
+    ) {
       return
     }
-    setIsMounted(true)
+    setSelectedLength(lengthToSelect)
     setTimeout(() => {
-      inputRef.current?.setSelection(0, defaultValue?.length ?? 0)
+      inputRef.current?.setSelection(0, lengthToSelect)
       inputRef.current?.focus()
     }, 0)
-  }, [defaultValue?.length, inputRef, props.autoFocus, props.selectTextOnFocus])
+  }, [defaultValue?.length, inputRef, selectedLength, props.autoFocus, props.selectTextOnFocus])
 
   const styles = useMemo(
     () =>

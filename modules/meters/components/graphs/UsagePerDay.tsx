@@ -119,7 +119,8 @@ export function UsagePerDay({
               </Fragment>
             )
           })}
-        {font &&
+        {chartData.xScale &&
+          font &&
           allMonths?.map(([tick, label], index) => {
             const fontSize = font.measureText(label)
             return (

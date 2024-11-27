@@ -138,7 +138,11 @@ export function UsagePerYear({
                   x={labelXPos}
                   y={chartData.yScale(`${year}`)! + chartData.yScale.bandwidth() / 2}
                   text={usageText}
-                  color={labelXPos < end && labelXPos > start ? colors.background : colors.text} // TODO Improve contrast
+                  color={
+                    labelXPos < end - fontSize.width && labelXPos > start
+                      ? colors.background
+                      : colors.text
+                  } // TODO Improve contrast
                   font={fontBold}
                   axis='y'
                 />
