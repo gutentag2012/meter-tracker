@@ -46,7 +46,7 @@ export function IntervalForm({ form }: IntervalFormProps) {
 
   return (
     <View>
-      <Text style={styles.sectionTitle}>Interval</Text>
+      <Text style={styles.sectionTitle}>{translate("settings.reminderIntervalDialogSectionInterval")}</Text>
       <View style={[defaultStyles.row, { flexWrap: 'wrap' }]}>
         {Object.values(intervals).map((intervalKey) => (
           <Button
@@ -84,7 +84,7 @@ export function IntervalForm({ form }: IntervalFormProps) {
       </View>
       {form.data.value.type.value === 'weekly' && (
         <Fragment>
-          <Text style={styles.sectionTitle}>Weekday</Text>
+          <Text style={styles.sectionTitle}>{translate("settings.reminderIntervalDialogSectionWeekday")}</Text>
           <View style={[defaultStyles.row, { flexWrap: 'wrap' }]}>
             {weekdayDates.map((weekday) => {
               const weekdayString = formatDate(weekday, 'EEEE')
@@ -112,7 +112,7 @@ export function IntervalForm({ form }: IntervalFormProps) {
       )}
       {form.data.value.type.value === 'yearly' && (
         <Fragment>
-          <Text style={styles.sectionTitle}>Month</Text>
+          <Text style={styles.sectionTitle}>{translate("settings.reminderIntervalDialogSectionMonth")}</Text>
           <View style={[defaultStyles.row, { flexWrap: 'wrap' }]}>
             {monthDates.map((monthDate) => {
               const monthString = formatDate(monthDate, 'MMMM')
@@ -167,12 +167,12 @@ export function IntervalForm({ form }: IntervalFormProps) {
             .max(31, 'errors.lessThan31')}
         >
           <FormTextField
-            style={{ width: '100%', paddingVertical: 4 }}
+            style={{ width: '100%', paddingVertical: 8 }}
             containerStyle={{ marginTop: 16 }}
             selectTextOnFocus
             useTransformed
-            label="Day of month"
-            hint="Must be between 1 and 31"
+            label={translate("settings.reminderIntervalDialogSectionDayOfMonth")}
+            hint={translate("settings.reminderIntervalDialogSectionDayOfMonthHint")}
             keyboardType="numeric"
           />
         </form.FieldProvider>
@@ -208,10 +208,10 @@ export function IntervalForm({ form }: IntervalFormProps) {
               .max(23, 'errors.timeHour')}
           >
             <FormTextField
-              style={{ width: '100%', paddingVertical: 4 }}
+              style={{ width: '100%', paddingVertical: 8 }}
               selectTextOnFocus
               useTransformed
-              label="Hour"
+              label={translate("settings.reminderIntervalDialogSectionHour")}
               keyboardType="numeric"
             />
           </form.FieldProvider>
@@ -244,10 +244,10 @@ export function IntervalForm({ form }: IntervalFormProps) {
               .max(59, 'errors.timeMinute')}
           >
             <FormTextField
-              style={{ width: '100%', paddingVertical: 4 }}
+              style={{ width: '100%', paddingVertical: 8 }}
               selectTextOnFocus
               useTransformed
-              label="Minute"
+              label={translate("settings.reminderIntervalDialogSectionMinute")}
               keyboardType="numeric"
             />
           </form.FieldProvider>

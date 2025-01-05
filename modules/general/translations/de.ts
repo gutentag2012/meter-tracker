@@ -217,6 +217,13 @@ export const de: Language = {
     enableReminderDescription:
       'Eine regelmäßige Erinnerung, neue Zählerstände einzutragen',
     reminderIntervalTitle: 'Erinnerungsintervall',
+    reminderIntervalDialogSectionInterval: 'Intervall',
+    reminderIntervalDialogSectionWeekday: 'Wochentag',
+    reminderIntervalDialogSectionHour: 'Stunde',
+    reminderIntervalDialogSectionMinute: 'Minute',
+    reminderIntervalDialogSectionDayOfMonth: 'Tag des Monats',
+    reminderIntervalDialogSectionDayOfMonthHint: 'Muss zwischen 1 und 31 liegen',
+    reminderIntervalDialogSectionMonth: 'Monat',
     headerDangerZone: 'Gefahrenzone',
     activateDangerZoneTitle: 'Gefahrenzone aktivieren',
     activateDangerZoneTitleDisable: 'Gefahrenzone deaktivieren',
