@@ -1,20 +1,14 @@
 import { Dimensions, Text, View } from 'react-native'
 import { Stack } from 'expo-router/stack'
-import { Href, useLocalSearchParams, useRouter } from 'expo-router'
-import { StatusBar } from '@/lib/components/StatusBar'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
+import { Href, useLocalSearchParams } from 'expo-router'
 import { useContractById } from '@/modules/contracts/contracts.query'
-import {
-  HeaderBackButton,
-  makeHeaderBackButton,
-  makeHeaderDialogBackButton,
-} from '@/lib/components/header/HeaderBackButton'
-import { HeaderButtonsWithEdit } from '@/lib/components/header/HeaderButtons'
+import { makeHeaderBackButton } from '@/modules/general/components/header/HeaderBackButton'
+import { HeaderButtonsWithEdit } from '@/modules/general/components/header/HeaderButtons'
+import { useColors, useDefaultStyles } from '@/modules/general/theme'
 
 const width = Dimensions.get('window').width
 
 export default function Page() {
-  const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
   const { contractId: contractIdRaw } = useLocalSearchParams()
@@ -28,7 +22,9 @@ export default function Page() {
           title: contract?.contract?.name || '',
           headerTitleStyle: defaultStyles.pageHeader,
           headerLeft: makeHeaderBackButton(true),
-          headerRight: HeaderButtonsWithEdit(`/contract/${contractId}/edit` as Href<string>),
+          headerRight: HeaderButtonsWithEdit(
+            `/contract/${contractId}/edit` as Href,
+          ),
         }}
       />
 
@@ -47,7 +43,8 @@ export default function Page() {
               width: (width - 48) / 3,
               height: (width - 48) / 3,
               padding: 8,
-            }}>
+            }}
+          >
             <Text style={defaultStyles.detail}>Test</Text>
           </View>
           <View
@@ -59,8 +56,6 @@ export default function Page() {
           />
         </View>
       </View>
-
-      <StatusBar />
     </View>
   )
 }

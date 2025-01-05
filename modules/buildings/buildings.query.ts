@@ -7,7 +7,11 @@ import { useSignalEffect } from '@preact/signals-react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 
 export async function getBuilding(buildingId: number) {
-  const res = await db.select().from(building).where(eq(building.id, buildingId)).limit(1)
+  const res = await db
+    .select()
+    .from(building)
+    .where(eq(building.id, buildingId))
+    .limit(1)
   return res[0]
 }
 
@@ -16,12 +20,20 @@ export async function getAllBuildings() {
 }
 
 export async function markBuildingAsDefault(buildingId: number) {
-  await db.update(building).set({ isDefault: false }).where(eq(building.isDefault, true))
-  await db.update(building).set({ isDefault: true }).where(eq(building.id, buildingId))
+  await db
+    .update(building)
+    .set({ isDefault: false })
+    .where(eq(building.isDefault, true))
+  await db
+    .update(building)
+    .set({ isDefault: true })
+    .where(eq(building.id, buildingId))
 }
 
 export function useAllBuildings() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getAllBuildings>> | null>(null)
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof getAllBuildings>
+  > | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -53,7 +65,9 @@ export function useAllBuildings() {
 }
 
 export function useActiveBuilding() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getBuilding>> | null>(null)
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof getBuilding>
+  > | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {

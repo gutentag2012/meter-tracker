@@ -1,12 +1,12 @@
 import { Dimensions, Text, View } from 'react-native'
 import { Canvas, Path, useFont, Line, Rect } from '@shopify/react-native-skia'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { useSharedValue, withTiming } from 'react-native-reanimated'
 import { Fragment, useEffect, useMemo } from 'react'
-import { getAllReadingsForMeter, useReadingsForMeter } from '@/modules/readings/readings.query'
+import { getAllReadingsForMeter } from '@/modules/readings/readings.query'
 import { AxisText } from '@/modules/meters/components/graphs/AxisText'
-import { useUsagePerDayData } from '@/modules/meters/hooks/useUsagePerDayData'
-import { formatDate, translate } from '@/lib/translations/i18n'
+import { formatDate, translate } from '@/modules/general/translations'
+import { useColors, useDefaultStyles } from '@/modules/general/theme'
+import { useUsagePerDayData } from '@/modules/meters/hooks'
 
 const width = Dimensions.get('window').width - 32
 const CHART_PADDING_X = 16
@@ -14,9 +14,10 @@ const CHART_PADDING_Y = 8
 const CHART_FOOTER_HEIGHT = 48
 const CHART_HEIGHT = 188
 const TOTAL_CHART_HEIGHT = CHART_HEIGHT + CHART_FOOTER_HEIGHT
-const allMonths = Array.from({ length: 12 }, (_, i) => new Date(1970, i, 15)).map(
-  (tick) => [tick, formatDate(tick, 'MMM')] as const
-)
+const allMonths = Array.from(
+  { length: 12 },
+  (_, i) => new Date(1970, i, 15),
+).map((tick) => [tick, formatDate(tick, 'MMM')] as const)
 
 export function UsagePerDay({
   readings,
@@ -47,8 +48,10 @@ export function UsagePerDay({
   }, [readings])
   const maxYOffset = Math.max(
     ...years.map((_, index) =>
-      Math.floor((CHART_PADDING_X + index * 52) / (width - CHART_PADDING_X * 2))
-    )
+      Math.floor(
+        (CHART_PADDING_X + index * 52) / (width - CHART_PADDING_X * 2),
+      ),
+    ),
   )
   const yOffset = maxYOffset * 16
 
@@ -57,7 +60,7 @@ export function UsagePerDay({
     width,
     CHART_HEIGHT - yOffset,
     CHART_PADDING_X,
-    CHART_PADDING_Y
+    CHART_PADDING_Y,
   )
 
   return (
@@ -65,19 +68,28 @@ export function UsagePerDay({
       <View
         style={[
           defaultStyles.row,
-          { marginLeft: 8, marginTop: 8, marginBottom: 4, alignItems: 'flex-end', gap: 4 },
-        ]}>
-        <Text style={defaultStyles.detail}>{translate('meters.graphs.perDayTitle')}</Text>
+          {
+            marginLeft: 8,
+            marginTop: 8,
+            marginBottom: 4,
+            alignItems: 'flex-end',
+            gap: 4,
+          },
+        ]}
+      >
+        <Text style={defaultStyles.detail}>
+          {translate('meters.graphs.perDayTitle')}
+        </Text>
         <Text style={defaultStyles.detailSmall}>
-          ({unit}
-          {translate('general.perDay')})
+          ({unit} {translate('general.perDay')})
         </Text>
       </View>
       <Canvas
         style={{
           width,
           height: TOTAL_CHART_HEIGHT,
-        }}>
+        }}
+      >
         {font && !readings.length && (
           <AxisText
             x={width / 2}
@@ -85,12 +97,12 @@ export function UsagePerDay({
             text={translate('meters.graphs.noData')}
             color={colors.textMuted}
             font={font}
-            axis='x'
+            axis="x"
           />
         )}
         {font &&
           chartData.yScale &&
-          chartData.yScale.ticks(6).map((tick) => {
+          chartData.yScale.ticks(6).map((tick: number) => {
             const tickText = tick.toFixed(1)
             const fontSize = font.measureText(tickText)
             return (
@@ -101,7 +113,7 @@ export function UsagePerDay({
                   text={tickText}
                   color={colors.textStatic}
                   font={font}
-                  axis='y'
+                  axis="y"
                 />
                 <Line
                   p1={{
@@ -114,7 +126,7 @@ export function UsagePerDay({
                   }}
                   color={colors.textStatic}
                   strokeWidth={0.5}
-                  strokeCap='round'
+                  strokeCap="round"
                 />
               </Fragment>
             )
@@ -138,7 +150,7 @@ export function UsagePerDay({
                 text={label}
                 color={colors.textStatic}
                 font={font}
-                axis='x'
+                axis="x"
               />
             )
           })}
@@ -148,10 +160,10 @@ export function UsagePerDay({
             <Path
               key={year}
               path={linePath!}
-              style='stroke'
+              style="stroke"
               strokeWidth={2}
               color={(chartData.colorScale(year) as string) ?? colors.text}
-              strokeCap='round'
+              strokeCap="round"
               start={animationLine}
             />
           ))}
@@ -159,7 +171,9 @@ export function UsagePerDay({
           chartData.colorScale &&
           years.toReversed().map((year, index) => {
             const xRaw = CHART_PADDING_X + index * 52
-            const yOffsetLocal = Math.floor(xRaw / (width - CHART_PADDING_X * 2))
+            const yOffsetLocal = Math.floor(
+              xRaw / (width - CHART_PADDING_X * 2),
+            )
             const x = xRaw % (width - CHART_PADDING_X)
             return (
               <Fragment key={year}>
@@ -168,7 +182,12 @@ export function UsagePerDay({
                   height={8}
                   rect={{
                     x: x - 12 + CHART_PADDING_X / 2,
-                    y: CHART_HEIGHT - CHART_PADDING_Y + 36 + yOffsetLocal * 16 - yOffset,
+                    y:
+                      CHART_HEIGHT -
+                      CHART_PADDING_Y +
+                      36 +
+                      yOffsetLocal * 16 -
+                      yOffset,
                     width: 8,
                     height: 8,
                   }}
@@ -176,11 +195,18 @@ export function UsagePerDay({
                 />
                 <AxisText
                   x={x + 16 + CHART_PADDING_X / 2}
-                  y={CHART_HEIGHT - CHART_PADDING_Y + 36 + 8 + yOffsetLocal * 16 - yOffset}
+                  y={
+                    CHART_HEIGHT -
+                    CHART_PADDING_Y +
+                    36 +
+                    8 +
+                    yOffsetLocal * 16 -
+                    yOffset
+                  }
                   text={year}
                   color={colors.textStatic}
                   font={font}
-                  axis='x'
+                  axis="x"
                 />
               </Fragment>
             )

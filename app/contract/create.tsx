@@ -1,17 +1,16 @@
 import { View } from 'react-native'
 import { Stack } from 'expo-router/stack'
-import { translate } from '@/lib/translations/i18n'
 import { useRouter } from 'expo-router'
-import { StatusBar } from '@/lib/components/StatusBar'
-import { useDefaultStyles } from '@/lib/constants/theme'
 import { useForm } from '@formsignals/form-react'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
-import { Button } from '@/lib/components/Button'
+import { Button } from '@/modules/general/components/Button'
 import { activeBuilding } from '@/modules/buildings/buildings.signals'
-import { makeHeaderDialogBackButton } from '@/lib/components/header/HeaderBackButton'
-import { HeaderButtons } from '@/lib/components/header/HeaderButtons'
-import { ContractForm } from '@/modules/contracts/components/ContractForm'
+import { makeHeaderDialogBackButton } from '@/modules/general/components/header/HeaderBackButton'
+import { HeaderButtons } from '@/modules/general/components/header/HeaderButtons'
 import { createContract } from '@/modules/contracts/contracts.query'
+import { useDefaultStyles } from '@/modules/general/theme'
+import { translate } from '@/modules/general/translations'
+import { ContractForm } from '@/modules/contracts/components'
 
 export default function Page() {
   const router = useRouter()
@@ -52,7 +51,9 @@ export default function Page() {
           headerLeft: makeHeaderDialogBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button onPress={() => form.handleSubmit()}>{translate('general.save')}</Button>
+              <Button onPress={() => form.handleSubmit()}>
+                {translate('general.save')}
+              </Button>
             </HeaderButtons>
           ),
           animation: 'slide_from_bottom',
@@ -61,8 +62,6 @@ export default function Page() {
       />
 
       <ContractForm form={form} />
-
-      <StatusBar />
     </View>
   )
 }

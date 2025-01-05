@@ -1,21 +1,16 @@
 import { Alert, Text, TouchableOpacity, View } from 'react-native'
-import { formatDate, formatNumber, translate } from '@/lib/translations/i18n'
 import { Link, useRouter } from 'expo-router'
 import {
-  CalendarIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   FlashlightIcon,
   FlashlightOffIcon,
   PlusIcon,
-  RefreshCcwIcon,
   Trash2Icon,
 } from 'lucide-react-native'
-import { StatusBar } from '@/lib/components/StatusBar'
-import { DarkColors, LightColors, useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { FormTextField } from '@/lib/components/TextField'
+import { FormTextField } from '@/modules/general/components/TextField'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { deleteMeter, resetMeterValue, useMetersForBuilding } from '@/modules/meters/meters.query'
+import { useMetersForBuilding } from '@/modules/meters/meters.query'
 import {
   KeyboardAwareScrollView,
   KeyboardController,
@@ -25,25 +20,43 @@ import {
 } from 'react-native-keyboard-controller'
 import { z } from 'zod'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
-import { Button } from '@/lib/components/Button'
+import { Button } from '@/modules/general/components/Button'
 import type { FormContextType } from '@formsignals/form-react'
-import { deleteReading, useLastReadingForDateAndMeter } from '@/modules/readings/readings.query'
-import { useSelectField } from '@/lib/components/SelectField'
-import { useState } from 'react'
+import {
+  deleteReading,
+  useLastReadingForDateAndMeter,
+} from '@/modules/readings/readings.query'
+import { useSelectField } from '@/modules/general/components/SelectField'
+import { Fragment, useState } from 'react'
 import { CameraView } from 'expo-camera'
-import { DatePicker, FormDatePicker } from '@/lib/components/DatePicker'
-import { useField, useForm } from '@formsignals/form-react'
-import { useRoute } from '@react-navigation/core'
+import { FormDatePicker } from '@/modules/general/components/DatePicker'
+import { useField } from '@formsignals/form-react'
+import {
+  formatDate,
+  formatNumber,
+  translate,
+} from '@/modules/general/translations'
+import {
+  KeyboardToolbarTheme,
+  useColors,
+  useDefaultStyles,
+} from '@/modules/general/theme'
 
 const ReadingSchema = {
   value: z
-    .number({ invalid_type_error: 'errors.number', required_error: 'errors.required' })
+    .number({
+      invalid_type_error: 'errors.number',
+      required_error: 'errors.required',
+    })
     .min(0, 'errors.positive'),
   timestamp: z.date({
     invalid_type_error: 'errors.invalidDate',
     required_error: 'errors.required',
   }),
-  meter: z.number({ invalid_type_error: 'errors.number', required_error: 'errors.required' }),
+  meter: z.number({
+    invalid_type_error: 'errors.number',
+    required_error: 'errors.required',
+  }),
 }
 type FormValues = {
   value: number
@@ -65,7 +78,7 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
 
   const [lastReading] = useLastReadingForDateAndMeter(
     form.data.peek().meter,
-    form.data.peek().timestamp
+    form.data.peek().timestamp,
   )
 
   const [meters] = useMetersForBuilding()
@@ -73,7 +86,9 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
     label: meter.meterName!,
     description: meter.identifier,
     textRight: meter.lastReading
-      ? formatNumber(meter.lastReading, meter.meterPrecision) + ' ' + meter.meterUnit
+      ? formatNumber(meter.lastReading, meter.meterPrecision) +
+        ' ' +
+        meter.meterUnit
       : '-',
     value: meter.meterId,
   }))
@@ -87,10 +102,16 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
     label: translate('readings.createLabelMeter'),
     modalTitle: translate('meters.selectTitle'),
     ModalAction: (
-      <Link href={`/meter/create`} asChild>
+      <Link href="/meter/create" asChild>
         <Button
           style={{ marginLeft: 'auto' }}
-          IconStart={<PlusIcon size={defaultStyles.detail.fontSize} stroke={colors.primary} />}>
+          IconStart={
+            <PlusIcon
+              size={defaultStyles.detail.fontSize}
+              stroke={colors.primary}
+            />
+          }
+        >
           {translate('meters.createButton')}
         </Button>
       </Link>
@@ -106,26 +127,32 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
         <KeyboardAwareScrollView
           bottomOffset={50}
           style={[defaultStyles.pageContainer]}
-          contentContainerStyle={{ paddingBottom: 16 }}>
+          contentContainerStyle={{ paddingBottom: 16 }}
+        >
           <form.FieldProvider
-            name='value'
+            name="value"
             transformFromBinding={(value: string) => {
               if (!value) return [0, translate('errors.required')]
               const parsed = parseFloat(value.replace(',', '.'))
               return [parsed, isNaN(parsed) && translate('errors.number')]
             }}
-            transformToBinding={(value: number, isValid: boolean, writeBuffer?: string): string => {
+            transformToBinding={(
+              value: number,
+              isValid: boolean,
+              writeBuffer?: string,
+            ): string => {
               if (!isValid) {
                 return writeBuffer ?? '' // This is the last value entered by the user
               }
               return value?.toString() // This is the last valid value
             }}
-            validator={ReadingSchema.value}>
+            validator={ReadingSchema.value}
+          >
             <FormTextField
               autoFocus
               selectTextOnFocus
               useTransformed
-              enterKeyHint='done'
+              enterKeyHint="done"
               onSubmitEditing={() => form.handleSubmit()}
               hint={
                 lastReading
@@ -138,24 +165,35 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
               label={translate('readings.createLabelValue')}
               placeholder={translate('general.typeHere')}
               containerStyle={{ flex: 1 }}
-              keyboardType='numeric'
+              keyboardType="numeric"
             />
           </form.FieldProvider>
 
-          <form.FieldProvider name='timestamp' validator={ReadingSchema.timestamp}>
-            <FormDatePicker label={translate('readings.createLabelTimestamp')} withTime />
+          <form.FieldProvider
+            name="timestamp"
+            validator={ReadingSchema.timestamp}
+          >
+            <FormDatePicker
+              label={translate('readings.createLabelTimestamp')}
+              withTime
+            />
           </form.FieldProvider>
 
           <meterSelect.SelectField />
 
           {readingId !== undefined && (
-            <>
-              <Text style={[defaultStyles.cardTitle, { marginBottom: 8, marginTop: 16 }]}>
+            <Fragment>
+              <Text
+                style={[
+                  defaultStyles.cardTitle,
+                  { marginBottom: 8, marginTop: 16 },
+                ]}
+              >
                 {translate('readings.createSectionActions')}
               </Text>
               <View style={{ gap: 8 }}>
                 <Button
-                  size='large'
+                  size="large"
                   onPress={async () => {
                     Alert.alert(
                       translate('readings.alertDeleteTitle'),
@@ -173,13 +211,19 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
                             router.back()
                           },
                         },
-                      ]
+                      ],
                     )
                   }}
                   IconStart={<Trash2Icon size={16} stroke={colors.negative} />}
-                  variant='ghost'>
+                  variant="ghost"
+                >
                   <View>
-                    <Text style={[defaultStyles.bodyText, { color: colors.negative }]}>
+                    <Text
+                      style={[
+                        defaultStyles.bodyText,
+                        { color: colors.negative },
+                      ]}
+                    >
                       {translate('readings.actionDelete')}
                     </Text>
                     <Text style={[defaultStyles.detailSmall]}>
@@ -188,13 +232,14 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
                   </View>
                 </Button>
               </View>
-            </>
+            </Fragment>
           )}
         </KeyboardAwareScrollView>
 
         <KeyboardStickyView
           style={{ backgroundColor: colors.background }}
-          offset={{ closed: 0, opened: -40 }}>
+          offset={{ closed: 0, opened: -40 }}
+        >
           <TouchableOpacity
             onPress={() => setIsTorchEnabled((prev) => !prev)}
             style={[
@@ -205,7 +250,8 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
                 height: 48,
                 margin: 16,
               },
-            ]}>
+            ]}
+          >
             {isTorchEnabled ? (
               <FlashlightOffIcon size={24} stroke={colors.onPrimaryContainer} />
             ) : (
@@ -215,27 +261,15 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
         </KeyboardStickyView>
 
         <KeyboardToolbar
-          theme={{
-            dark: {
-              primary: DarkColors.primary,
-              background: DarkColors.card,
-              ripple: 'transparent',
-              disabled: DarkColors.primaryContainer,
-            },
-            light: {
-              primary: LightColors.primary,
-              background: LightColors.card,
-              ripple: 'transparent',
-              disabled: LightColors.primaryContainer,
-            },
-          }}
+          theme={KeyboardToolbarTheme}
           doneText={translate('general.save')}
           onDoneCallback={() => form.handleSubmit()}
           icon={({ type, disabled }) => (
             <TouchableOpacity
               disabled={disabled}
               style={{ padding: 8 }}
-              onPress={() => KeyboardController.setFocusTo(type)}>
+              onPress={() => KeyboardController.setFocusTo(type)}
+            >
               {type === 'next' ? (
                 <ChevronDownIcon
                   size={24}
@@ -252,8 +286,6 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
         />
 
         <meterSelect.SelectFieldSheet />
-
-        <StatusBar />
       </GestureHandlerRootView>
     </KeyboardProvider>
   )

@@ -1,25 +1,19 @@
-import { TouchableOpacity, View } from 'react-native'
+import { View } from 'react-native'
 import { Stack } from 'expo-router/stack'
-import { translate } from '@/lib/translations/i18n'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SaveIcon, XIcon } from 'lucide-react-native'
-import { StatusBar } from '@/lib/components/StatusBar'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { updateMeter, useMeterById } from '@/modules/meters/meters.query'
 import { useForm } from '@formsignals/form-react'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
-import { Button } from '@/lib/components/Button'
+import { Button } from '@/modules/general/components/Button'
 import { activeBuilding } from '@/modules/buildings/buildings.signals'
 import { MeterForm } from '@/modules/meters/components/MeterForm'
-import {
-  HeaderDialogBackButton,
-  makeHeaderDialogBackButton,
-} from '@/lib/components/header/HeaderBackButton'
-import { HeaderButtons } from '@/lib/components/header/HeaderButtons'
+import { makeHeaderDialogBackButton } from '@/modules/general/components/header/HeaderBackButton'
+import { HeaderButtons } from '@/modules/general/components/header/HeaderButtons'
+import { useDefaultStyles } from '@/modules/general/theme'
+import { translate } from '@/modules/general/translations'
 
 export default function Page() {
   const router = useRouter()
-  const colors = useColors()
   const defaultStyles = useDefaultStyles()
   const { meterId: meterIdRaw } = useLocalSearchParams()
   const meterId = parseInt(meterIdRaw as string)
@@ -64,7 +58,9 @@ export default function Page() {
           headerLeft: makeHeaderDialogBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button onPress={() => form.handleSubmit()}>{translate('general.save')}</Button>
+              <Button onPress={() => form.handleSubmit()}>
+                {translate('general.save')}
+              </Button>
             </HeaderButtons>
           ),
           animation: 'slide_from_bottom',
@@ -73,8 +69,6 @@ export default function Page() {
       />
 
       {meter && <MeterForm form={form} meterId={meterId} />}
-
-      <StatusBar />
     </View>
   )
 }

@@ -1,6 +1,5 @@
 import { getYearlyUsagesForMeter } from '@/modules/readings/readings.query'
 import { useMemo } from 'react'
-import { useChartColors } from '@/lib/constants/theme'
 import {
   extent,
   interpolateHcl,
@@ -11,27 +10,30 @@ import {
   scaleOrdinal,
 } from 'd3'
 import { useFont } from '@shopify/react-native-skia'
+import { useChartColors } from '@/modules/general/theme'
 
 export function useUsagePerYearData(
   data: Awaited<ReturnType<typeof getYearlyUsagesForMeter>>,
   width: number,
   height: number,
   paddingX: number,
-  paddingY: number
+  paddingY: number,
 ) {
   const chartColors = useChartColors()
   const font = useFont(require('@/assets/fonts/SpaceMono-Regular.ttf'), 12)
+
   return useMemo(() => {
-    if (!font) return { xScale: null, yScale: null, colorScale: null }
+    if (!font || !data.length)
+      return { xScale: null, yScale: null, colorScale: null }
     const yearWidth = font.measureText('0000').width
 
     const years = data.map((r) => `${r.year}`)
 
     // Add more colors if there are more years than colors
     const colorPalettesToAdd = Math.ceil(years.length / chartColors.length)
-    const colorsTOUse = Array.from<string>({ length: colorPalettesToAdd }).flatMap(
-      () => chartColors
-    )
+    const colorsTOUse = Array.from<string>({
+      length: colorPalettesToAdd,
+    }).flatMap(() => chartColors)
     const interpolator = piecewise(interpolateHcl, colorsTOUse)
     const amountOfYears = Math.max(2, years.length)
     const colors = quantize(interpolator, amountOfYears)

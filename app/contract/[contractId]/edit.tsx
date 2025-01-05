@@ -1,23 +1,12 @@
-import { TouchableOpacity, View } from 'react-native'
+import { View } from 'react-native'
 import { Stack } from 'expo-router/stack'
-import { translate } from '@/lib/translations/i18n'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SaveIcon, XIcon } from 'lucide-react-native'
-import { StatusBar } from '@/lib/components/StatusBar'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { updateMeter, useMeterById } from '@/modules/meters/meters.query'
 import { useFieldGroup, useForm } from '@formsignals/form-react'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
-import { Button } from '@/lib/components/Button'
 import { activeBuilding } from '@/modules/buildings/buildings.signals'
-import { MeterForm } from '@/modules/meters/components/MeterForm'
+import { makeHeaderDialogBackButton } from '@/modules/general/components/header/HeaderBackButton'
+import { HeaderButtons } from '@/modules/general/components/header/HeaderButtons'
 import {
-  HeaderDialogBackButton,
-  makeHeaderDialogBackButton,
-} from '@/lib/components/header/HeaderBackButton'
-import { HeaderButtons } from '@/lib/components/header/HeaderButtons'
-import {
-  createContract,
   createContractRevision,
   updateContract,
   updateContractRevision,
@@ -25,8 +14,11 @@ import {
   useContractById,
 } from '@/modules/contracts/contracts.query'
 import { ContractForm } from '@/modules/contracts/components/ContractForm'
-import { useEffect, useState } from 'react'
-import { batch, useSignal, useSignalEffect } from '@preact/signals-react'
+import { useEffect } from 'react'
+import { useSignal } from '@preact/signals-react'
+import { Button } from '@/modules/general/components/Button'
+import { useDefaultStyles } from '@/modules/general/theme'
+import { translate } from '@/modules/general/translations'
 
 export default function Page() {
   const router = useRouter()
@@ -42,7 +34,7 @@ export default function Page() {
 
   const [contractRevisions] = useAllContractRevisionsForContract(contractId)
   const indexOfSelectedRevision = contractRevisions.findIndex(
-    (rev) => rev.id === selectedContractRevision.value
+    (rev) => rev.id === selectedContractRevision.value,
   )
   const selectedRevision = contractRevisions[indexOfSelectedRevision]
   const maxDateRevisions = contractRevisions.reduce(
@@ -52,7 +44,7 @@ export default function Page() {
       if (rev.endDate && max < rev.endDate) max = rev.endDate
       return max
     },
-    undefined as undefined | Date
+    undefined as undefined | Date,
   )
 
   const form = useForm({
@@ -65,9 +57,12 @@ export default function Page() {
         unitId: contract?.contract?.unitId ?? 1,
       },
       contractRevision: {
-        pricePerUnit: selectedRevision?.pricePerUnit ?? (null as never as number),
-        basePayment: selectedRevision?.basePayment ?? (null as never as number | null),
-        monthlyPayment: selectedRevision?.monthlyPayment ?? (null as never as number | null),
+        pricePerUnit:
+          selectedRevision?.pricePerUnit ?? (null as never as number),
+        basePayment:
+          selectedRevision?.basePayment ?? (null as never as number | null),
+        monthlyPayment:
+          selectedRevision?.monthlyPayment ?? (null as never as number | null),
         startDate: selectedRevision?.startDate ?? (null as never as Date),
         endDate: selectedRevision?.endDate ?? (null as never as Date | null),
       },
@@ -75,10 +70,15 @@ export default function Page() {
   })
   const baseData = useFieldGroup(
     form,
-    ['contract.name', 'contract.identifier', 'contract.buildingId', 'contract.unitId'],
+    [
+      'contract.name',
+      'contract.identifier',
+      'contract.buildingId',
+      'contract.unitId',
+    ],
     {
       onSubmit: (values) => updateContract(contractId, values.contract),
-    }
+    },
   )
   const revisionData = useFieldGroup(
     form,
@@ -92,10 +92,14 @@ export default function Page() {
     {
       onSubmit: async (values) => {
         const revisionId = selectedContractRevision.peek()
-        if (!revisionId) await createContractRevision({ ...values.contractRevision, contractId })
+        if (!revisionId)
+          await createContractRevision({
+            ...values.contractRevision,
+            contractId,
+          })
         else await updateContractRevision(revisionId, values.contractRevision)
       },
-    }
+    },
   )
 
   const onSubmit = async () => {
@@ -133,11 +137,11 @@ export default function Page() {
           revisionSectionSaveAction={
             revisionData.isDirty.value && (() => revisionData.handleSubmit())
           }
-          revisionSectionCancelAction={revisionData.isDirty.value && (() => revisionData.reset())}
+          revisionSectionCancelAction={
+            revisionData.isDirty.value && (() => revisionData.reset())
+          }
         />
       )}
-
-      <StatusBar />
     </View>
   )
 }

@@ -1,11 +1,8 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { CalendarIcon, DiffIcon, PlusIcon } from 'lucide-react-native'
-import { formatDate, formatNumber, translate } from '@/lib/translations/i18n'
 import { isToday } from 'date-fns'
 import { Link } from 'expo-router'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { useMemo } from 'react'
-import { ChangeIndicatorIcon } from '@/lib/components/ChangeIndicatorIcon'
 import Animated, {
   runOnJS,
   SharedValue,
@@ -20,6 +17,13 @@ import {
   getCellIndexFromPosition,
   getCellPositionFromIndex,
 } from '@/modules/meters/meters.constants'
+import { ChangeIndicatorIcon } from '@/modules/general/components'
+import { useColors, useDefaultStyles } from '@/modules/general/theme'
+import {
+  formatDate,
+  formatNumber,
+  translate,
+} from '@/modules/general/translations'
 
 interface Props {
   meter: {
@@ -38,8 +42,8 @@ interface Props {
 }
 
 export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
-  const defaultStyles = useDefaultStyles()
   const colors = useColors()
+  const defaultStyles = useDefaultStyles()
 
   const styles = useMemo(
     () =>
@@ -56,7 +60,7 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
           flex: 1,
         },
       }),
-    [colors]
+    [colors],
   )
 
   const position = getCellPositionFromIndex(positions.value[meter.meterId])
@@ -78,15 +82,18 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
       translateY.value = prevTranslateY.value + event.translationY
 
       const oldIndex = positions.value[meter.meterId]
-      const newIndex = getCellIndexFromPosition(translateX.value, translateY.value)
+      const newIndex = getCellIndexFromPosition(
+        translateX.value,
+        translateY.value,
+      )
       const indexIncluded = Object.values(positions.value).includes(newIndex)
       if (newIndex === oldIndex || newIndex < 0 || !indexIncluded) {
         return
       }
 
-      const keyOfNewIndex = (Object.keys(positions.value) as unknown as number[]).find(
-        (key) => positions.value[key] === newIndex
-      )
+      const keyOfNewIndex = (
+        Object.keys(positions.value) as unknown as number[]
+      ).find((key) => positions.value[key] === newIndex)
       if (!keyOfNewIndex) {
         return
       }
@@ -113,7 +120,7 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
       const newPositions = getCellPositionFromIndex(newIndex)
       translateX.value = newPositions.x
       translateY.value = newPositions.y
-    }
+    },
   )
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -140,7 +147,11 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
     <Animated.View style={[styles.meterContainer, animatedStyle]}>
       <GestureDetector gesture={panGestureHandler}>
         <Animated.View style={{ flex: 1 }}>
-          <Link key={meter.meterId} href={`/meter/${meter.meterId}` as any} asChild>
+          <Link
+            key={meter.meterId}
+            href={`/meter/${meter.meterId}` as any}
+            asChild
+          >
             <TouchableOpacity style={styles.meterContainerInner}>
               {hasLongTitle && (
                 <Text style={[defaultStyles.cardTitle, { marginBottom: 0 }]}>
@@ -150,12 +161,16 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
               <View style={[defaultStyles.row, { alignItems: 'flex-start' }]}>
                 <View style={{ flex: 1 }}>
                   {!hasLongTitle && (
-                    <Text style={[defaultStyles.cardTitle, { marginBottom: 0 }]}>
+                    <Text
+                      style={[defaultStyles.cardTitle, { marginBottom: 0 }]}
+                    >
                       {meter.meterName}
                     </Text>
                   )}
                   {meter.identifier && (
-                    <Text style={[defaultStyles.detailSmall]}>{meter.identifier}</Text>
+                    <Text style={[defaultStyles.detailSmall]}>
+                      {meter.identifier}
+                    </Text>
                   )}
                 </View>
                 {!isNaN(meter.percentileChange ?? 0) && (
@@ -167,8 +182,13 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                         {
                           color: changeColor,
                         },
-                      ]}>
-                      {formatNumber(meter.percentileChange ?? 0, meter.meterPrecision)} %
+                      ]}
+                    >
+                      {formatNumber(
+                        meter.percentileChange ?? 0,
+                        meter.meterPrecision,
+                      )}{' '}
+                      %
                     </Text>
                   </View>
                 )}
@@ -178,9 +198,15 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                 <View>
                   {meter.lastDifferencePerDay !== null && (
                     <View style={defaultStyles.iconText}>
-                      <DiffIcon size={defaultStyles.detail.fontSize} stroke={colors.textMuted} />
+                      <DiffIcon
+                        size={defaultStyles.detail.fontSize}
+                        stroke={colors.textMuted}
+                      />
                       <Text style={defaultStyles.detail}>
-                        {formatNumber(meter.lastDifferencePerDay, meter.meterPrecision)}{' '}
+                        {formatNumber(
+                          meter.lastDifferencePerDay,
+                          meter.meterPrecision,
+                        )}{' '}
                         <Text style={defaultStyles.detailSmall}>
                           {meter.meterUnit}
                           {translate('general.perDay')}
@@ -200,11 +226,13 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                     </View>
                   )}
                 </View>
-                {(!meter.lastReadingDate || !isToday(meter.lastReadingDate)) && (
+                {(!meter.lastReadingDate ||
+                  !isToday(meter.lastReadingDate)) && (
                   <Link
                     href={`/meter/${meter.meterId}/reading`}
                     asChild
-                    style={[defaultStyles.fab, { marginLeft: 'auto' }]}>
+                    style={[defaultStyles.fab, { marginLeft: 'auto' }]}
+                  >
                     <TouchableOpacity>
                       <PlusIcon size={16} stroke={colors.onPrimaryContainer} />
                     </TouchableOpacity>

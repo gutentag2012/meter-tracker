@@ -1,20 +1,18 @@
 // https://docs.expo.dev/guides/using-eslint/
 module.exports = {
   extends: ['expo', 'prettier'],
-  plugins: ['prettier'],
+  plugins: ['prettier', 'unused-imports'],
   rules: {
-    'prettier/prettier': [
-      'error',
+    'prettier/prettier': 'error',
+    '@typescript-eslint/no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-vars': [
+      'warn',
       {
-        printWidth: 100,
-        tabWidth: 2,
-        singleQuote: true,
-        bracketSameLine: true,
-        arrowParens: 'always',
-        jsxSingleQuote: true,
-        quoteProps: 'as-needed',
-        trailingComma: 'es5',
-        semi: false,
+        vars: 'all',
+        varsIgnorePattern: '^_',
+        args: 'after-used',
+        argsIgnorePattern: '^_',
       },
     ],
   },

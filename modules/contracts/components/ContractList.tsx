@@ -1,9 +1,9 @@
 import { Text, View } from 'react-native'
 import { useContractsForBuilding } from '@/modules/contracts/contracts.query'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
 import { LibraryIcon } from 'lucide-react-native'
 import { ContractListItem } from '@/modules/contracts/components/ContractListItem'
-import { translate } from '@/lib/translations/i18n'
+import { useColors, useDefaultStyles } from '@/modules/general/theme'
+import { translate } from '@/modules/general/translations'
 
 export function ContractList() {
   const colors = useColors()
@@ -24,9 +24,15 @@ export function ContractList() {
             backgroundColor: colors.card,
             borderRadius: 4,
             flex: 1,
-          }}>
+          }}
+        >
           <LibraryIcon color={colors.textMuted} />
-          <Text style={[defaultStyles.detail, { color: colors.textMuted, textAlign: 'center' }]}>
+          <Text
+            style={[
+              defaultStyles.detail,
+              { color: colors.textMuted, textAlign: 'center' },
+            ]}
+          >
             {translate('contracts.emptyList')}
           </Text>
         </View>

@@ -39,7 +39,7 @@ function populateStyle(styles, stylesKey, { parent, ...stylesValues }) {
   }
 
   Object.entries(stylesValues).forEach(([attributeKey, attributeValue]) =>
-    replaceAttribute(items, attributeKey, attributeValue)
+    replaceAttribute(items, attributeKey, attributeValue),
   )
 }
 
@@ -59,10 +59,11 @@ function buildStyles(androidStyles, stylesHolder) {
   }
 
   Object.entries(stylesHolder).forEach(([stylesKey, stylesValue]) =>
-    populateStyle(styles, stylesKey, stylesValue)
+    populateStyle(styles, stylesKey, stylesValue),
   )
 
   return androidStyles
 }
 
-module.exports = (config, props) => withPlugins(config, [[withAndroidStyle, props]])
+module.exports = (config, props) =>
+  withPlugins(config, [[withAndroidStyle, props]])

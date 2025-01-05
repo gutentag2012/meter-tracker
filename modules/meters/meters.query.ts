@@ -1,6 +1,6 @@
 import { db } from '@/database/db'
 import { contract, meter, meterType, reading, unit } from '@/database/schema'
-import { and, desc, eq, getTableName, lte, sql } from 'drizzle-orm'
+import { desc, eq, getTableName, lte, sql } from 'drizzle-orm'
 import { useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 import { useSignalEffect } from '@preact/signals-react'
@@ -14,12 +14,12 @@ export async function getAllMetersForBuilding(buildingId: number) {
         readingValue: reading.value,
         readingDate: reading.timestamp,
         row: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${meter.id} ORDER BY ${reading.timestamp} DESC)`.as(
-          'row'
+          'row',
         ),
       })
       .from(meter)
       .leftJoin(reading, eq(reading.meterId, meter.id))
-      .where(eq(meter.buildingId, buildingId))
+      .where(eq(meter.buildingId, buildingId)),
   )
   const readingDifferences = db.$with('readingDifferences').as(
     db
@@ -30,18 +30,18 @@ export async function getAllMetersForBuilding(buildingId: number) {
                                        - MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 2 THEN ${rankedReadingsPerMeter.readingValue} END))
                                        / NULLIF((MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 1 THEN ${rankedReadingsPerMeter.readingDate} END)
                                        - MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 2 THEN ${rankedReadingsPerMeter.readingDate} END)) / 86400.0, 0)`.as(
-            'last_difference_per_day'
+            'last_difference_per_day',
           ),
         secondDifferencePerDay:
           sql<number>`(MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 2 THEN ${rankedReadingsPerMeter.readingValue} END)
                                        - MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 3 THEN ${rankedReadingsPerMeter.readingValue} END))
                                        / NULLIF((MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 2 THEN ${rankedReadingsPerMeter.readingDate} END)
                                        - MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 3 THEN ${rankedReadingsPerMeter.readingDate} END)) / 86400.0, 0)`.as(
-            'second_difference_per_day'
+            'second_difference_per_day',
           ),
         lastReading:
           sql<number>`MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 1 THEN ${rankedReadingsPerMeter.readingValue} END)`.as(
-            'lastReading'
+            'lastReading',
           ),
         lastReadingDate:
           sql<number>`MAX(CASE WHEN ${rankedReadingsPerMeter.row} = 1 THEN ${rankedReadingsPerMeter.readingDate} END)`
@@ -50,7 +50,7 @@ export async function getAllMetersForBuilding(buildingId: number) {
       })
       .from(rankedReadingsPerMeter)
       .where(lte(rankedReadingsPerMeter.row, 3))
-      .groupBy(rankedReadingsPerMeter.meterId)
+      .groupBy(rankedReadingsPerMeter.meterId),
   )
   return db
     .with(rankedReadingsPerMeter, readingDifferences)
@@ -108,8 +108,8 @@ export async function resetMeterValue(meterId: number) {
         db
           .select({ maxTimestamp: sql`MAX(${reading.timestamp})` })
           .from(reading)
-          .where(eq(reading.meterId, meterId))
-      )
+          .where(eq(reading.meterId, meterId)),
+      ),
     )
     .catch((err) => console.error(err))
   if (!lastReadings) {
@@ -129,12 +129,17 @@ export async function createMeter(values: typeof meter.$inferInsert) {
   return db.insert(meter).values(values).execute()
 }
 
-export async function updateMeter(meterId: number, values: Partial<typeof meter.$inferInsert>) {
+export async function updateMeter(
+  meterId: number,
+  values: Partial<typeof meter.$inferInsert>,
+) {
   return db.update(meter).set(values).where(eq(meter.id, meterId)).execute()
 }
 
 export function useMetersForBuilding() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getAllMetersForBuilding>>>([])
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getAllMetersForBuilding>>
+  >([])
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {
@@ -169,7 +174,9 @@ export function useMetersForBuilding() {
 }
 
 export function useAllMeterTypes() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getAllMeterTypes>>>([])
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getAllMeterTypes>>
+  >([])
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {

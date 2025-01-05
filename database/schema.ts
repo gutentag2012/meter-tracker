@@ -1,4 +1,10 @@
-import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core'
+import {
+  sqliteTable,
+  integer,
+  text,
+  real,
+  AnySQLiteColumn,
+} from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 import { relations } from 'drizzle-orm/relations'
 
@@ -15,13 +21,15 @@ export const meterType = sqliteTable('meterType', {
   category: text('category').notNull(),
 })
 
-// @ts-expect-error This is a circular reference but should work
 export const unit = sqliteTable('unit', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   abbreviation: text('abbreviation').notNull(),
   conversionFactor: real('conversion_factor'), // This is the conversion factor to the base unit (kWh)
-  baseUnitId: integer('base_unit_id').references(() => unit.id, { onDelete: 'set null' }),
+  baseUnitId: integer('base_unit_id').references(
+    (): AnySQLiteColumn => unit.id,
+    { onDelete: 'set null' },
+  ),
 })
 
 export const contract = sqliteTable('contract', {
@@ -67,7 +75,9 @@ export const meter = sqliteTable('meter', {
   unitId: integer('unit_id')
     .notNull()
     .references(() => unit.id, { onDelete: 'set null' }),
-  contractId: integer('contract_id').references(() => contract.id, { onDelete: 'set null' }),
+  contractId: integer('contract_id').references(() => contract.id, {
+    onDelete: 'set null',
+  }),
 })
 
 export const reading = sqliteTable('reading', {

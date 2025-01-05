@@ -1,10 +1,14 @@
 import { Text, TouchableOpacity, View } from 'react-native'
-import { ChangeIndicatorIcon } from '@/lib/components/ChangeIndicatorIcon'
+import { ChangeIndicatorIcon } from '@/modules/general/components/ChangeIndicatorIcon'
 import { CalendarIcon, DiffIcon } from 'lucide-react-native'
-import { formatDate, formatNumber, translate } from '@/lib/translations/i18n'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { Link, useLocalSearchParams } from 'expo-router'
-import { useReadingById } from '@/modules/readings/readings.query'
+import { Link } from 'expo-router'
+import { Fragment } from 'react'
+import { useDefaultStyles, useColors } from '@/modules/general/theme'
+import {
+  formatDate,
+  formatNumber,
+  translate,
+} from '@/modules/general/translations'
 
 type ReadingListItemProps = {
   reading: {
@@ -12,7 +16,7 @@ type ReadingListItemProps = {
     readingValue: number
     precision: number | null
     difference: number | null
-    unitAbbreviation: string
+    unitAbbreviation: string | null
     percentileChange: number | null
     differencePerDay: number | null
     readingTimestamp: Date
@@ -33,8 +37,16 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
   return (
     <Link
       href={`/reading/${reading.readingId}/edit`}
-      style={[{ backgroundColor: colors.card, borderRadius: 4, padding: 8, height: 56 }]}
-      asChild>
+      style={[
+        {
+          backgroundColor: colors.card,
+          borderRadius: 4,
+          padding: 8,
+          height: 56,
+        },
+      ]}
+      asChild
+    >
       <TouchableOpacity>
         <View style={defaultStyles.row}>
           <Text style={[defaultStyles.bodyText, { flex: 1 }]}>
@@ -42,13 +54,15 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
             <Text style={defaultStyles.detail}>
               {' '}
               {reading.difference !== null && (
-                <>
+                <Fragment>
                   ({reading.difference >= 0 && '+'}
                   {formatNumber(reading.difference, reading.precision)}){' '}
-                </>
+                </Fragment>
               )}
             </Text>
-            <Text style={defaultStyles.detailSmall}>{reading.unitAbbreviation}</Text>
+            <Text style={defaultStyles.detailSmall}>
+              {reading.unitAbbreviation}
+            </Text>
           </Text>
           {reading.percentileChange !== null && (
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
@@ -61,7 +75,8 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
                       color: changeColor,
                       minWidth: 0,
                     },
-                  ]}>
+                  ]}
+                >
                   {formatNumber(reading.percentileChange)} %{' '}
                   {/*This is a workaround, since the % for some reason is hidden for larger numbers*/}
                 </Text>
@@ -72,27 +87,35 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
 
         <View style={{ flexDirection: 'row', gap: 16, marginTop: 'auto' }}>
           <View style={defaultStyles.iconText}>
-            <CalendarIcon color={colors.textMuted} size={defaultStyles.detail.fontSize} />
+            <CalendarIcon
+              color={colors.textMuted}
+              size={defaultStyles.detail.fontSize}
+            />
             <Text
               style={[
                 defaultStyles.detail,
                 {
                   color: colors.textMuted,
                 },
-              ]}>
+              ]}
+            >
               {formatDate(reading.readingTimestamp, 'PP')}
             </Text>
           </View>
           {reading.differencePerDay !== null && (
             <View style={defaultStyles.iconText}>
-              <DiffIcon color={colors.textMuted} size={defaultStyles.detail.fontSize} />
+              <DiffIcon
+                color={colors.textMuted}
+                size={defaultStyles.detail.fontSize}
+              />
               <Text
                 style={[
                   defaultStyles.detail,
                   {
                     color: colors.textMuted,
                   },
-                ]}>
+                ]}
+              >
                 {formatNumber(reading.differencePerDay, reading.precision)}
                 <Text style={defaultStyles.detailSmall}>
                   {' '}

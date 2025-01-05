@@ -2,7 +2,10 @@ const { withAndroidColors, withPlugins } = require('expo/config-plugins')
 
 function withAndroidAccentColor(config, colors) {
   return withAndroidColors(config, (config) => {
-    config.modResults = addOrReplaceAndroidAccentColor(config.modResults, colors)
+    config.modResults = addOrReplaceAndroidAccentColor(
+      config.modResults,
+      colors,
+    )
     return config
   })
 }
@@ -40,4 +43,5 @@ function addOrReplaceAndroidAccentColor(androidStyles, colorHolder) {
   return androidStyles
 }
 
-module.exports = (config, props) => withPlugins(config, [[withAndroidAccentColor, props]])
+module.exports = (config, props) =>
+  withPlugins(config, [[withAndroidAccentColor, props]])

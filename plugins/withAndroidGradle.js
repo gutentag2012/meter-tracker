@@ -15,4 +15,5 @@ function buildGradle(androidGradle) {
   return androidGradle
 }
 
-module.exports = (config, props) => withPlugins(config, [[withAndroidAccentColor, props]])
+module.exports = (config, props) =>
+  withPlugins(config, [[withAndroidAccentColor, props]])

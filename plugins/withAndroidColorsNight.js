@@ -40,4 +40,5 @@ function buildColors(androidStyles, colorHolder) {
   return androidStyles
 }
 
-module.exports = (config, props) => withPlugins(config, [[withAndroidAccentColor, props]])
+module.exports = (config, props) =>
+  withPlugins(config, [[withAndroidAccentColor, props]])

@@ -1,6 +1,5 @@
 import { getAllReadingsForMeter } from '@/modules/readings/readings.query'
 import { useMemo } from 'react'
-import { useChartColors } from '@/lib/constants/theme'
 import {
   curveCardinal,
   extent,
@@ -13,13 +12,14 @@ import {
   scaleTime,
 } from 'd3'
 import { useFont } from '@shopify/react-native-skia'
+import { useChartColors } from '@/modules/general/theme'
 
 export function useUsagePerDayData(
   data: Awaited<ReturnType<typeof getAllReadingsForMeter>>,
   width: number,
   height: number,
   paddingX: number,
-  paddingY: number
+  paddingY: number,
 ) {
   const font = useFont(require('@/assets/fonts/SpaceMono-Regular.ttf'), 12)
 
@@ -30,9 +30,13 @@ export function useUsagePerDayData(
       .map(
         (r) =>
           [
-            new Date(1970, r.readingTimestamp.getMonth(), r.readingTimestamp.getDate()),
+            new Date(
+              1970,
+              r.readingTimestamp.getMonth(),
+              r.readingTimestamp.getDate(),
+            ),
             r.differencePerDay,
-          ] as [Date, number]
+          ] as [Date, number],
       )
 
     const dataPerYear = data
@@ -44,28 +48,36 @@ export function useUsagePerDayData(
             acc[year] = []
           }
           acc[year].push([
-            new Date(1970, reading.readingTimestamp.getMonth(), reading.readingTimestamp.getDate()),
+            new Date(
+              1970,
+              reading.readingTimestamp.getMonth(),
+              reading.readingTimestamp.getDate(),
+            ),
             reading.differencePerDay,
           ] as [Date, number])
           return acc
         },
-        {} as Record<number, typeof relevantChartData>
+        {} as Record<number, typeof relevantChartData>,
       )
 
     const years = Object.keys(dataPerYear)
-    if (!years.length) return { linesPerYear: {}, xScale: null, yScale: null, colorScale: null }
+    if (!years.length)
+      return { linesPerYear: {}, xScale: null, yScale: null, colorScale: null }
 
     // Add more colors if there are more years than colors
     const colorPalettesToAdd = Math.ceil(years.length / chartColors.length)
-    const colorsTOUse = Array.from<string>({ length: colorPalettesToAdd }).flatMap(
-      () => chartColors
-    )
+    const colorsTOUse = Array.from<string>({
+      length: colorPalettesToAdd,
+    }).flatMap(() => chartColors)
     const interpolator = piecewise(interpolateHcl, colorsTOUse)
     const amountOfYears = Math.max(2, years.length)
     const colors = quantize(interpolator, amountOfYears)
     const colorScale = scaleOrdinal().domain(years).range(colors)
 
-    const globalYDomain = extent(relevantChartData.map((r) => r[1])) as [number, number]
+    const globalYDomain = extent(relevantChartData.map((r) => r[1])) as [
+      number,
+      number,
+    ]
 
     const yScale = scaleLinear()
       .domain(globalYDomain)
@@ -90,7 +102,7 @@ export function useUsagePerDayData(
             .y((d) => yScale(d[1]))
             .curve(curveCardinal.tension(0.7))(data),
         ]
-      })
+      }),
     )
 
     return {

@@ -1,23 +1,13 @@
 {
   "expo": {
     "name": "Meter Tracker",
-    "slug": "meter-tracker-expo",
+    "slug": "meter-tracker",
     "version": "1.0.10",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "metertracker",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "updates": {
-      "fallbackToCacheTimeout": 0
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -33,7 +23,6 @@
         "android.permission.POST_NOTIFICATIONS"
       ]
     },
-    "newArchEnabled": true,
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -42,12 +31,21 @@
     "plugins": [
       "expo-router",
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/icon.png",
+          "imageWidth": 128,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0"
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
           },
           "ios": {
             "deploymentTarget": "15.1"
@@ -60,12 +58,6 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
-        }
-      ],
-      [
-        "expo-document-picker",
-        {
-          "iCloudContainerEnvironment": "Production"
         }
       ],
       [
@@ -99,20 +91,18 @@
             "android:textColorSecondary": "@color/textMuted",
             "android:textColorSecondaryInverse": "@color/textMuted",
             "android:windowBackground": "@color/background",
-
             "android:windowLightStatusBar": "false"
           },
           "MaterialTimeDialog": {
             "parent": "android:Widget.Material.Light.TimePicker",
             "android:background": "@color/background",
             "android:headerBackground": "@color/card",
-            "android:numbersBackgroundColor":  "@color/card",
+            "android:numbersBackgroundColor": "@color/card",
             "android:numbersSelectorColor": "@color/primary",
-            "android:numbersTextColor":  "@color/text",
-            "colorControlNormal":  "@color/text",
-            "colorControlHighlight":  "@color/text",
-            "android:textColorSecondary":  "@color/textMuted",
-
+            "android:numbersTextColor": "@color/text",
+            "colorControlNormal": "@color/text",
+            "colorControlHighlight": "@color/text",
+            "android:textColorSecondary": "@color/textMuted",
             "colorPrimary": "@color/primary",
             "colorOnSurface": "@color/text",
             "colorError": "@color/negative",
@@ -124,7 +114,6 @@
             "android:textColorPrimary": "@color/text",
             "android:textColorPrimaryInverse": "@color/text",
             "android:textColorSecondaryInverse": "@color/textMuted",
-
             "android:windowLightStatusBar": "false"
           },
           "AlertDialog": {
@@ -163,7 +152,6 @@
       [
         "./plugins/withAndroidColors",
         {
-
           "background": "#f6fafd",
           "card": "#edf2f5",
           "text": "#171a1a",
@@ -180,14 +168,10 @@
       [
         "./plugins/withAndroidGradle"
       ],
+      "expo-font",
       "expo-localization",
-      "expo-font"
+      "expo-sqlite"
     ],
-    "extra": {
-      "eas": {
-        "projectId": "20ea4956-3406-4d9a-aaa6-119902d70601"
-      }
-    },
     "experiments": {
       "typedRoutes": true
     }

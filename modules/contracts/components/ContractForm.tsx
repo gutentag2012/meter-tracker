@@ -1,5 +1,4 @@
 import { Alert, Text, TouchableOpacity, View } from 'react-native'
-import { translate } from '@/lib/translations/i18n'
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -10,10 +9,9 @@ import {
   Trash2Icon,
   TriangleAlertIcon,
 } from 'lucide-react-native'
-import { StatusBar } from '@/lib/components/StatusBar'
-import { DarkColors, LightColors, useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { FormTextField } from '@/lib/components/TextField'
-import { useSelectField } from '@/lib/components/SelectField'
+import { StatusBar } from '@/modules/general/components/StatusBar'
+import { FormTextField } from '@/modules/general/components/TextField'
+import { useSelectField } from '@/modules/general/components/SelectField'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import {
   KeyboardAwareScrollView,
@@ -21,34 +19,56 @@ import {
   KeyboardProvider,
   KeyboardToolbar,
 } from 'react-native-keyboard-controller'
-import { useAllUnits } from '@/modules/general/units.query'
 import { z } from 'zod'
-import { Button } from '@/lib/components/Button'
+import { Button } from '@/modules/general/components/Button'
 import { FormContextType } from '@formsignals/form-react'
 import { ValidatorAdapter } from '@formsignals/form-core'
-import { FormDatePicker } from '@/lib/components/DatePicker'
+import { FormDatePicker } from '@/modules/general/components/DatePicker'
 import { useComputed } from '@preact/signals-react'
 import { formatDate } from 'date-fns'
 import { Signal } from '@preact/signals-core'
 import { deleteContract } from '@/modules/contracts/contracts.query'
 import { useRouter } from 'expo-router'
+import { Fragment } from 'react'
+import {
+  KeyboardToolbarTheme,
+  useDefaultStyles,
+  useColors,
+} from '@/modules/general/theme'
+import { useAllUnits } from '@/modules/units'
+import { translate } from '@/modules/general/translations'
+import { LangKey } from '@/modules/general/translations/en'
 
 // TODO Either add a confirm alert for the delete action or add a checkbox to enable the delete button
 
 const ContractSchema = {
   contractName: z
-    .string({ invalid_type_error: 'errors.required', required_error: 'errors.required' })
+    .string({
+      invalid_type_error: 'errors.required',
+      required_error: 'errors.required',
+    })
     .min(1, 'errors.min1'),
-  contractIdentifier: z.string({ invalid_type_error: 'errors.required' }).nullable(),
+  contractIdentifier: z
+    .string({ invalid_type_error: 'errors.required' })
+    .nullable(),
   revisionPricePerUnit: z
-    .number({ invalid_type_error: 'errors.required', required_error: 'errors.required' })
+    .number({
+      invalid_type_error: 'errors.required',
+      required_error: 'errors.required',
+    })
     .min(0, 'errors.positive'),
   revisionBasePayment: z
-    .number({ invalid_type_error: 'errors.number', required_error: 'errors.required' })
+    .number({
+      invalid_type_error: 'errors.number',
+      required_error: 'errors.required',
+    })
     .min(0, 'errors.positive')
     .nullable(),
   revisionMonthlyPayment: z
-    .number({ invalid_type_error: 'errors.number', required_error: 'errors.required' })
+    .number({
+      invalid_type_error: 'errors.number',
+      required_error: 'errors.required',
+    })
     .min(0, 'errors.positive')
     .nullable(),
   revisionStartDate: z.date({
@@ -116,7 +136,7 @@ export function ContractForm({
 
   const [units] = useAllUnits()
   const unitOptions = units.map((unit) => ({
-    label: translate(unit.name),
+    label: translate(unit.name as LangKey),
     textRight: unit.abbreviation,
     value: unit.id,
   }))
@@ -129,12 +149,15 @@ export function ContractForm({
   })
 
   const indexOfSelectedRevision =
-    selectedRevision === -1 ? (revisionIds?.length ?? 0) : (selectedRevision ?? 0)
+    selectedRevision === -1
+      ? (revisionIds?.length ?? 0)
+      : (selectedRevision ?? 0)
   const isPrevEnabled = indexOfSelectedRevision > 0
   const isNextEnabled = indexOfSelectedRevision < (revisionIds?.length ?? 0) - 1
 
   const selectedRevisionText = useComputed(() => {
-    const selectedStartDate = form.data.value.contractRevision.value.startDate.value
+    const selectedStartDate =
+      form.data.value.contractRevision.value.startDate.value
     if (!selectedStartDate) return translate('contracts.newRevisionHeader')
     return formatDate(selectedStartDate, 'LLLL y')
   })
@@ -145,15 +168,19 @@ export function ContractForm({
         <KeyboardAwareScrollView
           bottomOffset={50}
           style={[defaultStyles.pageContainer]}
-          contentContainerStyle={{ paddingBottom: 16 }}>
-          <form.FieldProvider name='contract.name' validator={ContractSchema.contractName}>
+          contentContainerStyle={{ paddingBottom: 16 }}
+        >
+          <form.FieldProvider
+            name="contract.name"
+            validator={ContractSchema.contractName}
+          >
             <FormTextField
               selectTextOnFocus
               label={translate('contracts.createLabelName')}
               placeholder={translate('general.typeHere')}
             />
           </form.FieldProvider>
-          <form.FieldProvider name='contract.identifier'>
+          <form.FieldProvider name="contract.identifier">
             <FormTextField
               selectTextOnFocus
               label={translate('contracts.createLabelIdentifier')}
@@ -167,53 +194,65 @@ export function ContractForm({
             <View style={defaultStyles.row}>
               <Text style={[defaultStyles.cardTitle, { flex: 1 }]}>
                 {translate('contracts.createSectionRevision')}{' '}
-                <Text style={defaultStyles.detail}>({selectedRevisionText.value})</Text>
+                <Text style={defaultStyles.detail}>
+                  ({selectedRevisionText.value})
+                </Text>
               </Text>
               {revisionSectionSaveAction && revisionSectionCancelAction && (
                 <View style={{ paddingVertical: 4, flexDirection: 'row' }}>
-                  <Button variant='ghost' onPress={revisionSectionCancelAction}>
+                  <Button variant="ghost" onPress={revisionSectionCancelAction}>
                     {translate('general.cancel')}
                   </Button>
-                  <Button variant='text' onPress={revisionSectionSaveAction}>
+                  <Button variant="text" onPress={revisionSectionSaveAction}>
                     {translate('general.save')}
                   </Button>
                 </View>
               )}
-              {!revisionSectionSaveAction && !revisionSectionCancelAction && selectedRevisionId && (
-                <View style={defaultStyles.row}>
-                  <Button
-                    variant='icon'
-                    disabled={!isPrevEnabled}
-                    onPress={() => {
-                      if (!isPrevEnabled) return
-                      selectedRevisionId.value = revisionIds?.[indexOfSelectedRevision - 1]
-                    }}>
-                    <ChevronLeftIcon
-                      size={16}
-                      stroke={!isPrevEnabled ? colors.textMuted : colors.text}
-                    />
-                  </Button>
-                  <Button
-                    variant='icon'
-                    disabled={selectedRevision === -1}
-                    onPress={() => {
-                      if (!isNextEnabled) {
-                        selectedRevisionId.value = undefined
-                        return
-                      }
-                      selectedRevisionId.value = revisionIds?.[indexOfSelectedRevision + 1]
-                    }}>
-                    {isNextEnabled ? (
-                      <ChevronRightIcon size={16} stroke={colors.text} />
-                    ) : (
-                      <PlusIcon
+              {!revisionSectionSaveAction &&
+                !revisionSectionCancelAction &&
+                selectedRevisionId && (
+                  <View style={defaultStyles.row}>
+                    <Button
+                      variant="icon"
+                      disabled={!isPrevEnabled}
+                      onPress={() => {
+                        if (!isPrevEnabled) return
+                        selectedRevisionId.value =
+                          revisionIds?.[indexOfSelectedRevision - 1]
+                      }}
+                    >
+                      <ChevronLeftIcon
                         size={16}
-                        stroke={selectedRevision === -1 ? colors.textMuted : colors.primary}
+                        stroke={!isPrevEnabled ? colors.textMuted : colors.text}
                       />
-                    )}
-                  </Button>
-                </View>
-              )}
+                    </Button>
+                    <Button
+                      variant="icon"
+                      disabled={selectedRevision === -1}
+                      onPress={() => {
+                        if (!isNextEnabled) {
+                          selectedRevisionId.value = undefined
+                          return
+                        }
+                        selectedRevisionId.value =
+                          revisionIds?.[indexOfSelectedRevision + 1]
+                      }}
+                    >
+                      {isNextEnabled ? (
+                        <ChevronRightIcon size={16} stroke={colors.text} />
+                      ) : (
+                        <PlusIcon
+                          size={16}
+                          stroke={
+                            selectedRevision === -1
+                              ? colors.textMuted
+                              : colors.primary
+                          }
+                        />
+                      )}
+                    </Button>
+                  </View>
+                )}
             </View>
             {!!selectedRevisionId?.value &&
               revisionSectionSaveAction &&
@@ -230,10 +269,15 @@ export function ContractForm({
                       paddingLeft: 8,
                       gap: 8,
                     },
-                  ]}>
+                  ]}
+                >
                   <TriangleAlertIcon size={16} stroke={colors.warning} />
                   <Text
-                    style={[defaultStyles.detailSmall, { color: colors.warning, lineHeight: 14 }]}>
+                    style={[
+                      defaultStyles.detailSmall,
+                      { color: colors.warning, lineHeight: 14 },
+                    ]}
+                  >
                     {translate('contracts.warningEditingExistingRevision')}
                   </Text>
                 </View>
@@ -241,7 +285,7 @@ export function ContractForm({
           </View>
 
           <form.FieldProvider
-            name='contractRevision.pricePerUnit'
+            name="contractRevision.pricePerUnit"
             transformFromBinding={(value: string) => {
               if (!value) return [null as never as number, false]
               const parsed = parseFloat(value.replace(',', '.'))
@@ -250,34 +294,40 @@ export function ContractForm({
             transformToBinding={(
               value: number | null,
               isValid: boolean,
-              writeBuffer?: string
+              writeBuffer?: string,
             ): string => {
               if (!isValid) {
                 return writeBuffer ?? '' // This is the last value entered by the user
               }
               return value?.toString() ?? '' // This is the last valid value
             }}
-            validator={ContractSchema.revisionPricePerUnit}>
+            validator={ContractSchema.revisionPricePerUnit}
+          >
             <FormTextField
               selectTextOnFocus
               useTransformed
               endIcon={
                 <EuroIcon
                   color={colors.textStatic}
-                  style={{ position: 'absolute', right: 8, top: 33, pointerEvents: 'none' }}
+                  style={{
+                    position: 'absolute',
+                    right: 8,
+                    top: 33,
+                    pointerEvents: 'none',
+                  }}
                   size={16}
                 />
               }
               label={translate('contracts.createLabelPricePerUnit')}
               placeholder={translate('general.typeHere')}
               containerStyle={{ flex: 1 }}
-              keyboardType='numeric'
+              keyboardType="numeric"
             />
           </form.FieldProvider>
 
           <View style={[defaultStyles.row, { alignItems: 'flex-start' }]}>
             <form.FieldProvider
-              name='contractRevision.monthlyPayment'
+              name="contractRevision.monthlyPayment"
               transformFromBinding={(value: string) => {
                 if (!value) return [null, false]
                 const parsed = parseFloat(value.replace(',', '.'))
@@ -286,14 +336,15 @@ export function ContractForm({
               transformToBinding={(
                 value: number | null,
                 isValid: boolean,
-                writeBuffer?: string
+                writeBuffer?: string,
               ): string => {
                 if (!isValid) {
                   return writeBuffer ?? '' // This is the last value entered by the user
                 }
                 return value?.toString() ?? '' // This is the last valid value
               }}
-              validator={ContractSchema.revisionMonthlyPayment}>
+              validator={ContractSchema.revisionMonthlyPayment}
+            >
               <FormTextField
                 selectTextOnFocus
                 useTransformed
@@ -301,12 +352,12 @@ export function ContractForm({
                 hint={translate('contracts.createLabelMonthlyPaymentHint')}
                 placeholder={translate('general.typeHere')}
                 containerStyle={{ flex: 1 }}
-                keyboardType='numeric'
+                keyboardType="numeric"
               />
             </form.FieldProvider>
 
             <form.FieldProvider
-              name='contractRevision.basePayment'
+              name="contractRevision.basePayment"
               transformFromBinding={(value: string) => {
                 if (!value) return [null, false]
                 const parsed = parseFloat(value.replace(',', '.'))
@@ -315,14 +366,15 @@ export function ContractForm({
               transformToBinding={(
                 value: number | null,
                 isValid: boolean,
-                writeBuffer?: string
+                writeBuffer?: string,
               ): string => {
                 if (!isValid) {
                   return writeBuffer ?? '' // This is the last value entered by the user
                 }
                 return value?.toString() ?? '' // This is the last valid value
               }}
-              validator={ContractSchema.revisionBasePayment}>
+              validator={ContractSchema.revisionBasePayment}
+            >
               <FormTextField
                 selectTextOnFocus
                 useTransformed
@@ -330,40 +382,51 @@ export function ContractForm({
                 hint={translate('contracts.createLabelBasePaymentHint')}
                 placeholder={translate('general.typeHere')}
                 containerStyle={{ flex: 1 }}
-                keyboardType='numeric'
+                keyboardType="numeric"
               />
             </form.FieldProvider>
           </View>
 
           <View style={[defaultStyles.row, { alignItems: 'flex-start' }]}>
             <form.FieldProvider
-              name='contractRevision.startDate'
+              name="contractRevision.startDate"
               validator={ContractSchema.revisionStartDate.refine(
                 (startDate) =>
                   !!selectedRevisionId?.peek() ||
                   !maxDateRevisions ||
                   startDate >= maxDateRevisions,
-                translate('contracts.startMustBeAfterPreviousRevisions')
-              )}>
-              <FormDatePicker label={translate('contracts.createLabelStartDate')} />
+                translate('contracts.startMustBeAfterPreviousRevisions'),
+              )}
+            >
+              <FormDatePicker
+                label={translate('contracts.createLabelStartDate')}
+              />
             </form.FieldProvider>
 
             <form.FieldProvider
-              name='contractRevision.endDate'
+              name="contractRevision.endDate"
               validateMixin={['contractRevision.startDate']}
-              validator={ContractSchema.revisionEndDate as any}>
-              <FormDatePicker label={translate('contracts.createLabelEndDate')} />
+              validator={ContractSchema.revisionEndDate as any}
+            >
+              <FormDatePicker
+                label={translate('contracts.createLabelEndDate')}
+              />
             </form.FieldProvider>
           </View>
 
           {contractId !== undefined && (
-            <>
-              <Text style={[defaultStyles.cardTitle, { marginBottom: 8, marginTop: 16 }]}>
+            <Fragment>
+              <Text
+                style={[
+                  defaultStyles.cardTitle,
+                  { marginBottom: 8, marginTop: 16 },
+                ]}
+              >
                 {translate('contracts.createSectionActions')}
               </Text>
               <View style={{ gap: 8 }}>
                 <Button
-                  size='large'
+                  size="large"
                   onPress={async () => {
                     Alert.alert(
                       translate('contracts.alertDeleteTitle'),
@@ -381,13 +444,19 @@ export function ContractForm({
                             router.navigate('/')
                           },
                         },
-                      ]
+                      ],
                     )
                   }}
                   IconStart={<Trash2Icon size={16} stroke={colors.negative} />}
-                  variant='ghost'>
+                  variant="ghost"
+                >
                   <View>
-                    <Text style={[defaultStyles.bodyText, { color: colors.negative }]}>
+                    <Text
+                      style={[
+                        defaultStyles.bodyText,
+                        { color: colors.negative },
+                      ]}
+                    >
                       {translate('contracts.actionDelete')}
                     </Text>
                     <Text style={[defaultStyles.detailSmall]}>
@@ -396,32 +465,20 @@ export function ContractForm({
                   </View>
                 </Button>
               </View>
-            </>
+            </Fragment>
           )}
         </KeyboardAwareScrollView>
 
         <KeyboardToolbar
-          theme={{
-            dark: {
-              primary: DarkColors.primary,
-              background: DarkColors.card,
-              ripple: 'transparent',
-              disabled: DarkColors.primaryContainer,
-            },
-            light: {
-              primary: LightColors.primary,
-              background: LightColors.card,
-              ripple: 'transparent',
-              disabled: LightColors.primaryContainer,
-            },
-          }}
+          theme={KeyboardToolbarTheme}
           doneText={translate('general.save')}
           onDoneCallback={() => (onSubmit ? onSubmit() : form.handleSubmit())}
           icon={({ type, disabled }) => (
             <TouchableOpacity
               disabled={disabled}
               style={{ padding: 8 }}
-              onPress={() => KeyboardController.setFocusTo(type)}>
+              onPress={() => KeyboardController.setFocusTo(type)}
+            >
               {type === 'next' ? (
                 <ChevronDownIcon
                   size={24}

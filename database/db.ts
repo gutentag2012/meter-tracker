@@ -4,8 +4,8 @@ import * as Schema from '@/database/schema'
 import { drizzle } from 'drizzle-orm/expo-sqlite'
 import { migrate } from 'drizzle-orm/expo-sqlite/migrator'
 import { openDatabaseSync } from 'expo-sqlite'
-import { isDatabaseMigrated } from '@/modules/general/setup.signals'
 import { getTableName, sql } from 'drizzle-orm'
+import { isDatabaseMigrated } from './db.signals'
 
 // TODO Migrate from the old database to the new database
 
@@ -22,12 +22,14 @@ const db = drizzle<typeof Schema>(expoDatabase, {
 let SHOULD_RESET_DATABASE = false
 isDatabaseMigrated.value = false
 if (SHOULD_RESET_DATABASE) {
-  ;(async function migrate() {
+  ;(async function () {
     for (const [table, tableEntity] of Object.entries(Schema)) {
       console.log('Dropping table', table)
+      // @ts-expect-error tableEntity is the correct value
       db.run(sql.raw(`DROP TABLE IF EXISTS ${getTableName(tableEntity)}`))
     }
     console.log('Resetting database migrations')
+    // noinspection SqlResolve
     db.run(sql`DELETE FROM __drizzle_migrations`)
     console.log('Running migrations')
     await migrate(db, migrations)

@@ -1,12 +1,15 @@
 import { StyleSheet, Text, View } from 'react-native'
-import { updateMeterOrders, useMetersForBuilding } from '@/modules/meters/meters.query'
+import {
+  updateMeterOrders,
+  useMetersForBuilding,
+} from '@/modules/meters/meters.query'
 import { MeterGridItem } from '@/modules/meters/components/MeterGridItem'
 import { LibraryIcon } from 'lucide-react-native'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { translate } from '@/lib/translations/i18n'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { getCellContainerHeight } from '@/modules/meters/meters.constants'
 import { useAnimatedReaction, useSharedValue } from 'react-native-reanimated'
+import { useColors, useDefaultStyles } from '@/modules/general/theme'
+import { translate } from '@/modules/general/translations'
 
 export function MeterGrid() {
   const colors = useColors()
@@ -22,14 +25,16 @@ export function MeterGrid() {
           acc[meter.meterId] = index
           return acc
         },
-        {} as Record<number, number>
+        {} as Record<number, number>,
       )
     },
-    [meters, positions]
+    [meters, positions],
   )
 
   return (
-    <GestureHandlerRootView style={{ height: getCellContainerHeight(meters.length) }}>
+    <GestureHandlerRootView
+      style={{ height: getCellContainerHeight(meters.length) }}
+    >
       {meters.map((meter) => (
         <MeterGridItem
           key={meter.meterId}
@@ -56,9 +61,15 @@ export function MeterGrid() {
             backgroundColor: colors.card,
             borderRadius: 4,
             flex: 1,
-          }}>
+          }}
+        >
           <LibraryIcon color={colors.textMuted} />
-          <Text style={[defaultStyles.detail, { color: colors.textMuted, textAlign: 'center' }]}>
+          <Text
+            style={[
+              defaultStyles.detail,
+              { color: colors.textMuted, textAlign: 'center' },
+            ]}
+          >
             {translate('meters.emptyList')}
           </Text>
         </View>

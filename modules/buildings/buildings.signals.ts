@@ -1,9 +1,9 @@
 import { signal } from '@preact/signals-core'
 import { db } from '@/database/db'
+import { isDatabaseMigrated } from '@/database/db.signals'
 import { building } from '@/database/schema'
 import { eq } from 'drizzle-orm'
 import { effect } from '@preact/signals-react'
-import { isDatabaseMigrated } from '@/modules/general/setup.signals'
 
 export const activeBuilding = signal(1)
 

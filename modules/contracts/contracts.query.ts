@@ -1,6 +1,20 @@
 import { db } from '@/database/db'
-import { contract, contractRevision, meter, reading, unit } from '@/database/schema'
-import { aliasedTable, and, desc, eq, getTableName, isNotNull, sql } from 'drizzle-orm'
+import {
+  contract,
+  contractRevision,
+  meter,
+  reading,
+  unit,
+} from '@/database/schema'
+import {
+  aliasedTable,
+  and,
+  desc,
+  eq,
+  getTableName,
+  isNotNull,
+  sql,
+} from 'drizzle-orm'
 import { useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 import { useSignalEffect } from '@preact/signals-react'
@@ -19,10 +33,14 @@ export async function getAllContractsForBuilding(buildingId: number) {
         readingValue: reading.value,
         rowNumFirst:
           sql<number>`ROW_NUMBER() OVER (PARTITION BY ${reading.meterId}, strftime('%Y-%m', ${reading.timestamp}, 'unixepoch')
-                                    ORDER BY ${reading.timestamp} ASC)`.as('row_num_first'),
+                                    ORDER BY ${reading.timestamp} ASC)`.as(
+            'row_num_first',
+          ),
         rowNumLast:
           sql<number>`ROW_NUMBER() OVER (PARTITION BY ${reading.meterId}, strftime('%Y-%m', ${reading.timestamp}, 'unixepoch')
-                                    ORDER BY ${reading.timestamp} DESC)`.as('row_num_last'),
+                                    ORDER BY ${reading.timestamp} DESC)`.as(
+            'row_num_last',
+          ),
       })
       .from(reading)
       .innerJoin(meter, eq(reading.meterId, meter.id))
@@ -34,9 +52,9 @@ export async function getAllContractsForBuilding(buildingId: number) {
               strftime('%Y-%m', 'now', 'localtime'),
               strftime('%Y-%m', 'now', 'localtime', '-1 month'),
               strftime('%Y-%m', 'now', 'localtime', '-2 month')
-            )`
-        )
-      )
+            )`,
+        ),
+      ),
   )
   const aggregatedReadings = db.$with('aggregatedReadings').as(
     db
@@ -45,11 +63,11 @@ export async function getAllContractsForBuilding(buildingId: number) {
         month: monthlyReadings.month,
         firstReadingValue:
           sql<number>`MAX(CASE WHEN ${monthlyReadings.rowNumFirst} = 1 THEN ${monthlyReadings.readingValue} END )`.as(
-            'first_reading_value'
+            'first_reading_value',
           ),
         lastReadingValue:
           sql<number>`MAX(CASE WHEN ${monthlyReadings.rowNumLast} = 1 THEN ${monthlyReadings.readingValue} END)`.as(
-            'last_reading_value'
+            'last_reading_value',
           ),
         firstReadingTimestamp:
           sql<number>`MAX(CASE WHEN ${monthlyReadings.rowNumFirst} = 1 THEN ${monthlyReadings.readingTimestamp} END)`
@@ -61,7 +79,7 @@ export async function getAllContractsForBuilding(buildingId: number) {
             .as('last_reading_timestamp'),
       })
       .from(monthlyReadings)
-      .groupBy(monthlyReadings.meterId, monthlyReadings.month as any)
+      .groupBy(monthlyReadings.meterId, monthlyReadings.month as any),
   )
   const activeContractRevision = db.$with('activeContractRevision').as(
     db
@@ -73,7 +91,7 @@ export async function getAllContractsForBuilding(buildingId: number) {
         contractStartDate: contractRevision.startDate,
         contractEndDate: contractRevision.endDate,
         row: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${contractRevision.contractId} ORDER BY ${contractRevision.startDate} DESC)`.as(
-          'row'
+          'row',
         ),
       })
       .from(contractRevision)
@@ -82,10 +100,10 @@ export async function getAllContractsForBuilding(buildingId: number) {
         and(
           eq(contract.buildingId, buildingId),
           sql`${contractRevision.endDate} IS NULL OR ${contractRevision.endDate} >= unixepoch()`,
-          sql`${contractRevision.startDate} <= unixepoch()`
-        )
+          sql`${contractRevision.startDate} <= unixepoch()`,
+        ),
       )
-      .orderBy(desc(contractRevision.startDate))
+      .orderBy(desc(contractRevision.startDate)),
   )
   const meterUnit = aliasedTable(unit, 'meterUnit')
   const contractUnit = aliasedTable(unit, 'contractUnit')
@@ -95,17 +113,17 @@ export async function getAllContractsForBuilding(buildingId: number) {
         meterId: meter.id,
         meterConversionFactor:
           sql`IFNULL(${meter.customUnitConversion}, ${meterUnit.conversionFactor})`.as(
-            'meter_conversion_factor'
+            'meter_conversion_factor',
           ),
         contractConversionFactor: sql`${contractUnit.conversionFactor}`.as(
-          'contract_conversion_factor'
+          'contract_conversion_factor',
         ),
       })
       .from(meter)
       .leftJoin(meterUnit, eq(meter.unitId, meterUnit.id))
       .leftJoin(contract, eq(meter.contractId, contract.id))
       .leftJoin(contractUnit, eq(contract.unitId, contractUnit.id))
-      .where(eq(meter.buildingId, buildingId))
+      .where(eq(meter.buildingId, buildingId)),
   )
   const usageCalculation = db.$with('usageCalculation').as(
     db
@@ -114,19 +132,19 @@ export async function getAllContractsForBuilding(buildingId: number) {
         month: aggregatedReadings.month,
         lastReadingPreviousMonth:
           sql<number>`LAG(${aggregatedReadings.lastReadingValue}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.month})`.as(
-            'last_reading_previous_month'
+            'last_reading_previous_month',
           ),
         lastReadingPreviousMonthTimestamp:
           sql<number>`LAG(${aggregatedReadings.lastReadingTimestamp}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.month})`.as(
-            'last_reading_previous_month_timestamp'
+            'last_reading_previous_month_timestamp',
           ),
         firstReadingNextMonth:
           sql<number>`LEAD(${aggregatedReadings.firstReadingValue}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.month})`.as(
-            'first_reading_next_month'
+            'first_reading_next_month',
           ),
         firstReadingNextMonthTimestamp:
           sql<number>`LEAD(${aggregatedReadings.firstReadingTimestamp}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.month})`.as(
-            'first_reading_next_month_timestamp'
+            'first_reading_next_month_timestamp',
           ),
         firstReadingValue: aggregatedReadings.firstReadingValue,
         lastReadingValue: aggregatedReadings.lastReadingValue,
@@ -134,22 +152,22 @@ export async function getAllContractsForBuilding(buildingId: number) {
         lastReadingTimestamp: aggregatedReadings.lastReadingTimestamp,
         secondsBetweenReadingPreviousMonth:
           sql<number>`(${aggregatedReadings.firstReadingTimestamp} - LAG(${aggregatedReadings.lastReadingTimestamp}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.month}))`.as(
-            'seconds_between_reading_previous_month'
+            'seconds_between_reading_previous_month',
           ),
         secondsBetweenReadingNextMonth:
           sql<number>`(LEAD(${aggregatedReadings.firstReadingTimestamp}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.month}) - ${aggregatedReadings.lastReadingTimestamp})`.as(
-            'seconds_between_reading_next_month'
+            'seconds_between_reading_next_month',
           ),
         secondsInCurrentMonthFromStart:
           sql<number>`${aggregatedReadings.firstReadingTimestamp} - strftime('%s', ${aggregatedReadings.month} || '-01')`.as(
-            'seconds_in_current_month_from_start'
+            'seconds_in_current_month_from_start',
           ),
         secondsInCurrentMonthToEnd:
           sql<number>`strftime('%s', ${aggregatedReadings.month} || '-01', '+1 month') - ${aggregatedReadings.lastReadingTimestamp}`.as(
-            'seconds_in_current_month_to_end'
+            'seconds_in_current_month_to_end',
           ),
       })
-      .from(aggregatedReadings)
+      .from(aggregatedReadings),
   )
   const summedMonthlyUsages = db.$with('summedMonthlyUsages').as(
     db
@@ -182,19 +200,19 @@ export async function getAllContractsForBuilding(buildingId: number) {
                                         END)`.as('usage_current_month'),
         daysInLastMonth:
           sql<number>`julianday('now', 'start of month') - julianday('now', 'start of month', '-1 month')`.as(
-            'days_in_last_month'
+            'days_in_last_month',
           ),
         daysInCurrentMonthPartial:
           sql<number>`julianday('now') - julianday('now', 'start of month')`.as(
-            'days_in_current_month_partial'
+            'days_in_current_month_partial',
           ),
         daysInCurrentYear:
           sql<number>`julianday('now', 'start of year', '+1 year') - julianday('now', 'start of year')`.as(
-            'days_in_current_year'
+            'days_in_current_year',
           ),
       })
       .from(usageCalculation)
-      .groupBy(usageCalculation.meterId)
+      .groupBy(usageCalculation.meterId),
   )
   const meterStats = db.$with('meterStats').as(
     db
@@ -202,11 +220,11 @@ export async function getAllContractsForBuilding(buildingId: number) {
         contractId: meter.contractId,
         totalCostLastMonth:
           sql<number>`(${summedMonthlyUsages.usageLastMonth} * ${unitConversionFactors.meterConversionFactor} / ${unitConversionFactors.contractConversionFactor} * ${activeContractRevision.contractPricePerUnit}) + (${activeContractRevision.contractBasePayment} / ${summedMonthlyUsages.daysInCurrentYear} * ${summedMonthlyUsages.daysInLastMonth})`.as(
-            'total_cost_last_month'
+            'total_cost_last_month',
           ),
         totalCostCurrentMonth:
           sql<number>`(${summedMonthlyUsages.usageCurrentMonth} * ${unitConversionFactors.meterConversionFactor} / ${unitConversionFactors.contractConversionFactor} * ${activeContractRevision.contractPricePerUnit}) + (${activeContractRevision.contractBasePayment} / ${summedMonthlyUsages.daysInCurrentYear} * ${summedMonthlyUsages.daysInCurrentMonthPartial})`.as(
-            'total_cost_current_month'
+            'total_cost_current_month',
           ),
       })
       .from(summedMonthlyUsages)
@@ -215,9 +233,15 @@ export async function getAllContractsForBuilding(buildingId: number) {
       .leftJoin(contractUnit, eq(contract.unitId, contractUnit.id))
       .leftJoin(
         activeContractRevision,
-        and(eq(contract.id, activeContractRevision.contractId), eq(activeContractRevision.row, 1))
+        and(
+          eq(contract.id, activeContractRevision.contractId),
+          eq(activeContractRevision.row, 1),
+        ),
       )
-      .leftJoin(unitConversionFactors, eq(meter.id, unitConversionFactors.meterId))
+      .leftJoin(
+        unitConversionFactors,
+        eq(meter.id, unitConversionFactors.meterId),
+      ),
   )
   return db
     .with(
@@ -227,7 +251,7 @@ export async function getAllContractsForBuilding(buildingId: number) {
       unitConversionFactors,
       usageCalculation,
       summedMonthlyUsages,
-      meterStats
+      meterStats,
     )
     .select({
       contractId: contract.id,
@@ -238,18 +262,22 @@ export async function getAllContractsForBuilding(buildingId: number) {
       basePayment: activeContractRevision.contractBasePayment,
       monthlyPayment: activeContractRevision.contractMonthlyPayment,
       totalCostLastMonth: sql<number>`SUM(${meterStats.totalCostLastMonth})`.as(
-        'total_cost_last_month'
+        'total_cost_last_month',
       ),
-      totalCostCurrentMonth: sql<number>`SUM(${meterStats.totalCostCurrentMonth})`.as(
-        'total_cost_current_month'
-      ),
+      totalCostCurrentMonth:
+        sql<number>`SUM(${meterStats.totalCostCurrentMonth})`.as(
+          'total_cost_current_month',
+        ),
     })
     .from(contract)
     .leftJoin(meterStats, eq(meterStats.contractId, contract.id))
     .leftJoin(contractUnit, eq(contract.unitId, contractUnit.id))
     .leftJoin(
       activeContractRevision,
-      and(eq(contract.id, activeContractRevision.contractId), eq(activeContractRevision.row, 1))
+      and(
+        eq(contract.id, activeContractRevision.contractId),
+        eq(activeContractRevision.row, 1),
+      ),
     )
     .where(eq(contract.buildingId, buildingId))
     .groupBy(contract.id)
@@ -265,17 +293,23 @@ export function getAllContracts() {
       and(
         eq(contract.id, contractRevision.contractId),
         sql`${contractRevision.endDate} IS NULL OR ${contractRevision.endDate} >= unixepoch()`,
-        sql`${contractRevision.startDate} <= unixepoch()`
-      )
+        sql`${contractRevision.startDate} <= unixepoch()`,
+      ),
     )
     .leftJoin(unit, eq(contract.unitId, unit.id))
 }
 
 export async function createContract(values: {
   contract: typeof contract.$inferInsert
-  contractRevision: Omit<typeof contractRevision.$inferInsert, 'id' | 'contractId'>
+  contractRevision: Omit<
+    typeof contractRevision.$inferInsert,
+    'id' | 'contractId'
+  >
 }) {
-  const insertionRes = await db.insert(contract).values(values.contract).execute()
+  const insertionRes = await db
+    .insert(contract)
+    .values(values.contract)
+    .execute()
   await createContractRevision({
     ...values.contractRevision,
     contractId: insertionRes.lastInsertRowId,
@@ -289,18 +323,24 @@ export async function deleteContract(contractId: number) {
 
 export async function updateContract(
   contractId: number,
-  values: Partial<typeof contract.$inferInsert>
+  values: Partial<typeof contract.$inferInsert>,
 ) {
-  return db.update(contract).set(values).where(eq(contract.id, contractId)).execute()
+  return db
+    .update(contract)
+    .set(values)
+    .where(eq(contract.id, contractId))
+    .execute()
 }
 
-export async function createContractRevision(values: typeof contractRevision.$inferInsert) {
+export async function createContractRevision(
+  values: typeof contractRevision.$inferInsert,
+) {
   return db.insert(contractRevision).values(values).execute()
 }
 
 export async function updateContractRevision(
   revisionId: number,
-  values: Partial<Omit<typeof contractRevision.$inferInsert, 'id'>>
+  values: Partial<Omit<typeof contractRevision.$inferInsert, 'id'>>,
 ) {
   return db
     .update(contractRevision)
@@ -318,8 +358,8 @@ export async function getContractById(contractId: number) {
       and(
         eq(contract.id, contractRevision.contractId),
         sql`${contractRevision.endDate} IS NULL OR ${contractRevision.endDate} >= unixepoch()`,
-        sql`${contractRevision.startDate} <= unixepoch()`
-      )
+        sql`${contractRevision.startDate} <= unixepoch()`,
+      ),
     )
     .leftJoin(unit, eq(contract.unitId, unit.id))
     .where(eq(contract.id, contractId))
@@ -340,7 +380,9 @@ export async function getAllContractRevisionsForContract(contractId: number) {
 }
 
 export function useContractsForBuilding() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getAllContractsForBuilding>>>([])
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getAllContractsForBuilding>>
+  >([])
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {
@@ -376,9 +418,9 @@ export function useContractsForBuilding() {
 }
 
 export function useAllContractRevisionsForContract(contractId?: number) {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getAllContractRevisionsForContract>>>(
-    []
-  )
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getAllContractRevisionsForContract>>
+  >([])
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {
@@ -413,7 +455,9 @@ export function useAllContractRevisionsForContract(contractId?: number) {
 }
 
 export function useAllContracts() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getAllContracts>>>([])
+  const [data, setData] = useState<Awaited<ReturnType<typeof getAllContracts>>>(
+    [],
+  )
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {
@@ -447,7 +491,8 @@ export function useAllContracts() {
 }
 
 export function useContractById(contractId: number) {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getContractById>>>()
+  const [data, setData] =
+    useState<Awaited<ReturnType<typeof getContractById>>>()
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {

@@ -1,6 +1,6 @@
 import { db } from '@/database/db'
 import { meter, reading, unit } from '@/database/schema'
-import { and, or, desc, eq, getTableName, gte, lt, lte, sql } from 'drizzle-orm'
+import { and, or, desc, eq, getTableName, gte, lt, sql } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 import { useSignal, useSignalEffect } from '@preact/signals-react'
@@ -12,7 +12,7 @@ export function getAllReadingsForMeter(
     from: Date | null
     until: Date | null
     selectedYears: string[]
-  }
+  },
 ) {
   const sqlFilter = filter
     ? filter.selectedYears && filter.selectedYears.length > 0
@@ -20,13 +20,13 @@ export function getAllReadingsForMeter(
           ...filter.selectedYears.map((year) =>
             and(
               gte(reading.timestamp, new Date(+year, 0, 1)),
-              lt(reading.timestamp, new Date(+year + 1, 0, 1))
-            )
-          )
+              lt(reading.timestamp, new Date(+year + 1, 0, 1)),
+            ),
+          ),
         )
       : and(
           filter.from ? gte(reading.timestamp, filter.from) : undefined,
-          filter.until ? lt(reading.timestamp, filter.until) : undefined
+          filter.until ? lt(reading.timestamp, filter.until) : undefined,
         )
     : undefined
   const allReadings = db.$with('allReadings').as(
@@ -38,7 +38,7 @@ export function getAllReadingsForMeter(
         timestamp: reading.timestamp,
       })
       .from(reading)
-      .where(and(eq(reading.meterId, meterId), sqlFilter))
+      .where(and(eq(reading.meterId, meterId), sqlFilter)),
   )
   const lastReading = db.$with('lastReading').as(
     db
@@ -49,22 +49,22 @@ export function getAllReadingsForMeter(
         timestamp: allReadings.timestamp,
         previousReadingValue:
           sql<number>`LAG(${allReadings.value}) OVER (ORDER BY ${allReadings.timestamp})`.as(
-            'previousReadingValue'
+            'previousReadingValue',
           ),
         previousSecondReadingValue:
           sql<number>`LAG(${allReadings.value}, 2) OVER (ORDER BY ${allReadings.timestamp})`.as(
-            'previousSecondReadingValue'
+            'previousSecondReadingValue',
           ),
         previousReadingTimestamp:
           sql<number>`LAG(${allReadings.timestamp}) OVER (ORDER BY ${allReadings.timestamp})`.as(
-            'previousReadingTimestamp'
+            'previousReadingTimestamp',
           ),
         previousSecondReadingTimestamp:
           sql<number>`LAG(${allReadings.timestamp}, 2) OVER (ORDER BY ${allReadings.timestamp})`.as(
-            'previousSecondReadingTimestamp'
+            'previousSecondReadingTimestamp',
           ),
       })
-      .from(allReadings)
+      .from(allReadings),
   )
   const readingDifferences = db.$with('readingDifferences').as(
     db
@@ -75,18 +75,18 @@ export function getAllReadingsForMeter(
         readingTimestamp: lastReading.timestamp,
         difference:
           sql<number>`${lastReading.readingValue} - ${lastReading.previousReadingValue}`.as(
-            'difference'
+            'difference',
           ),
         differencePerSecond:
           sql<number>`(${lastReading.readingValue} - ${lastReading.previousReadingValue}) / NULLIF((${lastReading.timestamp} - ${lastReading.previousReadingTimestamp}), 0)`.as(
-            'differencePerSecond'
+            'differencePerSecond',
           ),
         previousDifferencePerDay:
           sql<number>`(${lastReading.previousReadingValue} - ${lastReading.previousSecondReadingValue}) / NULLIF((${lastReading.previousReadingTimestamp} - ${lastReading.previousSecondReadingTimestamp}) / 86400.0, 0)`.as(
-            'previousDifferencePerDay'
+            'previousDifferencePerDay',
           ),
       })
-      .from(lastReading)
+      .from(lastReading),
   )
   return db
     .with(allReadings, lastReading, readingDifferences)
@@ -98,12 +98,13 @@ export function getAllReadingsForMeter(
       readingTimestamp: readingDifferences.readingTimestamp,
       difference: readingDifferences.difference,
       differencePerSecond: readingDifferences.differencePerSecond,
-      differencePerDay: sql<number>`(${readingDifferences.differencePerSecond} * 86400.0)`.as(
-        'differencePerDay'
-      ),
+      differencePerDay:
+        sql<number>`(${readingDifferences.differencePerSecond} * 86400.0)`.as(
+          'differencePerDay',
+        ),
       percentileChange:
         sql<number>`((${readingDifferences.differencePerSecond} * 86400.0) - ${readingDifferences.previousDifferencePerDay}) / NULLIF(${readingDifferences.previousDifferencePerDay}, 0) * 100`.as(
-          'percentileChange'
+          'percentileChange',
         ),
     })
     .from(readingDifferences)
@@ -112,7 +113,10 @@ export function getAllReadingsForMeter(
     .orderBy(desc(readingDifferences.readingTimestamp))
 }
 
-export async function getLastReadingForDateAndMeter(meterId: number, timestamp: Date) {
+export async function getLastReadingForDateAndMeter(
+  meterId: number,
+  timestamp: Date,
+) {
   let res = await db
     .select()
     .from(reading)
@@ -128,7 +132,7 @@ export async function getYearlyUsagesForMeter(
     from: Date | null
     until: Date | null
     selectedYears: string[]
-  }
+  },
 ) {
   const sqlFilter = filter
     ? filter.selectedYears && filter.selectedYears.length > 0
@@ -136,13 +140,13 @@ export async function getYearlyUsagesForMeter(
           ...filter.selectedYears.map((year) =>
             and(
               gte(reading.timestamp, new Date(+year, 0, 1)),
-              lt(reading.timestamp, new Date(+year + 1, 0, 1))
-            )
-          )
+              lt(reading.timestamp, new Date(+year + 1, 0, 1)),
+            ),
+          ),
         )
       : and(
           filter.from ? gte(reading.timestamp, filter.from) : undefined,
-          filter.until ? lt(reading.timestamp, filter.until) : undefined
+          filter.until ? lt(reading.timestamp, filter.until) : undefined,
         )
     : undefined
 
@@ -152,16 +156,22 @@ export async function getYearlyUsagesForMeter(
         meterId: reading.meterId,
         value: reading.value,
         timestamp: reading.timestamp,
-        year: sql<number>`strftime('%Y', ${reading.timestamp}, 'unixepoch')`.as('year'),
+        year: sql<number>`strftime('%Y', ${reading.timestamp}, 'unixepoch')`.as(
+          'year',
+        ),
         rowNumFirst:
           sql<number>`ROW_NUMBER() OVER (PARTITION BY ${reading.meterId}, strftime('%Y', ${reading.timestamp}, 'unixepoch')
-                                    ORDER BY ${reading.timestamp} ASC)`.as('row_num_first'),
+                                    ORDER BY ${reading.timestamp} ASC)`.as(
+            'row_num_first',
+          ),
         rowNumLast:
           sql<number>`ROW_NUMBER() OVER (PARTITION BY ${reading.meterId}, strftime('%Y', ${reading.timestamp}, 'unixepoch')
-                                    ORDER BY ${reading.timestamp} DESC)`.as('row_num_last'),
+                                    ORDER BY ${reading.timestamp} DESC)`.as(
+            'row_num_last',
+          ),
       })
       .from(reading)
-      .where(and(eq(reading.meterId, meterId), sqlFilter))
+      .where(and(eq(reading.meterId, meterId), sqlFilter)),
   )
   const aggregatedReadings = db.$with('aggregatedReadings').as(
     db
@@ -170,11 +180,11 @@ export async function getYearlyUsagesForMeter(
         year: yearlyReadings.year,
         firstReadingValue:
           sql<number>`MAX(CASE WHEN ${yearlyReadings.rowNumFirst} = 1 THEN ${yearlyReadings.value} END )`.as(
-            'first_reading_value'
+            'first_reading_value',
           ),
         lastReadingValue:
           sql<number>`MAX(CASE WHEN ${yearlyReadings.rowNumLast} = 1 THEN ${yearlyReadings.value} END)`.as(
-            'last_reading_value'
+            'last_reading_value',
           ),
         firstReadingTimestamp:
           sql<number>`MAX(CASE WHEN ${yearlyReadings.rowNumFirst} = 1 THEN ${yearlyReadings.timestamp} END)`
@@ -186,7 +196,7 @@ export async function getYearlyUsagesForMeter(
             .as('last_reading_timestamp'),
       })
       .from(yearlyReadings)
-      .groupBy(yearlyReadings.meterId, yearlyReadings.year as any)
+      .groupBy(yearlyReadings.meterId, yearlyReadings.year as any),
   )
   const usageCalculation = db.$with('usageCalculation').as(
     db
@@ -195,19 +205,19 @@ export async function getYearlyUsagesForMeter(
         year: aggregatedReadings.year,
         lastReadingPreviousYear:
           sql<number>`LAG(${aggregatedReadings.lastReadingValue}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.year})`.as(
-            'last_reading_previous_year'
+            'last_reading_previous_year',
           ),
         lastReadingPreviousYearTimestamp:
           sql<number>`LAG(${aggregatedReadings.lastReadingTimestamp}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.year})`.as(
-            'last_reading_previous_year_timestamp'
+            'last_reading_previous_year_timestamp',
           ),
         firstReadingNextYear:
           sql<number>`LEAD(${aggregatedReadings.firstReadingValue}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.year})`.as(
-            'first_reading_next_year'
+            'first_reading_next_year',
           ),
         firstReadingNextYearTimestamp:
           sql<number>`LEAD(${aggregatedReadings.firstReadingTimestamp}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.year})`.as(
-            'first_reading_next_year_timestamp'
+            'first_reading_next_year_timestamp',
           ),
         firstReadingValue: aggregatedReadings.firstReadingValue,
         lastReadingValue: aggregatedReadings.lastReadingValue,
@@ -215,22 +225,22 @@ export async function getYearlyUsagesForMeter(
         lastReadingTimestamp: aggregatedReadings.lastReadingTimestamp,
         secondsBetweenReadingPreviousYear:
           sql<number>`(${aggregatedReadings.firstReadingTimestamp} - LAG(${aggregatedReadings.lastReadingTimestamp}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.year}))`.as(
-            'seconds_between_reading_previous_year'
+            'seconds_between_reading_previous_year',
           ),
         secondsBetweenReadingNextYear:
           sql<number>`(LEAD(${aggregatedReadings.firstReadingTimestamp}, 1) OVER (PARTITION BY ${aggregatedReadings.meterId} ORDER BY ${aggregatedReadings.year}) - ${aggregatedReadings.lastReadingTimestamp})`.as(
-            'seconds_between_reading_next_year'
+            'seconds_between_reading_next_year',
           ),
         secondsInCurrentYearFromStart:
           sql<number>`${aggregatedReadings.firstReadingTimestamp} - strftime('%s', ${aggregatedReadings.year} || '-01-01')`.as(
-            'seconds_in_current_year_from_start'
+            'seconds_in_current_year_from_start',
           ),
         secondsInCurrentYearToEnd:
           sql<number>`strftime('%s', ${aggregatedReadings.year} || '-01-01', '+1 year') - ${aggregatedReadings.lastReadingTimestamp}`.as(
-            'seconds_in_current_year_to_end'
+            'seconds_in_current_year_to_end',
           ),
       })
-      .from(aggregatedReadings)
+      .from(aggregatedReadings),
   )
   const summedYearlyUsages = db.$with('summedYearlyUsages').as(
     db
@@ -252,10 +262,15 @@ export async function getYearlyUsagesForMeter(
       })
       .from(usageCalculation)
       .leftJoin(meter, eq(usageCalculation.meterId, meter.id))
-      .leftJoin(unit, eq(meter.unitId, unit.id))
+      .leftJoin(unit, eq(meter.unitId, unit.id)),
   )
   return db
-    .with(yearlyReadings, aggregatedReadings, usageCalculation, summedYearlyUsages)
+    .with(
+      yearlyReadings,
+      aggregatedReadings,
+      usageCalculation,
+      summedYearlyUsages,
+    )
     .select()
     .from(summedYearlyUsages)
 }
@@ -268,8 +283,15 @@ export function createReading(values: typeof reading.$inferInsert) {
   return db.insert(reading).values(values).execute()
 }
 
-export function updateReading(readingId: number, values: Partial<typeof reading.$inferInsert>) {
-  return db.update(reading).set(values).where(eq(reading.id, readingId)).execute()
+export function updateReading(
+  readingId: number,
+  values: Partial<typeof reading.$inferInsert>,
+) {
+  return db
+    .update(reading)
+    .set(values)
+    .where(eq(reading.id, readingId))
+    .execute()
 }
 
 export function getReadingById(readingId: number) {
@@ -277,7 +299,9 @@ export function getReadingById(readingId: number) {
 }
 
 export function useReadingsForMeter(meterId: number) {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getAllReadingsForMeter>>>([])
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getAllReadingsForMeter>>
+  >([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -315,15 +339,17 @@ export function useReadingsForMeterFiltered(
   meterId: number,
   from: Signal<Date | null>,
   until: Signal<Date | null>,
-  selectedYears: Signal<string[]>
+  selectedYears: Signal<string[]>,
 ) {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getAllReadingsForMeter>>>([])
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getAllReadingsForMeter>>
+  >([])
   const [error, setError] = useState<string | null>(null)
 
   const meterIdSignal = useSignal(meterId)
   useEffect(() => {
     meterIdSignal.value = meterId
-  }, [meterId])
+  }, [meterId, meterIdSignal])
 
   useSignalEffect(() => {
     const meterIdValue = meterIdSignal.value
@@ -370,15 +396,17 @@ export function useYearlyUsagesForMeter(
   meterId: number,
   from: Signal<Date | null>,
   until: Signal<Date | null>,
-  selectedYears: Signal<string[]>
+  selectedYears: Signal<string[]>,
 ) {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getYearlyUsagesForMeter>>>([])
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getYearlyUsagesForMeter>>
+  >([])
   const [error, setError] = useState<string | null>(null)
 
   const meterIdSignal = useSignal(meterId)
   useEffect(() => {
     meterIdSignal.value = meterId
-  }, [meterId])
+  }, [meterId, meterIdSignal])
 
   useSignalEffect(() => {
     const meterIdValue = meterIdSignal.value
@@ -399,7 +427,10 @@ export function useYearlyUsagesForMeter(
       .catch(setError)
 
     const listener = addDatabaseChangeListener((change) => {
-      if (change.tableName !== getTableName(reading) && change.tableName !== getTableName(unit)) {
+      if (
+        change.tableName !== getTableName(reading) &&
+        change.tableName !== getTableName(unit)
+      ) {
         return
       }
       getYearlyUsagesForMeter(meterIdValue, filter)
@@ -417,8 +448,12 @@ export function useYearlyUsagesForMeter(
   return [data, error] as const
 }
 
-export function useLastReadingForDateAndMeter(meterId: Signal<number>, timestamp: Signal<Date>) {
-  const [data, setData] = useState<Awaited<ReturnType<typeof getLastReadingForDateAndMeter>>>()
+export function useLastReadingForDateAndMeter(
+  meterId: Signal<number>,
+  timestamp: Signal<Date>,
+) {
+  const [data, setData] =
+    useState<Awaited<ReturnType<typeof getLastReadingForDateAndMeter>>>()
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {

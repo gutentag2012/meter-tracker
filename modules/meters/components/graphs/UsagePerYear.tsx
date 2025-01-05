@@ -1,11 +1,11 @@
 import { Dimensions, Text, View } from 'react-native'
-import { Canvas, useFont, Line, Rect } from '@shopify/react-native-skia'
-import { useColors, useDefaultStyles } from '@/lib/constants/theme'
+import { Canvas, Line, Rect, useFont } from '@shopify/react-native-skia'
 import { Fragment } from 'react'
 import { getYearlyUsagesForMeter } from '@/modules/readings/readings.query'
 import { AxisText } from '@/modules/meters/components/graphs/AxisText'
-import { translate } from '@/lib/translations/i18n'
 import { useUsagePerYearData } from '@/modules/meters/hooks/useUsagePerYearData'
+import { useColors, useDefaultStyles } from '@/modules/general/theme'
+import { translate } from '@/modules/general/translations'
 
 const width = Dimensions.get('window').width - 32
 const CHART_PADDING_X = 8
@@ -32,7 +32,7 @@ export function UsagePerYear({
     width,
     CHART_HEIGHT,
     CHART_PADDING_X,
-    CHART_PADDING_Y
+    CHART_PADDING_Y,
   )
 
   return (
@@ -40,16 +40,26 @@ export function UsagePerYear({
       <View
         style={[
           defaultStyles.row,
-          { marginLeft: 8, marginTop: 8, marginBottom: 4, alignItems: 'flex-end', gap: 4 },
-        ]}>
-        <Text style={defaultStyles.detail}>{translate('meters.graphs.perYearTitle')}</Text>
+          {
+            marginLeft: 8,
+            marginTop: 8,
+            marginBottom: 4,
+            alignItems: 'flex-end',
+            gap: 4,
+          },
+        ]}
+      >
+        <Text style={defaultStyles.detail}>
+          {translate('meters.graphs.perYearTitle')}
+        </Text>
         <Text style={defaultStyles.detailSmall}>({unit})</Text>
       </View>
       <Canvas
         style={{
           width,
           height: TOTAL_CHART_HEIGHT,
-        }}>
+        }}
+      >
         {font && !yearlyUsages.length && (
           <AxisText
             x={width / 2}
@@ -57,12 +67,12 @@ export function UsagePerYear({
             text={translate('meters.graphs.noData')}
             color={colors.textMuted}
             font={font}
-            axis='x'
+            axis="x"
           />
         )}
         {font &&
           chartData.xScale &&
-          chartData.xScale.ticks(6).map((tick) => {
+          chartData.xScale.ticks(6).map((tick: number) => {
             const tickText = tick.toFixed(0)
             const fontSize = font.measureText(tickText)
             return (
@@ -73,7 +83,7 @@ export function UsagePerYear({
                   text={tickText}
                   color={colors.textStatic}
                   font={font}
-                  axis='x'
+                  axis="x"
                 />
                 <Line
                   p1={{
@@ -86,7 +96,7 @@ export function UsagePerYear({
                   }}
                   color={colors.textStatic}
                   strokeWidth={0.5}
-                  strokeCap='round'
+                  strokeCap="round"
                 />
               </Fragment>
             )
@@ -100,11 +110,14 @@ export function UsagePerYear({
               <AxisText
                 key={yearText}
                 x={CHART_PADDING_X}
-                y={chartData.yScale!(yearText)! + chartData.yScale.bandwidth() / 2}
+                y={
+                  chartData.yScale!(yearText)! +
+                  chartData.yScale.bandwidth() / 2
+                }
                 text={yearText}
                 color={colors.textStatic}
                 font={font}
-                axis='y'
+                axis="y"
               />
             )
           })}
@@ -119,7 +132,7 @@ export function UsagePerYear({
             const fontSize = fontBold.measureText(usageText)
             const labelXPos = Math.max(
               CHART_PADDING_X + (yearWidth ?? 0) + 16,
-              Math.min(end + 8, width - fontSize.width - CHART_PADDING_X - 8)
+              Math.min(end + 8, width - fontSize.width - CHART_PADDING_X - 8),
             )
             return (
               <Fragment key={year}>
@@ -136,7 +149,10 @@ export function UsagePerYear({
                 />
                 <AxisText
                   x={labelXPos}
-                  y={chartData.yScale(`${year}`)! + chartData.yScale.bandwidth() / 2}
+                  y={
+                    chartData.yScale(`${year}`)! +
+                    chartData.yScale.bandwidth() / 2
+                  }
                   text={usageText}
                   color={
                     labelXPos < end - fontSize.width && labelXPos > start
@@ -144,7 +160,7 @@ export function UsagePerYear({
                       : colors.text
                   } // TODO Improve contrast
                   font={fontBold}
-                  axis='y'
+                  axis="y"
                 />
               </Fragment>
             )

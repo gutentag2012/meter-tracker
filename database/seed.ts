@@ -1,7 +1,12 @@
 import { db } from '@/database/db'
-import { building, contract, contractRevision, meter, reading, unit } from '@/database/schema'
+import {
+  building,
+  contract,
+  contractRevision,
+  meter,
+  reading,
+} from '@/database/schema'
 import { useEffect } from 'react'
-import { eq } from 'drizzle-orm'
 
 export async function seed() {
   await db.delete(contract).execute()

@@ -1,5 +1,4 @@
 import { Alert, Text, TouchableOpacity, View } from 'react-native'
-import { formatNumber, translate } from '@/lib/translations/i18n'
 import { useRouter } from 'expo-router'
 import {
   ChevronDownIcon,
@@ -9,39 +8,57 @@ import {
   Trash2Icon,
   XIcon,
 } from 'lucide-react-native'
-import { StatusBar } from '@/lib/components/StatusBar'
-import { DarkColors, LightColors, useColors, useDefaultStyles } from '@/lib/constants/theme'
-import { FormTextField } from '@/lib/components/TextField'
-import { useSelectField } from '@/lib/components/SelectField'
+import { StatusBar } from '@/modules/general/components/StatusBar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { deleteMeter, resetMeterValue, useAllMeterTypes } from '@/modules/meters/meters.query'
+import {
+  deleteMeter,
+  resetMeterValue,
+  useAllMeterTypes,
+} from '@/modules/meters/meters.query'
 import {
   KeyboardAwareScrollView,
   KeyboardController,
   KeyboardProvider,
   KeyboardToolbar,
 } from 'react-native-keyboard-controller'
-import { LangKey } from '@/lib/translations/en'
-import { useAllUnits } from '@/modules/general/units.query'
 import { useAllContracts } from '@/modules/contracts/contracts.query'
 import { z } from 'zod'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
-import { Button } from '@/lib/components/Button'
+import { Button } from '@/modules/general/components/Button'
 import type { FormContextType } from '@formsignals/form-react'
-import { currency } from '@/modules/general/settings/currency.signals'
+import { currency } from '@/modules/settings/currency.signals'
+import {
+  KeyboardToolbarTheme,
+  useColors,
+  useDefaultStyles,
+} from '@/modules/general/theme'
+import { LangKey } from '@/modules/general/translations/en'
+import { formatNumber, translate } from '@/modules/general/translations'
+import { useAllUnits } from '@/modules/units'
+import { FormTextField, useSelectField } from '@/modules/general/components'
+import { Fragment } from 'react'
 
 // TODO Either add a confirm alert for the delete action or add a checkbox to enable the delete button
 
 const MeterSchema = {
   name: z
-    .string({ invalid_type_error: 'errors.required', required_error: 'errors.required' })
+    .string({
+      invalid_type_error: 'errors.required',
+      required_error: 'errors.required',
+    })
     .min(1, 'errors.min1'),
   precision: z
-    .number({ invalid_type_error: 'errors.number', required_error: 'errors.required' })
+    .number({
+      invalid_type_error: 'errors.number',
+      required_error: 'errors.required',
+    })
     .int('errors.integer')
     .min(0, 'errors.positive'),
   customUnitConversion: z
-    .number({ invalid_type_error: 'errors.number', required_error: 'errors.required' })
+    .number({
+      invalid_type_error: 'errors.number',
+      required_error: 'errors.required',
+    })
     .min(0, 'errors.positive')
     .nullable(),
 }
@@ -68,17 +85,21 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
   const [meterTypes] = useAllMeterTypes()
   const meterTypeOptions = meterTypes.map((meterType) => ({
     label: translate(`meterTypes.${meterType.category}.name` as LangKey),
-    description: translate(`meterTypes.${meterType.category}.description` as LangKey),
+    description: translate(
+      `meterTypes.${meterType.category}.description` as LangKey,
+    ),
     value: meterType.id,
   }))
 
   const [units] = useAllUnits()
   const unitOptions = units.map((unit) => ({
-    label: translate(unit.name),
+    label: translate(unit.name as LangKey),
     textRight: unit.abbreviation,
     value: unit.id,
   }))
-  const selectedUnit = units.find((unit) => unit.id === form.data.peek().unit?.value)
+  const selectedUnit = units.find(
+    (unit) => unit.id === form.data.peek().unit?.value,
+  )
 
   const [contracts] = useAllContracts()
   const contractOptions = contracts.map((contract) => ({
@@ -88,7 +109,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
     value: contract.contract.id,
   }))
   const selectedContract = contracts.find(
-    (contract) => contract.contract.id === form.data.peek().contract?.value
+    (contract) => contract.contract.id === form.data.peek().contract?.value,
   )
 
   const unitSelect = useSelectField({
@@ -111,20 +132,31 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
 
   const contractSelect = useSelectField({
     label: translate('meters.createLabelContract'),
-    options: [{ label: translate('contracts.selectValueEmpty'), value: null }, ...contractOptions],
+    options: [
+      { label: translate('contracts.selectValueEmpty'), value: null },
+      ...contractOptions,
+    ],
     value: form.data.peek().contract,
     modalTitle: translate('contracts.selectTitle'),
     ModalAction: (
       <Button
         style={{ marginLeft: 'auto' }}
-        IconStart={<PlusIcon size={defaultStyles.detail.fontSize} stroke={colors.primary} />}>
+        IconStart={
+          <PlusIcon
+            size={defaultStyles.detail.fontSize}
+            stroke={colors.primary}
+          />
+        }
+      >
         {translate('contracts.createButton')}
       </Button>
     ),
   })
 
   const conversionFactor =
-    form.data.peek().customUnitConversion.value ?? selectedUnit?.conversionFactor ?? 1
+    form.data.peek().customUnitConversion.value ??
+    selectedUnit?.conversionFactor ??
+    1
 
   return (
     <KeyboardProvider>
@@ -132,15 +164,16 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
         <KeyboardAwareScrollView
           bottomOffset={50}
           style={[defaultStyles.pageContainer]}
-          contentContainerStyle={{ paddingBottom: 16 }}>
-          <form.FieldProvider name='name' validator={MeterSchema.name}>
+          contentContainerStyle={{ paddingBottom: 16 }}
+        >
+          <form.FieldProvider name="name" validator={MeterSchema.name}>
             <FormTextField
               selectTextOnFocus
               label={translate('meters.createLabelName')}
               placeholder={translate('general.typeHere')}
             />
           </form.FieldProvider>
-          <form.FieldProvider name='identifier'>
+          <form.FieldProvider name="identifier">
             <FormTextField
               selectTextOnFocus
               label={translate('meters.createLabelIdentifier')}
@@ -150,7 +183,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
 
           <View style={[defaultStyles.row, { alignItems: 'flex-start' }]}>
             <form.FieldProvider
-              name='precision'
+              name="precision"
               transformFromBinding={(value: string) => {
                 if (!value) return [0, translate('errors.required')]
                 const parsed = parseInt(value)
@@ -159,20 +192,21 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
               transformToBinding={(
                 value: number,
                 isValid: boolean,
-                writeBuffer?: string
+                writeBuffer?: string,
               ): string => {
                 if (!isValid) {
                   return writeBuffer ?? '' // This is the last value entered by the user
                 }
                 return value?.toString() // This is the last valid value
               }}
-              validator={MeterSchema.precision}>
+              validator={MeterSchema.precision}
+            >
               <FormTextField
                 selectTextOnFocus
                 useTransformed
                 label={translate('meters.createLabelPrecision')}
                 placeholder={translate('general.typeHere')}
-                keyboardType='numeric'
+                keyboardType="numeric"
                 containerStyle={{ flex: 3 }}
                 hint={translate('meters.createLabelPrecisionHint')}
               />
@@ -182,14 +216,19 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
 
           <typeSelect.SelectField />
 
-          <Text style={[defaultStyles.cardTitle, { marginBottom: 8, marginTop: 16 }]}>
+          <Text
+            style={[
+              defaultStyles.cardTitle,
+              { marginBottom: 8, marginTop: 16 },
+            ]}
+          >
             {translate('meters.createSectionContracts')}
           </Text>
 
           <contractSelect.SelectField />
           {selectedContract && (
             <form.FieldProvider
-              name='customUnitConversion'
+              name="customUnitConversion"
               transformFromBinding={(value: string) => {
                 if (!value) return [null, false]
                 const parsed = parseFloat(value.replace(',', '.'))
@@ -198,14 +237,15 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
               transformToBinding={(
                 value: number | null,
                 isValid: boolean,
-                writeBuffer?: string
+                writeBuffer?: string,
               ): string => {
                 if (!isValid) {
                   return writeBuffer ?? '' // This is the last value entered by the user
                 }
                 return value?.toString() ?? '' // This is the last valid value
               }}
-              validator={MeterSchema.customUnitConversion}>
+              validator={MeterSchema.customUnitConversion}
+            >
               <FormTextField
                 selectTextOnFocus
                 useTransformed
@@ -213,12 +253,12 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                 hint={translate('meters.createLabelCustomUnitConversionHint')}
                 placeholder={translate('general.typeHere')}
                 containerStyle={{ flex: 1 }}
-                keyboardType='numeric'
+                keyboardType="numeric"
               />
             </form.FieldProvider>
           )}
           {selectedUnit && selectedContract && (
-            <>
+            <Fragment>
               <Text style={[defaultStyles.detail]}>
                 {translate('meters.createSectionConversion')}
               </Text>
@@ -233,7 +273,8 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                   paddingHorizontal: 16,
                   flexDirection: 'row',
                   alignItems: 'center',
-                }}>
+                }}
+              >
                 <View style={{ minWidth: 0 }}>
                   <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
                     1 {selectedUnit.abbreviation}
@@ -247,10 +288,15 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                     {conversionFactor} {selectedContract.unit?.abbreviation}
                   </Text>
                   <View
-                    style={{ borderStyle: 'solid', borderWidth: 1, borderBottomColor: colors.text }}
+                    style={{
+                      borderStyle: 'solid',
+                      borderWidth: 1,
+                      borderBottomColor: colors.text,
+                    }}
                   />
                   <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {selectedContract.unit?.conversionFactor} {selectedUnit.abbreviation}
+                    {selectedContract.unit?.conversionFactor}{' '}
+                    {selectedUnit.abbreviation}
                   </Text>
                 </View>
                 <View style={{ minWidth: 24, alignItems: 'center' }}>
@@ -258,18 +304,24 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                 </View>
                 <View style={{ minWidth: 0 }}>
                   <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {formatNumber(selectedContract.contractRevision?.pricePerUnit)}{' '}
-                    {currency.value.currencySymbol}/{selectedContract.unit?.abbreviation}
+                    {formatNumber(
+                      selectedContract.contractRevision?.pricePerUnit,
+                    )}{' '}
+                    {currency.value.currencySymbol}/
+                    {selectedContract.unit?.abbreviation}
                   </Text>
                 </View>
                 <View style={{ minWidth: 16 }}>
-                  <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>=</Text>
+                  <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
+                    =
+                  </Text>
                 </View>
                 <View style={{ minWidth: 0 }}>
                   <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
                     {formatNumber(
-                      (conversionFactor / (selectedContract.unit?.conversionFactor ?? 1)) *
-                        (selectedContract.contractRevision?.pricePerUnit ?? 1)
+                      (conversionFactor /
+                        (selectedContract.unit?.conversionFactor ?? 1)) *
+                        (selectedContract.contractRevision?.pricePerUnit ?? 1),
                     )}{' '}
                     {currency.value.currencySymbol}
                   </Text>
@@ -278,25 +330,35 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
               <Text style={[defaultStyles.detailSmall]}>
                 {translate('meters.createSectionConversionHint')}
               </Text>
-            </>
+            </Fragment>
           )}
 
           {meterId !== undefined && (
-            <>
-              <Text style={[defaultStyles.cardTitle, { marginBottom: 8, marginTop: 16 }]}>
+            <Fragment>
+              <Text
+                style={[
+                  defaultStyles.cardTitle,
+                  { marginBottom: 8, marginTop: 16 },
+                ]}
+              >
                 {translate('meters.createSectionActions')}
               </Text>
               <View style={{ gap: 8 }}>
                 <Button
-                  size='large'
+                  size="large"
                   onPress={async () => {
                     await resetMeterValue(meterId)
                     router.back()
                   }}
-                  IconStart={<RefreshCcwIcon size={16} stroke={colors.textMuted} />}
-                  variant='ghost'>
+                  IconStart={
+                    <RefreshCcwIcon size={16} stroke={colors.textMuted} />
+                  }
+                  variant="ghost"
+                >
                   <View>
-                    <Text style={[defaultStyles.detail, { color: colors.text }]}>
+                    <Text
+                      style={[defaultStyles.detail, { color: colors.text }]}
+                    >
                       {translate('meters.actionReset')}
                     </Text>
                     <Text style={[defaultStyles.detailSmall]}>
@@ -319,7 +381,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                 {/*  </View>*/}
                 {/*</Button>*/}
                 <Button
-                  size='large'
+                  size="large"
                   onPress={() => {
                     Alert.alert(
                       translate('meters.alertDeleteTitle'),
@@ -337,13 +399,19 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                             router.navigate('/')
                           },
                         },
-                      ]
+                      ],
                     )
                   }}
                   IconStart={<Trash2Icon size={16} stroke={colors.negative} />}
-                  variant='ghost'>
+                  variant="ghost"
+                >
                   <View>
-                    <Text style={[defaultStyles.bodyText, { color: colors.negative }]}>
+                    <Text
+                      style={[
+                        defaultStyles.bodyText,
+                        { color: colors.negative },
+                      ]}
+                    >
                       {translate('meters.actionDelete')}
                     </Text>
                     <Text style={[defaultStyles.detailSmall]}>
@@ -352,31 +420,19 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                   </View>
                 </Button>
               </View>
-            </>
+            </Fragment>
           )}
         </KeyboardAwareScrollView>
         <KeyboardToolbar
-          theme={{
-            dark: {
-              primary: DarkColors.primary,
-              background: DarkColors.card,
-              ripple: 'transparent',
-              disabled: DarkColors.primaryContainer,
-            },
-            light: {
-              primary: LightColors.primary,
-              background: LightColors.card,
-              ripple: 'transparent',
-              disabled: LightColors.primaryContainer,
-            },
-          }}
+          theme={KeyboardToolbarTheme}
           doneText={translate('general.save')}
           onDoneCallback={() => form.handleSubmit()}
           icon={({ type, disabled }) => (
             <TouchableOpacity
               disabled={disabled}
               style={{ padding: 8 }}
-              onPress={() => KeyboardController.setFocusTo(type)}>
+              onPress={() => KeyboardController.setFocusTo(type)}
+            >
               {type === 'next' ? (
                 <ChevronDownIcon
                   size={24}
