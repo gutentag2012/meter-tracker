@@ -219,9 +219,8 @@ export default function Page() {
                     }
                   }}
                   style={{
-                    backgroundColor: selectedYears.value.includes(year)
-                      ? colors.background
-                      : colors.card,
+                    backgroundColor: colors.background,
+                    opacity: selectedYears.value.includes(year) ?  1 : 0.4,
                   }}
                 >
                   {year}

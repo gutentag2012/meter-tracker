@@ -1,5 +1,6 @@
 import { ReactNode, RefObject, useCallback, useMemo, useRef } from 'react'
 import {
+  SafeAreaView,
   StyleSheet,
   Text,
   TextProps,
@@ -201,7 +202,8 @@ export function SelectFieldSheet<T = string | number | null>({
         handleIndicatorStyle={{ backgroundColor: colors.text }}
       >
         <BottomSheetScrollView
-          style={{ flex: 1, minHeight: 500, paddingHorizontal: 16 }}
+          style={{ flex: 1, paddingHorizontal: 16 }}
+          contentContainerStyle={{ paddingBottom: 48 }}
         >
           <View
             style={[
