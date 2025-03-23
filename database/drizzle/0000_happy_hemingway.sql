@@ -21,7 +21,7 @@ CREATE TABLE `contractRevision` (
 	`price_per_unit` real NOT NULL,
 	`base_payment` real DEFAULT 0,
 	`monthly_payment` real DEFAULT 0,
-	`start_date` integer NOT NULL,
+	`start_date` integer,
 	`end_date` integer,
 	`contract_id` integer NOT NULL,
 	FOREIGN KEY (`contract_id`) REFERENCES `contract`(`id`) ON UPDATE no action ON DELETE cascade
