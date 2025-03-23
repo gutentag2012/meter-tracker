@@ -1,7 +1,7 @@
 import React from 'react'
 import { View } from 'react-native'
 import { Href, Link } from 'expo-router'
-import { Button } from '@/modules/general/components/Button'
+import { Button } from '@/modules/general/components/inputs/Button'
 import { PencilIcon, Settings2Icon } from 'lucide-react-native'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 

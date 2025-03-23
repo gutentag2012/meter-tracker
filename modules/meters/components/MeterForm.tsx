@@ -8,7 +8,7 @@ import {
   Trash2Icon,
   XIcon,
 } from 'lucide-react-native'
-import { StatusBar } from '@/modules/general/components/StatusBar'
+import { StatusBar } from '@/modules/general/components/interface/StatusBar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import {
   deleteMeter,
@@ -24,7 +24,7 @@ import {
 import { useAllContracts } from '@/modules/contracts/contracts.query'
 import { z } from 'zod'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
-import { Button } from '@/modules/general/components/Button'
+import { Button } from '@/modules/general/components/inputs/Button'
 import type { FormContextType } from '@formsignals/form-react'
 import { currency } from '@/modules/settings/currency.signals'
 import {

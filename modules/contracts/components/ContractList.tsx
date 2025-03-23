@@ -9,6 +9,7 @@ export function ContractList() {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
   const [contracts] = useContractsForBuilding()
+  console.log(contracts[0])
 
   return (
     <View style={[{ backgroundColor: 'transparent', gap: 8 }]}>

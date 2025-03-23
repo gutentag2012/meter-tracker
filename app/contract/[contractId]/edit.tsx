@@ -16,7 +16,7 @@ import {
 import { ContractForm } from '@/modules/contracts/components/ContractForm'
 import { useEffect } from 'react'
 import { useSignal } from '@preact/signals-react'
-import { Button } from '@/modules/general/components/Button'
+import { Button } from '@/modules/general/components/inputs/Button'
 import { useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
 

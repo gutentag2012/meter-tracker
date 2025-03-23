@@ -18,6 +18,7 @@ import {
 import { PlusIcon } from 'lucide-react-native'
 import { MeterGrid } from '@/modules/meters/components'
 import { ContractList } from '@/modules/contracts/components'
+import {useSeed} from "@/database/seed";
 
 export default function HomeScreen() {
   const colors = useColors()

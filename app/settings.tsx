@@ -11,7 +11,7 @@ import { Stack } from 'expo-router/stack'
 import {
   BellIcon,
   CalendarDaysIcon,
-  CheckSquare2Icon,
+  CheckSquare2Icon, CloudIcon,
   CoinsIcon,
   DownloadIcon,
   LanguagesIcon,
@@ -24,10 +24,10 @@ import {
   WaypointsIcon,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button } from '@/modules/general/components/Button'
+import { Button } from '@/modules/general/components/inputs/Button'
 import { makeHeaderBackButton } from '@/modules/general/components/header/HeaderBackButton'
 import { currencyCode } from '@/modules/settings/currency.signals'
-import { useSelectField } from '@/modules/general/components/SelectField'
+import { useSelectField } from '@/modules/general/components/inputs/SelectField'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Link } from 'expo-router'
 import * as Notifications from 'expo-notifications'
@@ -274,45 +274,41 @@ export default function Page() {
           )}
         />
 
-        {/*<Text style={styles.sectionTitle}>*/}
-        {/*  {translate('settings.headerData')}*/}
-        {/*</Text>*/}
-        {/*<Link href="/export" asChild disabled>*/}
-        {/*  <Button*/}
-        {/*    size="large"*/}
-        {/*    disabled*/}
-        {/*    style={{ opacity: 0.6 }}*/}
-        {/*    IconStart={<UploadIcon size={16} stroke={colors.textMuted} />}*/}
-        {/*    variant="text"*/}
-        {/*  >*/}
-        {/*    <View>*/}
-        {/*      <Text style={defaultStyles.bodyText}>*/}
-        {/*        {translate('settings.exportOptionTitle')}*/}
-        {/*      </Text>*/}
-        {/*      <Text style={defaultStyles.detailSmall}>*/}
-        {/*        {translate('settings.exportOptionDescription')}*/}
-        {/*      </Text>*/}
-        {/*    </View>*/}
-        {/*  </Button>*/}
-        {/*</Link>*/}
-        {/*<Link href="/import" asChild disabled>*/}
-        {/*  <Button*/}
-        {/*    size="large"*/}
-        {/*    disabled*/}
-        {/*    style={{ opacity: 0.6 }}*/}
-        {/*    IconStart={<DownloadIcon size={16} stroke={colors.textMuted} />}*/}
-        {/*    variant="text"*/}
-        {/*  >*/}
-        {/*    <View>*/}
-        {/*      <Text style={defaultStyles.bodyText}>*/}
-        {/*        {translate('settings.importOptionTitle')}*/}
-        {/*      </Text>*/}
-        {/*      <Text style={defaultStyles.detailSmall}>*/}
-        {/*        {translate('settings.importOptionDescription')}*/}
-        {/*      </Text>*/}
-        {/*    </View>*/}
-        {/*  </Button>*/}
-        {/*</Link>*/}
+        <Text style={styles.sectionTitle}>
+          {translate('settings.headerData')}
+        </Text>
+        <Link href="/export" asChild>
+          <Button
+            size="large"
+            IconStart={<UploadIcon size={16} stroke={colors.textMuted} />}
+            variant="text"
+          >
+            <View>
+              <Text style={defaultStyles.bodyText}>
+                {translate('settings.exportOptionTitle')}
+              </Text>
+              <Text style={defaultStyles.detailSmall}>
+                {translate('settings.exportOptionDescription')}
+              </Text>
+            </View>
+          </Button>
+        </Link>
+        <Link href="/import" asChild>
+          <Button
+            size="large"
+            IconStart={<DownloadIcon size={16} stroke={colors.textMuted} />}
+            variant="text"
+          >
+            <View>
+              <Text style={defaultStyles.bodyText}>
+                {translate('settings.importOptionTitle')}
+              </Text>
+              <Text style={defaultStyles.detailSmall}>
+                {translate('settings.importOptionDescription')}
+              </Text>
+            </View>
+          </Button>
+        </Link>
         {/*<Button*/}
         {/*  size='large'*/}
         {/*  IconStart={<CloudIcon size={16} stroke={colors.textMuted} />}*/}

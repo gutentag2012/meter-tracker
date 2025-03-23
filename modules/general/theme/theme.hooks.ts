@@ -70,6 +70,9 @@ export function useDefaultStyles() {
           flex: 1,
           paddingHorizontal: 16,
         },
+        pageContainerPaddingHorizontal: {
+          paddingHorizontal: 16,
+        },
         resetPaddingHorizontal: {
           paddingHorizontal: 0,
         },

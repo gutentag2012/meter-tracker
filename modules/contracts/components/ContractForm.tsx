@@ -9,9 +9,9 @@ import {
   Trash2Icon,
   TriangleAlertIcon,
 } from 'lucide-react-native'
-import { StatusBar } from '@/modules/general/components/StatusBar'
-import { FormTextField } from '@/modules/general/components/TextField'
-import { useSelectField } from '@/modules/general/components/SelectField'
+import { StatusBar } from '@/modules/general/components/interface/StatusBar'
+import { FormTextField } from '@/modules/general/components/inputs/TextField'
+import { useSelectField } from '@/modules/general/components/inputs/SelectField'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import {
   KeyboardAwareScrollView,
@@ -20,10 +20,10 @@ import {
   KeyboardToolbar,
 } from 'react-native-keyboard-controller'
 import { z } from 'zod'
-import { Button } from '@/modules/general/components/Button'
+import { Button } from '@/modules/general/components/inputs/Button'
 import { FormContextType } from '@formsignals/form-react'
 import { ValidatorAdapter } from '@formsignals/form-core'
-import { FormDatePicker } from '@/modules/general/components/DatePicker'
+import { FormDatePicker } from '@/modules/general/components/inputs/DatePicker'
 import { useComputed } from '@preact/signals-react'
 import { formatDate } from 'date-fns'
 import { Signal } from '@preact/signals-core'

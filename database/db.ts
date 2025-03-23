@@ -14,6 +14,7 @@ const expoDatabase = openDatabaseSync(DEFAULT_DATABASE_NAME, {
   finalizeUnusedStatementsBeforeClosing: true,
   useNewConnection: true,
 })
+
 const db = drizzle<typeof Schema>(expoDatabase, {
   logger: false,
   schema: Schema,
@@ -47,4 +48,4 @@ if (SHOULD_RESET_DATABASE) {
     .catch((err) => console.log('Error', err))
 }
 
-export { db }
+export { db, Schema }

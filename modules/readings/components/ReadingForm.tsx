@@ -8,7 +8,7 @@ import {
   PlusIcon,
   Trash2Icon,
 } from 'lucide-react-native'
-import { FormTextField } from '@/modules/general/components/TextField'
+import { FormTextField } from '@/modules/general/components/inputs/TextField'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useMetersForBuilding } from '@/modules/meters/meters.query'
 import {
@@ -20,16 +20,16 @@ import {
 } from 'react-native-keyboard-controller'
 import { z } from 'zod'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
-import { Button } from '@/modules/general/components/Button'
+import { Button } from '@/modules/general/components/inputs/Button'
 import type { FormContextType } from '@formsignals/form-react'
 import {
   deleteReading,
   useLastReadingForDateAndMeter,
 } from '@/modules/readings/readings.query'
-import { useSelectField } from '@/modules/general/components/SelectField'
+import { useSelectField } from '@/modules/general/components/inputs/SelectField'
 import { Fragment, useState } from 'react'
 import { CameraView } from 'expo-camera'
-import { FormDatePicker } from '@/modules/general/components/DatePicker'
+import { FormDatePicker } from '@/modules/general/components/inputs/DatePicker'
 import { useField } from '@formsignals/form-react'
 import {
   formatDate,

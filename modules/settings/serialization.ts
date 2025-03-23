@@ -26,3 +26,14 @@ export function parseCSV(csv: string): string[][] {
 
   return parsed
 }
+
+export function parsedCsvToJSON(parsedCsv: string[][]): Record<string, string>[] {
+  const headers = parsedCsv[0]
+  return parsedCsv.slice(1).map((row) => {
+    const rowObject: Record<string, string> = {}
+    headers.forEach((header, index) => {
+      rowObject[header] = row[index]
+    })
+    return rowObject
+  })
+}

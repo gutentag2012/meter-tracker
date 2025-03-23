@@ -1,5 +1,5 @@
 import { Text, TouchableOpacity, View } from 'react-native'
-import { ChangeIndicatorIcon } from '@/modules/general/components/ChangeIndicatorIcon'
+import { ChangeIndicatorIcon } from '@/modules/general/components/interface/ChangeIndicatorIcon'
 import { CalendarIcon, DiffIcon } from 'lucide-react-native'
 import { Link } from 'expo-router'
 import { Fragment } from 'react'

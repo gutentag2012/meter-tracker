@@ -15,6 +15,7 @@ export const building = sqliteTable('building', {
   address: text('address'),
   notes: text('notes'),
 })
+export type BuildingInsert = typeof building.$inferInsert
 
 export const meterType = sqliteTable('meterType', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -43,19 +44,21 @@ export const contract = sqliteTable('contract', {
     .notNull()
     .references(() => unit.id, { onDelete: 'set null' }),
 })
+export type ContractInsert = typeof contract.$inferInsert
 
 export const contractRevision = sqliteTable('contractRevision', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   pricePerUnit: real('price_per_unit').notNull(),
   basePayment: real('base_payment').default(0),
   monthlyPayment: real('monthly_payment').default(0),
-  startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+  startDate: integer('start_date', { mode: 'timestamp' }),
   // The active contract revision has no end date
   endDate: integer('end_date', { mode: 'timestamp' }),
   contractId: integer('contract_id')
     .notNull()
     .references(() => contract.id, { onDelete: 'cascade' }),
 })
+export type ContractRevisionInsert = typeof contractRevision.$inferInsert
 
 export const meter = sqliteTable('meter', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -79,6 +82,7 @@ export const meter = sqliteTable('meter', {
     onDelete: 'set null',
   }),
 })
+export type MeterInsert = typeof meter.$inferInsert
 
 export const reading = sqliteTable('reading', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -90,6 +94,7 @@ export const reading = sqliteTable('reading', {
     .notNull()
     .references(() => meter.id, { onDelete: 'cascade' }),
 })
+export type ReadingInsert = typeof reading.$inferInsert
 
 export const buildingRelations = relations(building, ({ many }) => ({
   meters: many(meter),

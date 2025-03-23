@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router'
-import { Button } from '@/modules/general/components/Button'
+import { Button } from '@/modules/general/components/inputs/Button'
 import { ArrowLeftIcon, XIcon } from 'lucide-react-native'
 import { useColors } from '@/modules/general/theme'
 

@@ -10,8 +10,18 @@ import {HeaderButtons} from "@/modules/general/components/header";
 import {Button, useSelectField} from "@/modules/general/components";
 import {useFieldContext, useForm} from "@formsignals/form-react";
 import {parseCSV} from "@/modules/settings/serialization";
-import {CheckIcon, ChevronDownIcon, IdCardIcon, LanguagesIcon, WholeWordIcon} from "lucide-react-native";
-import {Checkbox, CheckboxForm} from "@/modules/general/components/Checkbox";
+import {
+  CalendarIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  IdCardIcon,
+  LanguagesIcon,
+  SigmaIcon,
+  WholeWordIcon
+} from "lucide-react-native";
+import {Checkbox, CheckboxForm} from "@/modules/general/components/inputs/Checkbox";
+import {FilePicker} from "@/modules/general/components/inputs/FilePicker";
+import {importLegacyCSV} from "@/database/import";
 
 type FileInfo = {
   name: string
@@ -19,10 +29,45 @@ type FileInfo = {
   headers: string[]
 }
 
+const oldHeaders = [
+  "measurement_id",
+  "measurement_value",
+  "measurement_meter_id",
+  "measurement_createdAt",
+  "measurement___v",
+  "meter_id",
+  "meter_name",
+  "meter_digits",
+  "meter_unit",
+  "meter_contract_id",
+  "meter_areValuesDepleting",
+  "meter_isActive",
+  "meter_identification",
+  "meter_createdAt",
+  "meter_sortingOrder",
+  "meter_isRefillable",
+  "meter_building_id",
+  "meter___v",
+  "contract_id",
+  "contract_name",
+  "contract_pricePerUnit",
+  "contract_identification",
+  "contract_createdAt",
+  "contract_conversion",
+  "contract___v",
+  "building_id",
+  "building_name",
+  "building_address",
+  "building_notes",
+  "building_createdAt",
+  "building___v",
+]
+
 export default function Page() {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null)
+  const [isOldImportFile, setIsOldImportFile] = useState(false)
 
   const styles = useMemo(() => StyleSheet.create({
     sectionHeader: {
@@ -71,6 +116,7 @@ export default function Page() {
           contractId: null as string | null
         },
         meters: {
+          id: null as string | null,
           name: null as string | null,
           precision: null as string | null,
           valueBeforeReset: null as string | null,
@@ -88,6 +134,17 @@ export default function Page() {
           meterId: null as string | null
         }
       }
+    },
+    onSubmit: async (values) => {
+      if(!fileInfo?.uri) return
+      // TODO Add pagination or so
+      // TODO Add indication
+      const csvString = await readAsStringAsync(fileInfo?.uri)
+      if(isOldImportFile) {
+        await importLegacyCSV(csvString, values.clearExisting)
+      } else {
+
+      }
     }
   })
 
@@ -96,6 +153,7 @@ export default function Page() {
     value: header
   })) ?? []
 
+  //region Select Fields
   const buildingIdSelect = useSelectField({
     value: form.data.peek().mapping.peek().buildings.peek().id,
     options: headerOptions
@@ -163,6 +221,10 @@ export default function Page() {
     options: headerOptions
   })
 
+  const meterIdSelect = useSelectField({
+    value: form.data.peek().mapping.peek().meters.peek().id,
+    options: headerOptions
+  })
   const meterNameSelect = useSelectField({
     value: form.data.peek().mapping.peek().meters.peek().name,
     options: headerOptions
@@ -216,6 +278,7 @@ export default function Page() {
     value: form.data.peek().mapping.peek().readings.peek().meterId,
     options: headerOptions
   })
+  //endregion
 
   return (
     <GestureHandlerRootView
@@ -228,7 +291,7 @@ export default function Page() {
           headerLeft: makeHeaderBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button onPress={() => console.log("Import")}>
+              <Button disabled={!fileInfo} onPress={() => form.handleSubmit()}>
                 Start import
               </Button>
             </HeaderButtons>
@@ -236,56 +299,59 @@ export default function Page() {
         }}
       />
 
-      <Text style={styles.sectionHeader}>File</Text>
-      <TouchableOpacity
-        onPress={() => {
-          DocumentPicker.getDocumentAsync({
-            type: ["text/csv", "text/comma-separated-values"],
-            multiple: false,
-            copyToCacheDirectory: true
-          }).then(async res => {
-            console.log("File selected", res)
-            if (res.canceled || !res.assets[0]) return
-            const file = res.assets[0]
+      <View style={defaultStyles.pageContainerPaddingHorizontal}>
+        <FilePicker
+          label="File"
+          value={fileInfo?.name ?? ""}
+          onSelect={async file => {
+              const csvString = await readAsStringAsync(file.uri, {
+                length: 100
+              })
+              const [headers] = parseCSV(csvString)
 
-            if (!file.size || file.size > 1_000_000) {
-              console.error("File too large")
-              return
-            }
-            console.log("Reading file", file)
-            // TODO Add pagination and chunking and only reading header line in the beginning
-
-            const csvString = await readAsStringAsync(file.uri, {
-              length: 100
-            })
-            const [headers] = parseCSV(csvString)
-
-            setFileInfo({
-              name: file.name,
-              uri: file.uri,
-              headers
-            })
-          })
-        }}
-      >
-        <Text style={defaultStyles.outlineButton}>{fileInfo ? fileInfo.name : "Select file"}</Text>
-      </TouchableOpacity>
-
-      <form.FieldProvider name="clearExisting">
-        <CheckboxForm
-          label="Clear existing data"
-          style={{marginTop: 8}}
+              setFileInfo({
+                name: file.name,
+                uri: file.uri,
+                headers
+              })
+              setIsOldImportFile(
+                headers.length === oldHeaders.length &&
+                headers.every((header) => {
+                  const isIncluded = oldHeaders.includes(header)
+                  if(!isIncluded) {
+                    console.log(header)
+                  }
+                  return isIncluded
+                })
+              )
+          }}
         />
-      </form.FieldProvider>
 
-      <Text style={styles.sectionHeader}>Entities to import</Text>
-      <View style={styles.entityButtonContainer}>
-        <form.FieldProvider name="includedEntities">
-          <EntityButtons/>
+        <form.FieldProvider name="clearExisting">
+          <CheckboxForm
+            label="Clear existing data"
+            style={{marginTop: 8}}
+          />
         </form.FieldProvider>
       </View>
 
-      <ScrollView contentContainerStyle={{paddingBottom: 24 + 16}}>
+      {isOldImportFile && (
+        <View style={[defaultStyles.pageContainerPaddingHorizontal, {marginTop: 16}]}>
+          <Text style={defaultStyles.detail}>Detected legacy import file, no need to map headers</Text>
+        </View>
+      )}
+
+      {!isOldImportFile && (<Fragment>
+      <View style={defaultStyles.pageContainerPaddingHorizontal}>
+        <Text style={styles.sectionHeader}>Entities to import</Text>
+        <View style={styles.entityButtonContainer}>
+          <form.FieldProvider name="includedEntities">
+            <EntityButtons/>
+          </form.FieldProvider>
+        </View>
+      </View>
+
+      <ScrollView style={{marginTop: 16}} contentContainerStyle={[{paddingBottom: 24 + 16}, defaultStyles.pageContainerPaddingHorizontal]}>
         {form.data.peek().includedEntities.peek().buildings.value && (<Fragment>
           <Text style={styles.sectionHeader}>Buildings</Text>
           <buildingIdSelect.SelectField renderField={MappingSelectFieldRender("ID", "id")} />
@@ -304,42 +370,35 @@ export default function Page() {
         </Fragment>)}
         {form.data.peek().includedEntities.peek().contractRevisions.value && (<Fragment>
         <Text style={styles.sectionHeader}>Contract Revision</Text>
-        <Text style={defaultStyles.bodyText}>Price per unit</Text>
-        <Text style={defaultStyles.bodyText}>Base payment</Text>
-        <Text style={defaultStyles.bodyText}>Monthly payment</Text>
-        <Text style={defaultStyles.bodyText}>Start date</Text>
-        <Text style={defaultStyles.bodyText}>End date</Text>
-        <Text style={defaultStyles.bodyText}>Contract Id</Text>
+        <contractRevisionPricePerUnitSelect.SelectField renderField={MappingSelectFieldRender("Price per unit", "select")} />
+        <contractRevisionBasePaymentSelect.SelectField renderField={MappingSelectFieldRender("Base payment", "number")} />
+        <contractRevisionMonthlyPaymentSelect.SelectField renderField={MappingSelectFieldRender("Monthly payment", "number")} />
+        <contractRevisionStartDateSelect.SelectField renderField={MappingSelectFieldRender("Start date", "date")} />
+        <contractRevisionEndDateSelect.SelectField renderField={MappingSelectFieldRender("End date", "date")} />
+        <contractRevisionContractIdSelect.SelectField renderField={MappingSelectFieldRender("Contract ID", "id")} />
         </Fragment>)}
         {form.data.peek().includedEntities.peek().meters.value && (<Fragment>
         <Text style={styles.sectionHeader}>Meter</Text>
-        <Text style={defaultStyles.bodyText}>Name</Text>
-        <Text style={defaultStyles.bodyText}>Precision</Text>
-        <Text style={defaultStyles.bodyText}>Value before reset</Text>
-        <Text style={defaultStyles.bodyText}>isActive</Text>
-        <Text style={defaultStyles.bodyText}>Sort Order</Text>
-        <Text style={defaultStyles.bodyText}>Custom unit conversion</Text>
-        <Text style={defaultStyles.bodyText}>Building Id</Text>
-        <Text style={defaultStyles.bodyText}>Contract Id</Text>
-        <Text style={defaultStyles.bodyText}>Type</Text>
-        <Text style={defaultStyles.bodyText}>Unit</Text>
+          <meterIdSelect.SelectField renderField={MappingSelectFieldRender("ID", "id")} />
+          <meterNameSelect.SelectField renderField={MappingSelectFieldRender("Name", "string")} />
+          <meterPrecisionSelect.SelectField renderField={MappingSelectFieldRender("Precision", "number")} />
+          <meterValueBeforeResetSelect.SelectField renderField={MappingSelectFieldRender("Value before reset", "number")} />
+          <meterIsActiveSelect.SelectField renderField={MappingSelectFieldRender("isActive", "boolean")} />
+          <meterSortOrderSelect.SelectField renderField={MappingSelectFieldRender("Sort Order", "number")} />
+          <meterCustomUnitConversionSelect.SelectField renderField={MappingSelectFieldRender("Custom unit conversion", "number")} />
+          <meterBuildingIdSelect.SelectField renderField={MappingSelectFieldRender("Building ID", "id")} />
+          <meterContractIdSelect.SelectField renderField={MappingSelectFieldRender("Contract ID", "id")} />
+          <meterTypeSelect.SelectField renderField={MappingSelectFieldRender("Type", "string")} />
+          <meterUnitSelect.SelectField renderField={MappingSelectFieldRender("Unit", "string")} />
         </Fragment>)}
         {form.data.peek().includedEntities.peek().readings.value && (<Fragment>
         <Text style={styles.sectionHeader}>Reading</Text>
-        <Text style={defaultStyles.bodyText}>Value</Text>
-        <Text style={defaultStyles.bodyText}>Timestamp</Text>
-        <Text style={defaultStyles.bodyText}>Meter Id</Text>
+          <readingValueSelect.SelectField renderField={MappingSelectFieldRender("Value", "number")} />
+          <readingTimestampSelect.SelectField renderField={MappingSelectFieldRender("Timestamp", "date")} />
+          <readingMeterIdSelect.SelectField renderField={MappingSelectFieldRender("Meter Id", "id")} />
         </Fragment>)}
-
-        <View style={{flex: 1}}>
-          {fileInfo?.headers?.map((header) => (
-            <Text
-              key={header}
-              style={defaultStyles.detail}
-            >{header}</Text>
-          ))}
-        </View>
       </ScrollView>
+      </Fragment>)}
 
       <buildingIdSelect.SelectFieldSheet />
       <buildingNameSelect.SelectFieldSheet />
@@ -357,6 +416,7 @@ export default function Page() {
       <contractRevisionStartDateSelect.SelectFieldSheet />
       <contractRevisionEndDateSelect.SelectFieldSheet />
       <contractRevisionContractIdSelect.SelectFieldSheet />
+      <meterIdSelect.SelectFieldSheet />
       <meterNameSelect.SelectFieldSheet />
       <meterPrecisionSelect.SelectFieldSheet />
       <meterValueBeforeResetSelect.SelectFieldSheet />
@@ -397,18 +457,18 @@ function EntityButtons() {
   ))
 }
 
-function MappingSelectFieldRender(label: string, type: "id" | "string" | "boolean" | "select") {
+function MappingSelectFieldRender(label: string, type: "id" | "string" | "boolean" | "select" | "number" | "date") {
   return function({selectedValue, onOpen}: {selectedValue: {value: string | null}, onOpen: () => void}) {
     const colors = useColors()
     const defaultStyles = useDefaultStyles()
 
-    const Icon = type === "id" ? IdCardIcon : type === "string" ? LanguagesIcon : type === "boolean" ? CheckIcon : type === "select" ? WholeWordIcon : null
+    const Icon = type === "id" ? IdCardIcon : type === "string" ? LanguagesIcon : type === "boolean" ? CheckIcon : type === "select" ? WholeWordIcon : type === "number" ? SigmaIcon : type === "date" ? CalendarIcon : null
 
     return (
       <Button
         size="large"
         onPress={onOpen}
-        IconStart={<Icon
+        IconStart={Icon && <Icon
           size={16}
           stroke={colors.textMuted}
         />}
