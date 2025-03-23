@@ -1,3 +1,4 @@
+import '@/modules/general/loader'
 import { SplashScreen, Stack } from 'expo-router'
 import React from 'react'
 import {
@@ -5,8 +6,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native'
-import { computed, effect } from '@preact/signals-react'
-import { areFontsLoaded, useReadyFonts } from '@/modules/general/theme'
+import {useComputed, useSignalEffect} from '@preact/signals-react'
 import { useSettingsTheme } from '@/modules/general/theme'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { StatusBar } from '@/modules/general/components'
@@ -21,26 +21,21 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
   }),
 })
-;(async function () {
-  await SplashScreen.preventAutoHideAsync()
-})()
 
-const isApplicationReady = computed(
-  () =>
-    isDatabaseMigrated.value && areFontsLoaded.value && areSettingsLoaded.value,
-)
-effect(() => {
-  if (!isApplicationReady.value) {
-    return
-  }
-  SplashScreen.hideAsync()
-})
+SplashScreen.preventAutoHideAsync()
 
 export default function TabLayout() {
-  useReadyFonts()
   const theme = useSettingsTheme()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
+  const isApplicationReady = useComputed(() => isDatabaseMigrated.value && areSettingsLoaded.value)
+
+  useSignalEffect(() => {
+    if(!isApplicationReady.value) {
+      return
+    }
+    SplashScreen.hideAsync()
+  })
 
   if (!isApplicationReady.value) {
     return null
