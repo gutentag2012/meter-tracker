@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
 import {
   ChevronDownIcon,
   HouseIcon,
@@ -10,17 +10,22 @@ import {
   BottomSheetModalProvider,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet'
-import { useMemo, useRef } from 'react'
+import {useMemo, useRef} from 'react'
 import {
   markBuildingAsDefault,
   useActiveBuilding,
   useAllBuildings,
 } from '@/modules/buildings/buildings.query'
-import { activeBuilding } from '@/modules/buildings/buildings.signals'
-import { useColors, useDefaultStyles } from '@/modules/general/theme'
-import { translate } from '@/modules/general/translations'
+import {activeBuilding} from '@/modules/buildings/buildings.signals'
+import {useColors, useDefaultStyles} from '@/modules/general/theme'
+import {translate} from '@/modules/general/translations'
+
+function getBuildingName(name: string | undefined) {
+  return name === 'default' ? translate('buildings.defaultName') : name
+}
 
 const snapPoints = ['30%', '90%']
+
 export function ActiveBuildingSelector() {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
@@ -42,12 +47,6 @@ export function ActiveBuildingSelector() {
 
   const bottomSheetRef = useRef<BottomSheetModal>(null)
 
-  const [allBuildings] = useAllBuildings()
-  const [activeBuildingEntity] = useActiveBuilding()
-
-  function getBuildingName(name: string | undefined) {
-    return name === 'default' ? translate('buildings.defaultName') : name
-  }
   return (
     <BottomSheetModalProvider>
       <TouchableOpacity
@@ -62,24 +61,20 @@ export function ActiveBuildingSelector() {
           padding: 8,
         }}
       >
-        <View style={{ flex: 1 }} />
-        <View style={[defaultStyles.row, { flex: 1 }]}>
+        <View style={{flex: 1}}/>
+        <View style={[defaultStyles.row, {flex: 1}]}>
           <HouseIcon
             size={defaultStyles.detail.fontSize}
             stroke={colors.text}
-            style={{ marginLeft: 'auto' }}
+            style={{marginLeft: 'auto'}}
           />
-          <Text
-            style={[
-              defaultStyles.detail,
-              { color: colors.text, marginRight: 'auto' },
-            ]}
-          >
-            {getBuildingName(activeBuildingEntity?.name)}
-          </Text>
+          <ActiveBuildingName />
         </View>
-        <View style={{ flex: 1, alignItems: 'flex-end' }}>
-          <ChevronDownIcon size={16} stroke={colors.text} />
+        <View style={{flex: 1, alignItems: 'flex-end'}}>
+          <ChevronDownIcon
+            size={16}
+            stroke={colors.text}
+          />
         </View>
       </TouchableOpacity>
 
@@ -88,11 +83,11 @@ export function ActiveBuildingSelector() {
         index={0}
         snapPoints={snapPoints}
         enableDynamicSizing={false}
-        backgroundStyle={{ backgroundColor: colors.card }}
-        handleIndicatorStyle={{ backgroundColor: colors.text }}
+        backgroundStyle={{backgroundColor: colors.card}}
+        handleIndicatorStyle={{backgroundColor: colors.text}}
       >
         <BottomSheetScrollView
-          style={{ flex: 1, minHeight: 500, paddingHorizontal: 16 }}
+          style={{flex: 1, minHeight: 500, paddingHorizontal: 16}}
         >
           <View
             style={[
@@ -106,79 +101,111 @@ export function ActiveBuildingSelector() {
               {translate('buildings.modalTitle')}
             </Text>
             <TouchableOpacity
-              style={[defaultStyles.ghostButton, { marginLeft: 'auto' }]}
+              style={[defaultStyles.ghostButton, {marginLeft: 'auto'}]}
             >
               <PlusIcon
                 size={defaultStyles.detail.fontSize}
                 stroke={colors.primary}
               />
-              <Text style={[defaultStyles.detail, { color: colors.primary }]}>
+              <Text style={[defaultStyles.detail, {color: colors.primary}]}>
                 {translate('buildings.createButton')}
                 {/* TODO Add create building screen */}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {allBuildings?.map((building) => (
-            <TouchableOpacity
-              key={building.id}
-              style={[
-                defaultStyles.row,
-                {
-                  height: 42,
-                  alignItems: 'center',
-                  gap: 0,
-                  backgroundColor:
-                    building.id === activeBuilding.value
-                      ? colors.background
-                      : undefined,
-                  borderRadius: 4,
-                },
-              ]}
-              onPress={() => {
-                activeBuilding.value = building.id
-                bottomSheetRef.current?.dismiss()
-              }}
-            >
+          <BuildingList bottomSheetRef={bottomSheetRef}/>
+        </BottomSheetScrollView>
+      </BottomSheetModal>
+    </BottomSheetModalProvider>
+  )
+}
+
+function ActiveBuildingName() {
+  const colors = useColors()
+  const defaultStyles = useDefaultStyles()
+  const [activeBuildingEntity] = useActiveBuilding()
+
+  return (
+    <Text
+      style={[
+        defaultStyles.detail,
+        {color: colors.text, marginRight: 'auto'},
+      ]}
+    >
+      {getBuildingName(activeBuildingEntity?.name)}
+    </Text>
+  )
+}
+
+type BuildingListProps = {
+  bottomSheetRef: React.RefObject<BottomSheetModal>
+}
+
+function BuildingList({bottomSheetRef}: BuildingListProps) {
+  const colors = useColors()
+  const defaultStyles = useDefaultStyles()
+
+  const [allBuildings] = useAllBuildings()
+
+  return <View>
+    {allBuildings?.map((building) => (
+      <TouchableOpacity
+        key={building.id}
+        style={[
+          defaultStyles.row,
+          {
+            height: 42,
+            alignItems: 'center',
+            gap: 0,
+            backgroundColor:
+              building.id === activeBuilding.value
+                ? colors.background
+                : undefined,
+            borderRadius: 4,
+          },
+        ]}
+        onPress={() => {
+          activeBuilding.value = building.id
+          bottomSheetRef.current?.dismiss()
+        }}
+      >
               <Text
                 style={[
                   defaultStyles.bodyText,
-                  { marginLeft: 8, marginRight: 'auto' },
+                  {marginLeft: 8, marginRight: 'auto'},
                 ]}
               >
                 {getBuildingName(building.name)}
               </Text>
 
-              {building.isDefault ? (
-                <Text style={[defaultStyles.detailSmall, { padding: 8 }]}>
+        {building.isDefault ? (
+          <Text style={[defaultStyles.detailSmall, {padding: 8}]}>
                   {translate('buildings.defaultMarked')}
                 </Text>
-              ) : (
-                <TouchableOpacity
-                  onPress={() => markBuildingAsDefault(building.id)}
-                >
+        ) : (
+          <TouchableOpacity
+            onPress={() => markBuildingAsDefault(building.id)}
+          >
                   <Text
                     style={[
                       defaultStyles.detailSmall,
                       defaultStyles.outlineButton,
-                      { marginRight: 8 },
+                      {marginRight: 8},
                     ]}
                   >
                     {translate('buildings.markAsDefault')}
                   </Text>
                 </TouchableOpacity>
-              )}
+        )}
 
-              <TouchableOpacity style={{ padding: 8 }}>
+        <TouchableOpacity style={{padding: 8}}>
                 <PencilIcon
                   size={defaultStyles.bodyText.fontSize}
                   stroke={colors.textMuted}
                 />
               </TouchableOpacity>
             </TouchableOpacity>
-          ))}
-        </BottomSheetScrollView>
-      </BottomSheetModal>
-    </BottomSheetModalProvider>
-  )
+    ))}
+  </View>
 }
