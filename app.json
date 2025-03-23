@@ -57,7 +57,7 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
+          "recordAudioAndroid": false
         }
       ],
       [
@@ -174,7 +174,13 @@
       [
         "./plugins/withAndroidGradle"
       ],
-      "expo-font",
+      ["expo-font", {"fonts": [
+        "./assets/fonts/Mona-Sans-Bold.ttf",
+        "./assets/fonts/Mona-Sans-Medium.ttf",
+        "./assets/fonts/Mona-Sans-Regular.ttf",
+        "./assets/fonts/SpaceMono-Bold.ttf",
+        "./assets/fonts/SpaceMono-Regular.ttf"
+      ]}],
       "expo-localization",
       "expo-sqlite"
     ],

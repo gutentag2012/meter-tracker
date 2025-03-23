@@ -1,7 +1,6 @@
 import { db } from '@/database/db'
 import { unit } from '@/database/schema'
-import { useState } from 'react'
-import { useSignalEffect } from '@preact/signals-react'
+import {useEffect, useState} from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 import { getTableName } from 'drizzle-orm'
 
@@ -13,7 +12,7 @@ export function useAllUnits() {
   const [data, setData] = useState<Awaited<ReturnType<typeof getAllUnits>>>([])
   const [error, setError] = useState<string | null>(null)
 
-  useSignalEffect(() => {
+  useEffect(() => {
     getAllUnits()
       .then((res) => {
         setData(res)
@@ -36,6 +35,6 @@ export function useAllUnits() {
     return () => {
       listener.remove()
     }
-  })
+  }, [])
   return [data, error] as const
 }
