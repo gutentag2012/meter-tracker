@@ -35,14 +35,17 @@ if (SHOULD_RESET_DATABASE) {
     console.log('Running migrations')
     await migrate(db, migrations)
       .then(() => {
+        console.log('Database reset and migrated')
         isDatabaseMigrated.value = true
       })
       .catch((err) => console.log('Error', err))
     SHOULD_RESET_DATABASE = false
   })()
 } else {
+  console.log('Running migrations')
   migrate(db, migrations)
     .then(() => {
+        console.log('Database reset and migrated')
       isDatabaseMigrated.value = true
     })
     .catch((err) => console.log('Error', err))
