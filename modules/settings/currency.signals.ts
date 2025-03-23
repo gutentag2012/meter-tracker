@@ -17,6 +17,7 @@ export const currency = computed(() => getCurrencyFromCode(currencyCode.value))
 
 AsyncStorage.getItem(StorageKeys.currency)
   .then((currencyFromStorage) => {
+    console.log('Loaded currency')
     currencyCode.value = (currencyFromStorage ?? undefined) as CurrencyKeys
     numberOfSettingsLoaded.value++
   })

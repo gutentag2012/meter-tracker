@@ -27,12 +27,14 @@ export const notificationPermission = signal<
 
 Notifications.getPermissionsAsync()
   .then((permissions) => {
+    console.log("Loaded notification permissions")
     notificationPermission.value = permissions
     numberOfSettingsLoaded.value++
   })
   .catch((err) => console.error('Error getting notification permissions', err))
 AsyncStorage.getItem(StorageKeys.notifications)
   .then((notificationFromStorage) => {
+    console.log("Loaded notification interval")
     interval.value = notificationFromStorage
       ? JSON.parse(notificationFromStorage)
       : DefaultInterval
@@ -41,6 +43,7 @@ AsyncStorage.getItem(StorageKeys.notifications)
   .catch((err) => console.error('Error loading notification', err))
 AsyncStorage.getItem(StorageKeys.notificationsLoaded)
   .then((notificationLoadedFromStorage) => {
+    console.log("Loaded notification loaded")
     reminderEnabled.value = notificationLoadedFromStorage === 'true'
     numberOfSettingsLoaded.value++
   })

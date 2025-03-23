@@ -14,6 +14,7 @@ export const language = signal(oldLanguage)
 
 AsyncStorage.getItem(StorageKeys.language)
   .then((languageFromStorage) => {
+    console.log('Loaded language')
     oldLanguage = languageFromStorage ?? locales[0]?.languageCode ?? 'en'
     language.value = oldLanguage as string
     numberOfSettingsLoaded.value++

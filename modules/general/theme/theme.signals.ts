@@ -15,6 +15,7 @@ export const themeColors = computed(() =>
 
 AsyncStorage.getItem(StorageKeys.theme)
   .then((themeFromStorage) => {
+    console.log("Loaded theme")
     colorScheme.value = (themeFromStorage ?? undefined) as ColorSchemeName
     numberOfSettingsLoaded.value++
   })
