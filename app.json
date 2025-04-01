@@ -74,6 +74,8 @@
             "android:datePickerDialogTheme": "@style/MaterialDateDialog",
             "android:timePickerStyle": "@style/MaterialTimeDialog",
             "android:alertDialogTheme": "@style/AlertDialog",
+            "materialAlertDialogTheme": "@style/AlertDialog",
+            "alertDialogTheme": "@style/AlertDialog",
             "colorPrimary": "@color/primary",
             "colorOnSurface": "@color/text",
             "colorError": "@color/negative",
@@ -123,19 +125,32 @@
             "android:windowLightStatusBar": "false"
           },
           "AlertDialog": {
-            "parent": "Theme.MaterialComponents.DayNight.Dialog",
+            "parent": "Theme.AppCompat.Light.Dialog.Alert",
             "colorSurface": "@color/card",
             "colorOnSurface": "@color/text",
+            "background": "@color/background",
             "android:background": "@color/background",
             "android:textColor": "@color/text",
             "android:textColorPrimary": "@color/textMuted",
+            "colorPrimary": "@color/primary",
+            "android:colorPrimary": "@color/primary",
+            "colorAccent": "@color/primary",
+            "android:colorAccent": "@color/primary",
             "colorError": "@color/negative",
-            "buttonBarNegativeButtonStyle": "@style/NegativeButtonStyle",
+            "android:colorError": "@color/negative",
             "android:windowLightStatusBar": "false"
           },
           "NegativeButtonStyle": {
             "parent": "Widget.MaterialComponents.Button.TextButton.Dialog",
             "android:textColor": "@color/negative"
+          },
+          "PositiveButtonStyle": {
+            "parent": "Widget.MaterialComponents.Button.TextButton.Dialog",
+            "android:textColor": "@color/positive"
+          },
+          "NeutralButtonStyle": {
+            "parent": "Widget.MaterialComponents.Button.TextButton.Dialog",
+            "android:textColor": "@color/primary"
           }
         }
       ],

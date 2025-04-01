@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "41efea95-75c3-4540-ac48-687a480f0478",
+  "id": "eb0519f1-0f6d-439e-b7e2-79f18fba658d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "building": {
@@ -229,14 +229,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "value_before_reset": {
-          "name": "value_before_reset",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 0
-        },
         "is_active": {
           "name": "is_active",
           "type": "integer",
@@ -342,6 +334,59 @@
             "id"
           ],
           "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "meterReset": {
+      "name": "meterReset",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "value": {
+          "name": "value",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "meter_id": {
+          "name": "meter_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meterReset_meter_id_meter_id_fk": {
+          "name": "meterReset_meter_id_meter_id_fk",
+          "tableFrom": "meterReset",
+          "tableTo": "meter",
+          "columnsFrom": [
+            "meter_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },

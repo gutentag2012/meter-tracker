@@ -7,7 +7,7 @@ import { useUsagePerYearData } from '@/modules/meters/hooks/useUsagePerYearData'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
 
-const width = Dimensions.get('window').width - 32
+const width = Dimensions.get('window').width - 32 - 16
 const CHART_PADDING_X = 8
 const CHART_PADDING_Y = 0
 const CHART_FOOTER_HEIGHT = 16
@@ -128,7 +128,7 @@ export function UsagePerYear({
             const start = chartData.xScale(0)
             const end = chartData.xScale(usage)
             const barWidth = end - start
-            const usageText = usage.toFixed(2)
+            const usageText = usage?.toFixed(2) ?? '0'
             const fontSize = fontBold.measureText(usageText)
             const labelXPos = Math.max(
               CHART_PADDING_X + (yearWidth ?? 0) + 16,

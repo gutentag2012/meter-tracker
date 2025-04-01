@@ -32,7 +32,6 @@ CREATE TABLE `meter` (
 	`name` text NOT NULL,
 	`identifier` text,
 	`precision` integer NOT NULL,
-	`value_before_reset` real DEFAULT 0,
 	`is_active` integer DEFAULT 1,
 	`sort_order` integer DEFAULT 0,
 	`custom_unit_conversion` real,
@@ -44,6 +43,14 @@ CREATE TABLE `meter` (
 	FOREIGN KEY (`type_id`) REFERENCES `meterType`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`unit_id`) REFERENCES `unit`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`contract_id`) REFERENCES `contract`(`id`) ON UPDATE no action ON DELETE set null
+);
+--> statement-breakpoint
+CREATE TABLE `meterReset` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`timestamp` integer DEFAULT (unixepoch()) NOT NULL,
+	`value` real NOT NULL,
+	`meter_id` integer NOT NULL,
+	FOREIGN KEY (`meter_id`) REFERENCES `meter`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `meterType` (

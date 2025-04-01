@@ -59,6 +59,7 @@ import { PermissionStatus } from 'expo-notifications'
 import { language } from '@/modules/settings/language.signals'
 import { translateInterval } from '@/modules/settings/notifications'
 import { IntervalForm } from '@/modules/settings/components/IntervalForm'
+import { resetDatabase } from '@/modules/general/general.query'
 
 const languageOptions = [
   {
@@ -496,6 +497,7 @@ export default function Page() {
             />
           }
           variant="text"
+          onPress={() => resetDatabase()}
         >
           <View style={[!dangerZoneActive && { opacity: 0.6 }]}>
             <Text

@@ -1,7 +1,7 @@
 import { View } from 'react-native'
 import { Stack } from 'expo-router/stack'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { updateMeter, useMeterById } from '@/modules/meters/meters.query'
+import { updateMeter, useMeterById, useMeterResetsById } from '@/modules/meters/meters.query'
 import { useForm } from '@formsignals/form-react'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
 import { Button } from '@/modules/general/components/inputs/Button'
@@ -18,6 +18,7 @@ export default function Page() {
   const { meterId: meterIdRaw } = useLocalSearchParams()
   const meterId = parseInt(meterIdRaw as string)
   const [meter] = useMeterById(meterId)
+  const [meterResets] = useMeterResetsById(meterId)
 
   const form = useForm({
     validatorAdapter: ZodAdapter,
@@ -29,6 +30,7 @@ export default function Page() {
       meterType: meter?.typeId ?? 1,
       contract: meter?.contractId ?? null,
       customUnitConversion: meter?.customUnitConversion ?? null,
+      resets: meterResets
     },
     onSubmit: async (values) => {
       await updateMeter(meterId, {
@@ -40,7 +42,7 @@ export default function Page() {
         contractId: values.contract,
         buildingId: activeBuilding.value,
         customUnitConversion: values.customUnitConversion,
-      })
+      }, values.resets)
         .then(() => {
           form.reset()
           router.back()

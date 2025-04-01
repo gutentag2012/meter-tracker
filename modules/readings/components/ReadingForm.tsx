@@ -88,7 +88,7 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
     textRight: meter.lastReading
       ? formatNumber(meter.lastReading, meter.meterPrecision) +
         ' ' +
-        meter.meterUnit
+        meter.meterUnit + " "
       : '-',
     value: meter.meterId,
   }))

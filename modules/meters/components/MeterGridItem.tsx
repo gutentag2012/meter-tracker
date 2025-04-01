@@ -24,19 +24,10 @@ import {
   formatNumber,
   translate,
 } from '@/modules/general/translations'
+import {getAllMetersForBuilding} from "@/modules/meters";
 
 interface Props {
-  meter: {
-    meterId: number
-    meterName: string | null
-    identifier: string | null
-    meterUnit: string | null
-    lastReading: number | null
-    lastReadingDate: Date | null
-    percentileChange: number | null
-    lastDifferencePerDay: number | null
-    meterPrecision: number | null
-  }
+  meter: Awaited<ReturnType<typeof getAllMetersForBuilding>>[number]
   positions: SharedValue<Record<number, number>>
   onFinishSort?: () => void
 }

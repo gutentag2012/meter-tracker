@@ -131,6 +131,7 @@ export async function importLegacyCSV(csv:string, clearExisting=false) {
   console.log("Importing Readings", readings.length)
 
   if(clearExisting) {
+    console.log("Clearing existing database")
     await clearDatabase()
   }
 
@@ -226,5 +227,6 @@ async function clearDatabase() {
   await db.delete(Schema.contract).execute()
   await db.delete(Schema.contractRevision).execute()
   await db.delete(Schema.meter).execute()
+  await db.delete(Schema.meterReset).execute()
   await db.delete(Schema.reading).execute()
 }

@@ -10,6 +10,8 @@ export const en = {
     delete: 'Delete',
     select: 'Select',
     apply: 'Apply',
+    edit: 'Edit',
+    ok: 'Ok',
     clear: 'Clear',
     reset: 'Reset',
     day: 'Day',
@@ -56,12 +58,17 @@ export const en = {
     createLabelCustomUnitConversion: 'Custom unit conversion',
     createLabelCustomUnitConversionHint:
       'If left empty, the default unit conversion will be used',
-    createSectionContracts: 'Contracts',
+    createSectionContracts: 'Contract',
     createSectionConversion: 'Conversion',
+    advancedContractOptions: 'Advanced contract options',
     createSectionConversionHint:
       'Given the unit of the contract and this meters unit, this is how the price would be calculated',
+
+    createSectionResets: 'Resets',
+    createSectionDescriptionResets: "If your meter is reset to 0 you can record this here. The last value will be added to all new readings.",
+
     createSectionActions: 'Actions',
-    actionReset: 'Reset meter to zero',
+    actionReset: 'Reset meter',
     actionResetDescription: 'Keeps last value and adds it to all new readings',
     actionInactive: 'Mark meter as inactive',
     actionInactiveDescription:

@@ -28,7 +28,8 @@ export function ContractListItem({ contract }: ContractListItemProps) {
   const costCurrentMonth = contract.totalCostCurrentMonth ?? 0
   return (
     <Link
-      href={`/contract/${contract.contractId}`}
+      // TODO Link to detail page
+      href={`/contract/${contract.contractId}/edit`}
       asChild
       style={{
         backgroundColor: colors.card,
@@ -79,7 +80,7 @@ export function ContractListItem({ contract }: ContractListItemProps) {
                   {formatNumber(contract.pricePerUnit, 4)}
                   <Text style={defaultStyles.detailSmall}>
                     {' '}
-                    {currency.value.currencySymbol}/{contract.contractUnit}
+                    {currency.value.currencySymbol}{contract.contractUnit ? `/${contract.contractUnit}` : ''}
                   </Text>
                 </Text>
               </Fragment>

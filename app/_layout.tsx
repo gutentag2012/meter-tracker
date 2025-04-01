@@ -13,6 +13,7 @@ import { StatusBar } from '@/modules/general/components'
 import { isDatabaseMigrated } from '@/database/db.signals'
 import { areSettingsLoaded } from '@/modules/settings/settings.signals'
 import * as Notifications from 'expo-notifications'
+import {SafeAreaView} from "react-native";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

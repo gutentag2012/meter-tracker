@@ -1,6 +1,6 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { ChangeIndicatorIcon } from '@/modules/general/components/interface/ChangeIndicatorIcon'
-import { CalendarIcon, DiffIcon } from 'lucide-react-native'
+import {CalendarIcon, DiffIcon, EyeIcon} from 'lucide-react-native'
 import { Link } from 'expo-router'
 import { Fragment } from 'react'
 import { useDefaultStyles, useColors } from '@/modules/general/theme'
@@ -9,18 +9,10 @@ import {
   formatNumber,
   translate,
 } from '@/modules/general/translations'
+import {getAllReadingsForMeter} from "@/modules/readings";
 
 type ReadingListItemProps = {
-  reading: {
-    readingId: number
-    readingValue: number
-    precision: number | null
-    difference: number | null
-    unitAbbreviation: string | null
-    percentileChange: number | null
-    differencePerDay: number | null
-    readingTimestamp: Date
-  }
+  reading: Awaited<ReturnType<typeof getAllReadingsForMeter>>[number]
 }
 
 export function ReadingListItem({ reading }: ReadingListItemProps) {
@@ -121,6 +113,28 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
                   {' '}
                   {reading.unitAbbreviation}
                   {translate('general.perDay')}
+                </Text>
+              </Text>
+            </View>
+          )}
+          {(reading.realValue !== null && reading.realValue !== undefined && reading.realValue !== reading.readingValue) && (
+            <View style={defaultStyles.iconText}>
+              <EyeIcon
+                color={colors.textMuted}
+                size={defaultStyles.detail.fontSize}
+              />
+              <Text
+                style={[
+                  defaultStyles.detail,
+                  {
+                    color: colors.textMuted,
+                  },
+                ]}
+              >
+                {formatNumber(reading.realValue, reading.precision)}
+                <Text style={defaultStyles.detailSmall}>
+                  {' '}
+                  {reading.unitAbbreviation}
                 </Text>
               </Text>
             </View>

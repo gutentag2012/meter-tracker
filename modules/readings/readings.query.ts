@@ -1,12 +1,13 @@
-import { db } from '@/database/db'
-import { meter, reading, unit } from '@/database/schema'
-import { and, or, desc, eq, getTableName, gte, lt, sql } from 'drizzle-orm'
+import {db, Schema} from '@/database/db'
+import {meter, meterReset, reading, unit} from '@/database/schema'
+import {and, or, desc, eq, getTableName, gte, lt, sql, gt, lte} from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 import { useSignal, useSignalEffect } from '@preact/signals-react'
 import { Signal } from '@preact/signals-core'
+import {QueryBuilder} from "drizzle-orm/sqlite-core";
 
-export function getAllReadingsForMeter(
+export async function getAllReadingsForMeter(
   meterId: number,
   filter?: {
     from: Date | null
@@ -29,20 +30,24 @@ export function getAllReadingsForMeter(
           filter.until ? lt(reading.timestamp, filter.until) : undefined,
         )
     : undefined
+
   const allReadings = db.$with('allReadings').as(
     db
       .select({
         meterId: reading.meterId,
         readingId: reading.id,
-        value: reading.value,
+        value: sql<number>`(${reading.value} + COALESCE((SELECT mr.value FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${meterId} ORDER BY mr."timestamp" DESC LIMIT 1), 0))`.as('valueCalculated'),
+        realValue: reading.value,
         timestamp: reading.timestamp,
       })
       .from(reading)
       .where(and(eq(reading.meterId, meterId), sqlFilter)),
   )
+
   const lastReading = db.$with('lastReading').as(
     db
       .select({
+        realValue: allReadings.realValue,
         meterId: allReadings.meterId,
         readingId: allReadings.readingId,
         readingValue: allReadings.value,
@@ -69,6 +74,7 @@ export function getAllReadingsForMeter(
   const readingDifferences = db.$with('readingDifferences').as(
     db
       .select({
+        realValue: lastReading.realValue,
         meterId: lastReading.meterId,
         readingId: lastReading.readingId,
         readingValue: lastReading.readingValue,
@@ -91,6 +97,7 @@ export function getAllReadingsForMeter(
   return db
     .with(allReadings, lastReading, readingDifferences)
     .select({
+      realValue: readingDifferences.realValue,
       readingId: readingDifferences.readingId,
       unitAbbreviation: unit.abbreviation,
       precision: meter.precision,
@@ -154,7 +161,7 @@ export async function getYearlyUsagesForMeter(
     db
       .select({
         meterId: reading.meterId,
-        value: reading.value,
+        value: sql<number>`(${reading.value} + COALESCE((SELECT mr.value FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${meterId} ORDER BY mr."timestamp" DESC LIMIT 1), 0))`.as('valueCalculated'),
         timestamp: reading.timestamp,
         year: sql<number>`strftime('%Y', ${reading.timestamp}, 'unixepoch')`.as(
           'year',
@@ -279,7 +286,13 @@ export function deleteReading(readingId: number) {
   return db.delete(reading).where(eq(reading.id, readingId)).execute()
 }
 
-export function createReading(values: typeof reading.$inferInsert) {
+export async function createReading(values: typeof reading.$inferInsert) {
+  const meter = await db.query.meter.findFirst({
+    where: eq(Schema.meter.id, values.meterId)
+  })
+  if(!meter) {
+    return
+  }
   return db.insert(reading).values(values).execute()
 }
 
@@ -296,43 +309,6 @@ export function updateReading(
 
 export function getReadingById(readingId: number) {
   return db.query.reading.findFirst({ where: eq(reading.id, readingId) })
-}
-
-export function useReadingsForMeter(meterId: number) {
-  const [data, setData] = useState<
-    Awaited<ReturnType<typeof getAllReadingsForMeter>>
-  >([])
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    getAllReadingsForMeter(meterId)
-      .then((res) => {
-        setData(res)
-        setError(null)
-      })
-      .catch(setError)
-
-    const listener = addDatabaseChangeListener((change) => {
-      if (
-        change.tableName !== getTableName(reading) &&
-        change.tableName !== getTableName(meter) &&
-        change.tableName !== getTableName(unit)
-      ) {
-        return
-      }
-      getAllReadingsForMeter(meterId)
-        .then((res) => {
-          setData(res)
-          setError(null)
-        })
-        .catch(setError)
-    })
-
-    return () => {
-      listener.remove()
-    }
-  }, [meterId])
-  return [data, error] as const
 }
 
 export function useReadingsForMeterFiltered(
@@ -373,7 +349,8 @@ export function useReadingsForMeterFiltered(
       if (
         change.tableName !== getTableName(reading) &&
         change.tableName !== getTableName(meter) &&
-        change.tableName !== getTableName(unit)
+        change.tableName !== getTableName(unit) &&
+        change.tableName !== getTableName(meterReset)
       ) {
         return
       }
@@ -429,7 +406,8 @@ export function useYearlyUsagesForMeter(
     const listener = addDatabaseChangeListener((change) => {
       if (
         change.tableName !== getTableName(reading) &&
-        change.tableName !== getTableName(unit)
+        change.tableName !== getTableName(unit) &&
+        change.tableName !== getTableName(meterReset)
       ) {
         return
       }

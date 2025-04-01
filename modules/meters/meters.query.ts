@@ -1,5 +1,5 @@
 import { db } from '@/database/db'
-import { contract, meter, meterType, reading, unit } from '@/database/schema'
+import { contract, meter, meterReset, MeterResetInsert, meterType, reading, unit } from '@/database/schema'
 import { desc, eq, getTableName, lte, sql } from 'drizzle-orm'
 import { useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
@@ -79,6 +79,18 @@ export async function getMeterById(meterId: number) {
   return db.query.meter.findFirst({ where: eq(meter.id, meterId) })
 }
 
+export async function getMeterResetsById(meterId: number) {
+  return db.query.meterReset.findMany({ where: eq(meterReset.meterId, meterId), orderBy: desc(meterReset.timestamp) })
+}
+
+export async function deleteMeterReset(meterResetId: number) {
+  return db.delete(meterReset).where(eq(meterReset.id, meterResetId)).execute()
+}
+
+export async function updateMeterReset(meterResetId: number, values: MeterResetInsert) {
+  return db.update(meterReset).set(values).where(eq(meterReset.id, meterResetId)).execute()
+}
+
 export function getAllMeterTypes() {
   return db.query.meterType.findMany()
 }
@@ -112,17 +124,16 @@ export async function resetMeterValue(meterId: number) {
       ),
     )
     .catch((err) => console.error(err))
-  if (!lastReadings) {
+  if (!lastReadings?.length) {
     return
   }
+
   const [lastReading] = lastReadings
-  return db
-    .update(meter)
-    .set({
-      valueBeforeReset: lastReading.value,
-    })
-    .where(eq(meter.id, meterId))
-    .execute()
+  await db.insert(meterReset).values({
+    meterId,
+    timestamp: new Date(),
+    value: lastReading.value
+  })
 }
 
 export async function createMeter(values: typeof meter.$inferInsert) {
@@ -132,7 +143,15 @@ export async function createMeter(values: typeof meter.$inferInsert) {
 export async function updateMeter(
   meterId: number,
   values: Partial<typeof meter.$inferInsert>,
+  resets: { id: number; timestamp: Date; value: number }[],
 ) {
+  for (const { id, ...reset } of resets) {
+    await db
+      .update(meterReset)
+      .set(reset)
+      .where(eq(meterReset.id, id))
+      .execute()
+  }
   return db.update(meter).set(values).where(eq(meter.id, meterId)).execute()
 }
 
@@ -192,6 +211,42 @@ export function useAllMeterTypes() {
         return
       }
       getAllMeterTypes()
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
+  return [data, error] as const
+}
+
+export function useMeterResetsById(meterId?: number) {
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getMeterResetsById>>
+  >([])
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    if(!meterId) {
+      return
+    }
+    getMeterResetsById(meterId)
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (change.tableName !== getTableName(meterReset)) {
+        return
+      }
+      getMeterResetsById(meterId)
         .then((res) => {
           setData(res)
           setError(null)

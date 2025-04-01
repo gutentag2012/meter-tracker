@@ -1,6 +1,6 @@
 {
-  "id": "e9691b3e-430f-492f-819d-36e13f7b2902",
-  "prevId": "41efea95-75c3-4540-ac48-687a480f0478",
+  "id": "7fb1cb6a-ffff-4c0d-8531-f593cfe9a3cf",
+  "prevId": "eb0519f1-0f6d-439e-b7e2-79f18fba658d",
   "version": "6",
   "dialect": "sqlite",
   "tables": {
@@ -229,14 +229,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "value_before_reset": {
-          "name": "value_before_reset",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 0
-        },
         "is_active": {
           "name": "is_active",
           "type": "integer",
@@ -343,6 +335,59 @@
           ],
           "onUpdate": "no action",
           "onDelete": "set null"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "meterReset": {
+      "name": "meterReset",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "value": {
+          "name": "value",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "meter_id": {
+          "name": "meter_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meterReset_meter_id_meter_id_fk": {
+          "name": "meterReset_meter_id_meter_id_fk",
+          "tableFrom": "meterReset",
+          "columnsFrom": [
+            "meter_id"
+          ],
+          "tableTo": "meter",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},

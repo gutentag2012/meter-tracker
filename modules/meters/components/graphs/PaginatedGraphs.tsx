@@ -26,6 +26,8 @@ export function PaginatedGraphs({
   yearlyUsages: Awaited<ReturnType<typeof getYearlyUsagesForMeter>>
   readings: Awaited<ReturnType<typeof getAllReadingsForMeter>>
 }) {
+  const colors = useColors()
+
   // A number where the index of the selected graph is stored and where the decimal part is the progress of the scroll
   const indexWithProgress = useSharedValue(0)
   const pagerRef = useRef<PagerView>(null)
@@ -42,7 +44,7 @@ export function PaginatedGraphs({
   )
 
   return (
-    <View>
+    <View style={{backgroundColor: colors.card, borderRadius: 4}}>
       <AnimatedPagerView
         ref={pagerRef}
         style={{ height: 260 }}

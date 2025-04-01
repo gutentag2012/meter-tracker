@@ -1,19 +1,29 @@
 import { Alert, Text, TouchableOpacity, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import {
+  CheckIcon,
   ChevronDownIcon,
+  ChevronRightIcon,
   ChevronUpIcon,
+  PencilIcon,
+  PenIcon,
   PlusIcon,
   RefreshCcwIcon,
+  SaveIcon,
   Trash2Icon,
+  TrashIcon,
   XIcon,
 } from 'lucide-react-native'
 import { StatusBar } from '@/modules/general/components/interface/StatusBar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import {
   deleteMeter,
+  deleteMeterReset,
+  getMeterResetsById,
   resetMeterValue,
   useAllMeterTypes,
+  useMeterById,
+  useMeterResetsById,
 } from '@/modules/meters/meters.query'
 import {
   KeyboardAwareScrollView,
@@ -25,7 +35,11 @@ import { useAllContracts } from '@/modules/contracts/contracts.query'
 import { z } from 'zod'
 import { ZodAdapter } from '@formsignals/validation-adapter-zod'
 import { Button } from '@/modules/general/components/inputs/Button'
-import type { FormContextType } from '@formsignals/form-react'
+import {
+  FormContextType,
+  useFieldContext,
+  useForm,
+} from '@formsignals/form-react'
 import { currency } from '@/modules/settings/currency.signals'
 import {
   KeyboardToolbarTheme,
@@ -33,10 +47,21 @@ import {
   useDefaultStyles,
 } from '@/modules/general/theme'
 import { LangKey } from '@/modules/general/translations/en'
-import { formatNumber, translate } from '@/modules/general/translations'
+import {
+  formatDate,
+  formatNumber,
+  translate,
+} from '@/modules/general/translations'
 import { useAllUnits } from '@/modules/units'
-import { FormTextField, useSelectField } from '@/modules/general/components'
-import { Fragment } from 'react'
+import {
+  DatePicker,
+  FormDatePicker,
+  FormTextField,
+  useSelectField,
+} from '@/modules/general/components'
+import { Fragment, useMemo } from 'react'
+import { useSignal } from '@preact/signals-react'
+import { Signal } from '@preact/signals-core'
 
 // TODO Either add a confirm alert for the delete action or add a checkbox to enable the delete button
 
@@ -70,6 +95,12 @@ type FormValues = {
   meterType: number
   contract: number | null
   customUnitConversion: number | null
+  resets: {
+    id: number
+    timestamp: Date
+    value: number
+    meterId: number
+  }[]
 }
 
 type MeterFormProps = {
@@ -131,7 +162,6 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
   })
 
   const contractSelect = useSelectField({
-    label: translate('meters.createLabelContract'),
     options: [
       { label: translate('contracts.selectValueEmpty'), value: null },
       ...contractOptions,
@@ -157,6 +187,8 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
     form.data.peek().customUnitConversion.value ??
     selectedUnit?.conversionFactor ??
     1
+
+  const showAdvancedContract = useSignal(false)
 
   return (
     <KeyboardProvider>
@@ -226,115 +258,185 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
           </Text>
 
           <contractSelect.SelectField />
-          {selectedContract && (
-            <form.FieldProvider
-              name="customUnitConversion"
-              transformFromBinding={(value: string) => {
-                if (!value) return [null, false]
-                const parsed = parseFloat(value.replace(',', '.'))
-                return [parsed, isNaN(parsed) && translate('errors.number')]
-              }}
-              transformToBinding={(
-                value: number | null,
-                isValid: boolean,
-                writeBuffer?: string,
-              ): string => {
-                if (!isValid) {
-                  return writeBuffer ?? '' // This is the last value entered by the user
-                }
-                return value?.toString() ?? '' // This is the last valid value
-              }}
-              validator={MeterSchema.customUnitConversion}
-            >
-              <FormTextField
-                selectTextOnFocus
-                useTransformed
-                label={translate('meters.createLabelCustomUnitConversion')}
-                hint={translate('meters.createLabelCustomUnitConversionHint')}
-                placeholder={translate('general.typeHere')}
-                containerStyle={{ flex: 1 }}
-                keyboardType="numeric"
-              />
-            </form.FieldProvider>
-          )}
-          {selectedUnit && selectedContract && (
-            <Fragment>
-              <Text style={[defaultStyles.detail]}>
-                {translate('meters.createSectionConversion')}
-              </Text>
-              <View
-                style={{
-                  marginVertical: 4,
-                  borderWidth: 1,
-                  borderColor: colors.outline,
-                  borderStyle: 'dashed',
-                  borderRadius: 4,
-                  paddingVertical: 8,
-                  paddingHorizontal: 16,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-              >
-                <View style={{ minWidth: 0 }}>
-                  <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    1 {selectedUnit.abbreviation}
-                  </Text>
-                </View>
-                <View style={{ minWidth: 24, alignItems: 'center' }}>
-                  <XIcon size={16} stroke={colors.textMuted} />
-                </View>
-                <View style={{ minWidth: 0 }}>
-                  <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {conversionFactor} {selectedContract.unit?.abbreviation}
+
+          <Button
+            IconStart={
+              showAdvancedContract.value ? (
+                <ChevronDownIcon size={16} stroke={colors.primary} />
+              ) : (
+                <ChevronRightIcon size={16} stroke={colors.primary} />
+              )
+            }
+            style={{ marginBottom: 4 }}
+            onPress={() =>
+              (showAdvancedContract.value = !showAdvancedContract.peek())
+            }
+          >
+            {translate('meters.advancedContractOptions')}
+          </Button>
+
+          {showAdvancedContract.value && (
+            <View>
+              {selectedContract && (
+                <form.FieldProvider
+                  name="customUnitConversion"
+                  transformFromBinding={(value: string) => {
+                    if (!value) return [null, false]
+                    const parsed = parseFloat(value.replace(',', '.'))
+                    return [parsed, isNaN(parsed) && translate('errors.number')]
+                  }}
+                  transformToBinding={(
+                    value: number | null,
+                    isValid: boolean,
+                    writeBuffer?: string,
+                  ): string => {
+                    if (!isValid) {
+                      return writeBuffer ?? '' // This is the last value entered by the user
+                    }
+                    return value?.toString() ?? '' // This is the last valid value
+                  }}
+                  validator={MeterSchema.customUnitConversion}
+                >
+                  <FormTextField
+                    selectTextOnFocus
+                    useTransformed
+                    label={translate('meters.createLabelCustomUnitConversion')}
+                    hint={translate(
+                      'meters.createLabelCustomUnitConversionHint',
+                    )}
+                    placeholder={translate('general.typeHere')}
+                    containerStyle={{ flex: 1 }}
+                    keyboardType="numeric"
+                  />
+                </form.FieldProvider>
+              )}
+              {selectedUnit && selectedContract && (
+                <Fragment>
+                  <Text style={[defaultStyles.detail]}>
+                    {translate('meters.createSectionConversion')}
                   </Text>
                   <View
                     style={{
-                      borderStyle: 'solid',
+                      marginVertical: 4,
                       borderWidth: 1,
-                      borderBottomColor: colors.text,
+                      borderColor: colors.outline,
+                      borderStyle: 'dashed',
+                      borderRadius: 4,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      flexDirection: 'row',
+                      alignItems: 'center',
                     }}
-                  />
-                  <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {selectedContract.unit?.conversionFactor}{' '}
-                    {selectedUnit.abbreviation}
+                  >
+                    <View style={{ minWidth: 0 }}>
+                      <Text
+                        style={[defaultStyles.detail, { textAlign: 'center' }]}
+                      >
+                        1 {selectedUnit.abbreviation}
+                      </Text>
+                    </View>
+                    <View style={{ minWidth: 24, alignItems: 'center' }}>
+                      <XIcon size={16} stroke={colors.textMuted} />
+                    </View>
+                    <View style={{ minWidth: 0 }}>
+                      <Text
+                        style={[defaultStyles.detail, { textAlign: 'center' }]}
+                      >
+                        {conversionFactor} {selectedContract.unit?.abbreviation}
+                      </Text>
+                      <View
+                        style={{
+                          borderStyle: 'solid',
+                          borderWidth: 1,
+                          borderBottomColor: colors.text,
+                        }}
+                      />
+                      <Text
+                        style={[defaultStyles.detail, { textAlign: 'center' }]}
+                      >
+                        {selectedContract.unit?.conversionFactor}{' '}
+                        {selectedUnit.abbreviation}
+                      </Text>
+                    </View>
+                    <View style={{ minWidth: 24, alignItems: 'center' }}>
+                      <XIcon size={16} stroke={colors.textMuted} />
+                    </View>
+                    <View style={{ minWidth: 0 }}>
+                      <Text
+                        style={[defaultStyles.detail, { textAlign: 'center' }]}
+                      >
+                        {formatNumber(
+                          selectedContract.contractRevision?.pricePerUnit,
+                        )}{' '}
+                        {currency.value.currencySymbol}/
+                        {(selectedContract.unit?.abbreviation ?? '-') + ' '}
+                      </Text>
+                    </View>
+                    <View style={{ minWidth: 16 }}>
+                      <Text
+                        style={[defaultStyles.detail, { textAlign: 'center' }]}
+                      >
+                        =
+                      </Text>
+                    </View>
+                    <View style={{ minWidth: 0 }}>
+                      <Text
+                        style={[defaultStyles.detail, { textAlign: 'center' }]}
+                      >
+                        {formatNumber(
+                          (conversionFactor /
+                            (selectedContract.unit?.conversionFactor ?? 1)) *
+                            (selectedContract.contractRevision?.pricePerUnit ??
+                              1),
+                        )}{' '}
+                        {currency.value.currencySymbol}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={[defaultStyles.detailSmall]}>
+                    {translate('meters.createSectionConversionHint')}
                   </Text>
-                </View>
-                <View style={{ minWidth: 24, alignItems: 'center' }}>
-                  <XIcon size={16} stroke={colors.textMuted} />
-                </View>
-                <View style={{ minWidth: 0 }}>
-                  <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {formatNumber(
-                      selectedContract.contractRevision?.pricePerUnit,
-                    )}{' '}
-                    {currency.value.currencySymbol}/
-                    {selectedContract.unit?.abbreviation}
-                  </Text>
-                </View>
-                <View style={{ minWidth: 16 }}>
-                  <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    =
-                  </Text>
-                </View>
-                <View style={{ minWidth: 0 }}>
-                  <Text style={[defaultStyles.detail, { textAlign: 'center' }]}>
-                    {formatNumber(
-                      (conversionFactor /
-                        (selectedContract.unit?.conversionFactor ?? 1)) *
-                        (selectedContract.contractRevision?.pricePerUnit ?? 1),
-                    )}{' '}
-                    {currency.value.currencySymbol}
-                  </Text>
-                </View>
-              </View>
-              <Text style={[defaultStyles.detailSmall]}>
-                {translate('meters.createSectionConversionHint')}
-              </Text>
-            </Fragment>
+                </Fragment>
+              )}
+            </View>
           )}
 
           {meterId !== undefined && (
             <Fragment>
+              <View
+                style={[
+                  defaultStyles.row,
+                  {
+                    justifyContent: 'space-between',
+                    marginTop: 16,
+                    marginBottom: 4,
+                  },
+                ]}
+              >
+                <Text style={defaultStyles.cardTitle}>
+                  {translate('meters.createSectionResets')}
+                </Text>
+                <Button
+                  IconStart={
+                    <RefreshCcwIcon size={12} stroke={colors.primary} />
+                  }
+                  onPress={() => {
+                    return resetMeterValue(meterId)
+                  }}
+                >
+                  {translate('meters.actionReset')}
+                </Button>
+              </View>
+              <Text style={[defaultStyles.detail, { marginBottom: 8 }]}>
+                {translate('meters.createSectionDescriptionResets')}
+              </Text>
+
+              {form.data.peek().resets.value.map((reset, index) => (
+                <form.FieldProvider key={reset.key} name={`resets.${index}`}>
+                  <ResetRow unit={selectedUnit?.abbreviation} />
+                </form.FieldProvider>
+              ))}
+
               <Text
                 style={[
                   defaultStyles.cardTitle,
@@ -344,28 +446,6 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                 {translate('meters.createSectionActions')}
               </Text>
               <View style={{ gap: 8 }}>
-                <Button
-                  size="large"
-                  onPress={async () => {
-                    await resetMeterValue(meterId)
-                    router.back()
-                  }}
-                  IconStart={
-                    <RefreshCcwIcon size={16} stroke={colors.textMuted} />
-                  }
-                  variant="ghost"
-                >
-                  <View>
-                    <Text
-                      style={[defaultStyles.detail, { color: colors.text }]}
-                    >
-                      {translate('meters.actionReset')}
-                    </Text>
-                    <Text style={[defaultStyles.detailSmall]}>
-                      {translate('meters.actionResetDescription')}
-                    </Text>
-                  </View>
-                </Button>
                 {/* TODO Add Back once there is a way to activate them again */}
                 {/*<Button*/}
                 {/*  size='large'*/}
@@ -455,5 +535,97 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
         <StatusBar />
       </GestureHandlerRootView>
     </KeyboardProvider>
+  )
+}
+
+type ResetRowProps = {
+  unit?: string
+}
+
+function ResetRow({ unit }: ResetRowProps) {
+  const field = useFieldContext<
+    { id: number; timestamp: Date; value: number },
+    ''
+  >()
+
+  const colors = useColors()
+  const defaultStyles = useDefaultStyles()
+
+  const isEdit = useSignal(false)
+
+  if (!isEdit.value) {
+    return (
+      <View
+        style={[
+          defaultStyles.row,
+          {
+            padding: 8,
+            backgroundColor: colors.card,
+            borderRadius: 4,
+            marginBottom: 8,
+          },
+        ]}
+      >
+        <Text style={defaultStyles.detail}>
+          {formatDate(field.data.peek().timestamp.value)}
+        </Text>
+        <Text style={[defaultStyles.detail, { marginLeft: 'auto' }]}>
+          {field.data.peek().value.value}{' '}
+          <Text style={defaultStyles.detailSmall}>{unit}</Text>
+        </Text>
+        <View style={[defaultStyles.row, { gap: 4 }]}>
+          <Button onPress={() => (isEdit.value = true)}>
+            {translate('general.edit') + " "}
+          </Button>
+          <Button
+            onPress={() => deleteMeterReset(field.data.peek().id.peek())}
+            IconStart={<TrashIcon size={12} stroke={colors.negative} />}
+          />
+        </View>
+      </View>
+    )
+  }
+
+  return (
+    <View style={defaultStyles.row}>
+      <field.SubFieldProvider name="timestamp">
+        <FormDatePicker
+          containerStyle={{ flex: 1 }}
+          style={{ paddingVertical: 8 }}
+        />
+      </field.SubFieldProvider>
+      <field.SubFieldProvider
+        name="value"
+        transformFromBinding={(value: string) => {
+          if (!value) return [0, translate('errors.required')]
+          const parsed = parseFloat(value.replace(',', '.'))
+          return [parsed, isNaN(parsed) && translate('errors.number')]
+        }}
+        transformToBinding={(
+          value: number,
+          isValid: boolean,
+          writeBuffer?: string,
+        ): string => {
+          if (!isValid) {
+            return writeBuffer ?? '' // This is the last value entered by the user
+          }
+          return value?.toString() // This is the last valid value
+        }}
+      >
+        <FormTextField
+          useTransformed
+          keyboardType="numeric"
+          containerStyle={{ flex: 1 }}
+          style={{ paddingVertical: 8 }}
+          placeholder="Enter Value"
+        />
+      </field.SubFieldProvider>
+      <Button
+        style={{ marginBottom: 8 }}
+        onPress={() => (isEdit.value = false)}
+      >
+        {translate('general.ok')}
+      </Button>
+    </View>
   )
 }

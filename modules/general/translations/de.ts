@@ -12,6 +12,8 @@ export const de: Language = {
     delete: 'Löschen',
     select: 'Auswählen',
     apply: 'Anwenden',
+    edit: "Bearbeiten",
+    ok: "Ok",
     clear: 'Leeren',
     reset: 'Zurücksetzen',
     day: 'Tag',
@@ -62,8 +64,13 @@ export const de: Language = {
     createSectionConversion: 'Umrechnung',
     createSectionConversionHint:
       'Basierend auf der Einheit des Vertrags und der Einheit dieses Messgeräts wird der Preis berechnet',
-    createSectionContracts: 'Verträge',
-    actionReset: 'Messgerät auf Null setzen',
+
+    createSectionResets: "Zurücksetzungen",
+    createSectionDescriptionResets: "Wenn Ihr Messgerät zurückgesetzt wird, können Sie es hier festhalten. Der letzte Wert wird zu allen neuen Messungen hinzugefügt.",
+
+    createSectionContracts: 'Vertrag',
+    advancedContractOptions: 'Erweiterte Vertragsoptionen',
+    actionReset: 'Messgerät zurücksetzen',
     actionResetDescription:
       'Behält den letzten Wert bei und fügt ihn zu allen neuen Messungen hinzu',
     actionInactive: 'Messgerät als inaktiv markieren',

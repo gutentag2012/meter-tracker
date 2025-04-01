@@ -22,6 +22,7 @@ import {
 import {Checkbox, CheckboxForm} from "@/modules/general/components/inputs/Checkbox";
 import {FilePicker} from "@/modules/general/components/inputs/FilePicker";
 import {importLegacyCSV} from "@/database/import";
+import { useRouter } from 'expo-router'
 
 type FileInfo = {
   name: string
@@ -64,7 +65,7 @@ const oldHeaders = [
 ]
 
 export default function Page() {
-  const colors = useColors()
+  const router = useRouter()
   const defaultStyles = useDefaultStyles()
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null)
   const [isOldImportFile, setIsOldImportFile] = useState(false)
@@ -145,6 +146,7 @@ export default function Page() {
       } else {
 
       }
+      router.navigate("/")
     }
   })
 

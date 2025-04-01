@@ -65,7 +65,6 @@ export const meter = sqliteTable('meter', {
   name: text('name').notNull(),
   identifier: text('identifier'),
   precision: integer('precision').notNull(),
-  valueBeforeReset: real('value_before_reset').default(0),
   isActive: integer('is_active', { mode: 'boolean' }).default(sql`1`),
   sortOrder: integer('sort_order').default(0),
   customUnitConversion: real('custom_unit_conversion'),
@@ -83,6 +82,18 @@ export const meter = sqliteTable('meter', {
   }),
 })
 export type MeterInsert = typeof meter.$inferInsert
+
+export const meterReset = sqliteTable('meterReset', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  timestamp: integer('timestamp', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  value: real('value').notNull(),
+  meterId: integer('meter_id')
+    .notNull()
+    .references(() => meter.id, { onDelete: 'cascade' }),
+})
+export type MeterResetInsert = typeof meterReset.$inferInsert
 
 export const reading = sqliteTable('reading', {
   id: integer('id').primaryKey({ autoIncrement: true }),

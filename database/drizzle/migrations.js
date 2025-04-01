@@ -1,6 +1,6 @@
 import journal from './meta/_journal.json';
-import m0000 from './0000_happy_hemingway.sql';
-import m0001 from './0001_eminent_giant_man.sql';
+import m0000 from './0000_many_spot.sql';
+import m0001 from './0001_broad_wong.sql';
 
   export default {
     journal,
