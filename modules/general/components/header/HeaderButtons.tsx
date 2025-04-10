@@ -29,11 +29,10 @@ export function HeaderButtons({
           </Button>
         </Link>
       )}
+      {/* TODO Navigation not working */}
       {!hideSettings && (
         <Link href="/settings" asChild>
-          <Button variant="icon">
             <Settings2Icon color={colors.text} />
-          </Button>
         </Link>
       )}
     </View>

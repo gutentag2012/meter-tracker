@@ -4,6 +4,7 @@ export const StorageKeys = {
   theme: 'theme',
   notifications: 'notifications',
   notificationsLoaded: 'notificationsLoaded',
+  didMigrateOldDB: 'didMigrateOldDB',
 } as const
 
 export const Currencies = {

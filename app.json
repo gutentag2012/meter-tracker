@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Meter Tracker",
-    "slug": "meter-tracker",
-    "version": "1.0.10",
+    "name": "MeterTracker",
+    "slug": "meter-tracker-expo",
+    "version": "1.0.13",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "metertracker",
@@ -20,7 +20,8 @@
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.SCHEDULE_EXACT_ALARM",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.CAMERA"
       ]
     },
     "web": {
@@ -189,18 +190,31 @@
       [
         "./plugins/withAndroidGradle"
       ],
-      ["expo-font", {"fonts": [
-        "./assets/fonts/Mona-Sans-Bold.ttf",
-        "./assets/fonts/Mona-Sans-Medium.ttf",
-        "./assets/fonts/Mona-Sans-Regular.ttf",
-        "./assets/fonts/SpaceMono-Bold.ttf",
-        "./assets/fonts/SpaceMono-Regular.ttf"
-      ]}],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Mona-Sans-Bold.ttf",
+            "./assets/fonts/Mona-Sans-Medium.ttf",
+            "./assets/fonts/Mona-Sans-Regular.ttf",
+            "./assets/fonts/SpaceMono-Bold.ttf",
+            "./assets/fonts/SpaceMono-Regular.ttf"
+          ]
+        }
+      ],
       "expo-localization",
       "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "20ea4956-3406-4d9a-aaa6-119902d70601"
+      }
     }
   }
 }

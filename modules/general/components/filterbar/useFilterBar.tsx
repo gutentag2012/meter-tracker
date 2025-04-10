@@ -2,7 +2,7 @@ import { useSignal } from '@preact/signals-react'
 import { useMemo, useRef } from 'react'
 import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { Signal } from '@preact/signals-core'
-import { FilterBottomSheet } from '@/modules/general/components'
+import { FilterBottomSheet } from '@/modules/general/components/filterbar'
 
 export function useFilterBar(defaultFrom: Date | null = null, defaultUntil: Date | null = null) {
   const from = useSignal<Date | null>(defaultFrom)

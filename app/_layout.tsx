@@ -6,14 +6,13 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native'
-import {useComputed, useSignalEffect} from '@preact/signals-react'
+import { computed, effect, useComputed, useSignalEffect } from '@preact/signals-react'
 import { useSettingsTheme } from '@/modules/general/theme'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { StatusBar } from '@/modules/general/components'
 import { isDatabaseMigrated } from '@/database/db.signals'
 import { areSettingsLoaded } from '@/modules/settings/settings.signals'
 import * as Notifications from 'expo-notifications'
-import {SafeAreaView} from "react-native";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -25,18 +24,18 @@ Notifications.setNotificationHandler({
 
 SplashScreen.preventAutoHideAsync()
 
-export default function TabLayout() {
-  const theme = useSettingsTheme()
-  const colors = useColors()
-  const defaultStyles = useDefaultStyles()
-  const isApplicationReady = useComputed(() => isDatabaseMigrated.value && areSettingsLoaded.value)
-
-  useSignalEffect(() => {
+const isApplicationReady = computed(() => isDatabaseMigrated.value && areSettingsLoaded.value)
+effect(() => {
     if(!isApplicationReady.value) {
       return
     }
     SplashScreen.hideAsync()
-  })
+})
+
+export default function TabLayout() {
+  const theme = useSettingsTheme()
+  const colors = useColors()
+  const defaultStyles = useDefaultStyles()
 
   if (!isApplicationReady.value) {
     return null

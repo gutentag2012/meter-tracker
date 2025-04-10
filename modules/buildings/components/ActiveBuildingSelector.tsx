@@ -19,6 +19,7 @@ import {
 import {activeBuilding} from '@/modules/buildings/buildings.signals'
 import {useColors, useDefaultStyles} from '@/modules/general/theme'
 import {translate} from '@/modules/general/translations'
+import { useSignals } from '@preact/signals-react/runtime'
 
 function getBuildingName(name: string | undefined) {
   return name === 'default' ? translate('buildings.defaultName') : name
@@ -27,6 +28,7 @@ function getBuildingName(name: string | undefined) {
 const snapPoints = ['30%', '90%']
 
 export function ActiveBuildingSelector() {
+  useSignals()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -122,6 +124,7 @@ export function ActiveBuildingSelector() {
 }
 
 function ActiveBuildingName() {
+  useSignals()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
   const [activeBuildingEntity] = useActiveBuilding()
@@ -143,6 +146,7 @@ type BuildingListProps = {
 }
 
 function BuildingList({bottomSheetRef}: BuildingListProps) {
+  useSignals()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 

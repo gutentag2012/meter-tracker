@@ -1,14 +1,18 @@
-import { DEFAULT_DATABASE_NAME } from '@/database/constants'
+import { DEFAULT_DATABASE_NAME, OLD_DATABASE_NAME } from '@/database/constants'
 import migrations from '@/database/drizzle/migrations'
 import * as Schema from '@/database/schema'
 import { drizzle } from 'drizzle-orm/expo-sqlite'
 import { migrate } from 'drizzle-orm/expo-sqlite/migrator'
 import { openDatabaseSync } from 'expo-sqlite'
-import { getTableName, sql } from 'drizzle-orm'
 import { isDatabaseMigrated } from './db.signals'
 import { resetDatabase } from '@/modules/general/general.query'
 
 // TODO Migrate from the old database to the new database
+
+const oldDatabase = openDatabaseSync(OLD_DATABASE_NAME, {
+  finalizeUnusedStatementsBeforeClosing: true,
+  useNewConnection: true,
+})
 
 const expoDatabase = openDatabaseSync(DEFAULT_DATABASE_NAME, {
   enableChangeListener: true,
@@ -38,4 +42,4 @@ if (SHOULD_RESET_DATABASE) {
     .catch((err) => console.log('Error', err))
 }
 
-export { db, Schema }
+export { db, Schema, oldDatabase }

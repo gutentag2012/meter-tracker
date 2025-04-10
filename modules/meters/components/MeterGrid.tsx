@@ -10,8 +10,10 @@ import { getCellContainerHeight } from '@/modules/meters/meters.constants'
 import { useAnimatedReaction, useSharedValue } from 'react-native-reanimated'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
+import { useSignals } from '@preact/signals-react/runtime'
 
 export function MeterGrid() {
+  useSignals()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
   const [meters] = useMetersForBuilding()

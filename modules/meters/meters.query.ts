@@ -162,6 +162,7 @@ export function useMetersForBuilding() {
   const [error, setError] = useState<string | null>(null)
 
   useSignalEffect(() => {
+    try {
     getAllMetersForBuilding(activeBuilding.value)
       .then((res) => {
         setData(res)
@@ -187,6 +188,11 @@ export function useMetersForBuilding() {
 
     return () => {
       listener.remove()
+    }
+
+    } catch (e) {
+      console.error('Error in useMetersForBuilding', e)
+      setError('Error loading meters')
     }
   })
   return [data, error] as const

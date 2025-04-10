@@ -4,7 +4,8 @@ import { memo, useMemo } from 'react'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { translate } from '@/modules/general/translations'
-import { DatePickers, YearSelects } from '@/modules/general/components'
+import { DatePickers } from '@/modules/general/components/filterbar/DatePickers'
+import { YearSelects } from '@/modules/general/components/filterbar/YearSelects'
 
 type FilterBottomSheetProps = {
   bottomSheetRef: React.RefObject<BottomSheetModal>

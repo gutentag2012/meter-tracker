@@ -1,6 +1,6 @@
 import {computed, effect, signal} from '@preact/signals-react'
 
-const numberOfSettingsTotal = 6
+const numberOfSettingsTotal = 7
 export const numberOfSettingsLoaded = signal(0)
 
 export const areSettingsLoaded = computed(

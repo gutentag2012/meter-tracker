@@ -1,6 +1,7 @@
 import {parseCSV, parsedCsvToJSON} from "@/modules/settings/serialization";
 import {db, Schema} from "@/database/db";
 import {BuildingInsert, ContractInsert, ContractRevisionInsert, MeterInsert, ReadingInsert} from "@/database/schema";
+import { clearDatabase } from '@/database/utils'
 
 export type ImportMappings = {
   buildings: {
@@ -220,13 +221,4 @@ export async function importCSV(csv:string, options: { mapping: ImportMappings, 
   if(options.clearExisting) {
     await clearDatabase()
   }
-}
-
-async function clearDatabase() {
-  await db.delete(Schema.building).execute()
-  await db.delete(Schema.contract).execute()
-  await db.delete(Schema.contractRevision).execute()
-  await db.delete(Schema.meter).execute()
-  await db.delete(Schema.meterReset).execute()
-  await db.delete(Schema.reading).execute()
 }

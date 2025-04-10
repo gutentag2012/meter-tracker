@@ -19,6 +19,7 @@ import { PlusIcon } from 'lucide-react-native'
 import { MeterGrid } from '@/modules/meters/components'
 import { ContractList } from '@/modules/contracts/components'
 import {useSeed} from "@/database/seed";
+import { useMetersForBuilding } from '@/modules/meters'
 
 export default function HomeScreen() {
   const colors = useColors()
@@ -50,7 +51,6 @@ export default function HomeScreen() {
   )
 
   // useSeed()
-
   return (
     <GestureHandlerRootView
       style={[
