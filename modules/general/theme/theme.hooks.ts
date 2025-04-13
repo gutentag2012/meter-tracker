@@ -7,13 +7,16 @@ import {
 } from '@/modules/general/theme/theme.constants'
 import { useMemo } from 'react'
 import { Platform, StyleSheet } from 'react-native'
+import { useSignals } from '@preact/signals-react/runtime'
 
 export function useColors() {
+  useSignals()
   const theme = useSettingsTheme()
   return theme.value === 'dark' ? DarkColors : LightColors
 }
 
 export function useChartColors() {
+  useSignals()
   const theme = useSettingsTheme()
   return theme.value === 'dark' ? ChartColorsDark : ChartColorsLight
 }

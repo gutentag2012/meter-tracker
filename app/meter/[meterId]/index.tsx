@@ -1,6 +1,6 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { Stack } from 'expo-router/stack'
-import { Href, Link, useLocalSearchParams } from 'expo-router'
+import { Href, Link, useLocalSearchParams, useRouter } from 'expo-router'
 import { FilterIcon, PlusIcon } from 'lucide-react-native'
 import { useMeterById } from '@/modules/meters/meters.query'
 import { makeHeaderBackButton } from '@/modules/general/components/header/HeaderBackButton'
@@ -21,8 +21,11 @@ import { translate } from '@/modules/general/translations'
 import { PaginatedGraphs } from '@/modules/meters/components/graphs'
 import { ReadingList } from '@/modules/readings/components'
 import { useFilterBar } from '@/modules/general/components/filterbar/useFilterBar'
+import { useSignals } from '@preact/signals-react/runtime'
 
 export default function Page() {
+  useSignals()
+  const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -30,7 +33,7 @@ export default function Page() {
   const meterId = parseInt(meterIdRaw as string)
   const [meter] = useMeterById(meterId)
 
-  const {filters, openFilter, FilterBottomSheet} = useFilterBar()
+  const { filters, openFilter, FilterBottomSheet } = useFilterBar()
 
   const [readings] = useReadingsForMeterFiltered(
     meterId,
@@ -102,26 +105,6 @@ export default function Page() {
         </View>
 
         <ReadingList readings={readings} />
-
-        <Link
-          href={`/meter/${meterId}/reading`}
-          style={[
-            defaultStyles.fab,
-            {
-              marginLeft: 'auto',
-              position: 'absolute',
-              bottom: 16,
-              right: 16,
-              width: 48,
-              height: 48,
-            },
-          ]}
-          asChild
-        >
-          <TouchableOpacity>
-            <PlusIcon size={24} stroke={colors.onPrimaryContainer} />
-          </TouchableOpacity>
-        </Link>
 
         <FilterBottomSheet allYears={allYears} />
       </BottomSheetModalProvider>

@@ -9,6 +9,7 @@ import { formatDate, translate } from '../general/translations'
 import { themeColors } from '@/modules/general/theme'
 import { effect } from '@preact/signals-react'
 import { SchedulableTriggerInputTypes } from 'expo-notifications/src/Notifications.types'
+import { language } from '@/modules/settings/language.signals'
 
 export const REMINDER_NOTIFICATION = {
   ID: 'reminder_notification',
@@ -140,6 +141,7 @@ async function removeReminderNotification() {
 }
 
 // TODO Remove notifications if it has changed + do not schedule again if it is already the same notification
+// TODO Reschedule reminder if language has changed
 export async function scheduleReminderNotification(
   interval?: Interval,
   shouldCancel = true,
@@ -202,6 +204,8 @@ export async function scheduleReminderNotification(
 }
 
 effect(() => {
+  // Subscribe to language changes
+  const _ = language.value
   const reminderConfig = interval.value
   const permission = notificationPermission.value
   if (!reminderEnabled.value || !permission) {

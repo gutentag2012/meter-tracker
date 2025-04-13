@@ -62,8 +62,8 @@ import {
 import { Fragment, useMemo } from 'react'
 import { useSignal } from '@preact/signals-react'
 import { Signal } from '@preact/signals-core'
-
-// TODO Either add a confirm alert for the delete action or add a checkbox to enable the delete button
+import { useSignals } from '@preact/signals-react/runtime'
+import Toast from 'react-native-toast-message'
 
 const MeterSchema = {
   name: z
@@ -109,6 +109,7 @@ type MeterFormProps = {
 }
 
 export function MeterForm({ meterId, form }: MeterFormProps) {
+  useSignals()
   const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
@@ -420,8 +421,17 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                   IconStart={
                     <RefreshCcwIcon size={12} stroke={colors.primary} />
                   }
-                  onPress={() => {
-                    return resetMeterValue(meterId)
+                  onPress={async () => {
+                    Toast.show({
+                      type: 'progress',
+                      text1: translate('meters.toast.resetting'),
+                      autoHide: false,
+                    })
+                    await resetMeterValue(meterId)
+                    Toast.show({
+                      type: 'success',
+                      text1: translate('meters.toast.didReset'),
+                    })
                   }}
                 >
                   {translate('meters.actionReset')}
@@ -475,7 +485,16 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                           text: translate('general.delete'),
                           style: 'destructive',
                           onPress: async () => {
+                            Toast.show({
+                              type: "progress",
+                              text1: translate("meters.toast.deleting"),
+                              autoHide: false
+                            })
                             await deleteMeter(meterId)
+                            Toast.show({
+                              type: "success",
+                              text1: translate("meters.toast.didDelete"),
+                            })
                             router.navigate('/')
                           },
                         },
@@ -494,7 +513,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
                     >
                       {translate('meters.actionDelete')}
                     </Text>
-                    <Text style={[defaultStyles.detailSmall]}>
+                    <Text style={[defaultStyles.detailSmall, {paddingRight: 16}]}>
                       {translate('meters.actionDeleteDescription')}
                     </Text>
                   </View>
@@ -543,6 +562,7 @@ type ResetRowProps = {
 }
 
 function ResetRow({ unit }: ResetRowProps) {
+  useSignals()
   const field = useFieldContext<
     { id: number; timestamp: Date; value: number },
     ''
@@ -578,7 +598,18 @@ function ResetRow({ unit }: ResetRowProps) {
             {translate('general.edit') + " "}
           </Button>
           <Button
-            onPress={() => deleteMeterReset(field.data.peek().id.peek())}
+            onPress={async () => {
+              Toast.show({
+                type: 'progress',
+                text1: translate('meters.toast.removingReset'),
+                autoHide: false,
+              })
+              await deleteMeterReset(field.data.peek().id.peek())
+              Toast.show({
+                type: 'success',
+                text1: translate('meters.toast.didRemoveReset'),
+              })
+            }}
             IconStart={<TrashIcon size={12} stroke={colors.negative} />}
           />
         </View>
@@ -590,7 +621,7 @@ function ResetRow({ unit }: ResetRowProps) {
     <View style={defaultStyles.row}>
       <field.SubFieldProvider name="timestamp">
         <FormDatePicker
-          containerStyle={{ flex: 1 }}
+          containerStyle={{ flex: 3 }}
           style={{ paddingVertical: 8 }}
         />
       </field.SubFieldProvider>
@@ -615,7 +646,7 @@ function ResetRow({ unit }: ResetRowProps) {
         <FormTextField
           useTransformed
           keyboardType="numeric"
-          containerStyle={{ flex: 1 }}
+          containerStyle={{ flex: 2 }}
           style={{ paddingVertical: 8 }}
           placeholder="Enter Value"
         />

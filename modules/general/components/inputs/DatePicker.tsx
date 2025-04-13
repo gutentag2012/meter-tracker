@@ -16,6 +16,7 @@ import { CalendarIcon } from 'lucide-react-native'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { formatDate, translate } from '@/modules/general/translations'
 import { LangKey } from '@/modules/general/translations/en'
+import { useSignals } from '@preact/signals-react/runtime'
 
 type DatePickerProps = Omit<AndroidNativeProps, 'value' | 'onChange'> & {
   label?: string
@@ -148,6 +149,7 @@ export function FormDatePicker({
   hint,
   ...props
 }: Omit<DatePickerProps, 'value'> & { useTransformed?: boolean }) {
+  useSignals()
   const field = useFieldContext<Date, '', Date>()
   return (
     <DatePicker

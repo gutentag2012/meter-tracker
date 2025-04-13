@@ -1,7 +1,10 @@
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar'
-import { useSettingsTheme } from '@/modules/general/theme'
+import { useColors, useSettingsTheme } from '@/modules/general/theme'
+import { useSignals } from '@preact/signals-react/runtime'
 
 export function StatusBar() {
+  useSignals()
+  const colors = useColors()
   const theme = useSettingsTheme()
-  return <ExpoStatusBar style={theme.value === 'dark' ? 'light' : 'dark'} />
+  return <ExpoStatusBar backgroundColor={colors.background} style={theme.value === 'dark' ? 'light' : 'dark'} />
 }

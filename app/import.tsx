@@ -23,6 +23,8 @@ import {Checkbox, CheckboxForm} from "@/modules/general/components/inputs/Checkb
 import {FilePicker} from "@/modules/general/components/inputs/FilePicker";
 import {importLegacyCSV} from "@/database/import";
 import { useRouter } from 'expo-router'
+import { useSignals } from '@preact/signals-react/runtime'
+import Toast from 'react-native-toast-message'
 
 type FileInfo = {
   name: string
@@ -65,6 +67,7 @@ const oldHeaders = [
 ]
 
 export default function Page() {
+  useSignals()
   const router = useRouter()
   const defaultStyles = useDefaultStyles()
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null)
@@ -140,12 +143,21 @@ export default function Page() {
       if(!fileInfo?.uri) return
       // TODO Add pagination or so
       // TODO Add indication
+      Toast.show({
+        type: "progress",
+        text1: "Importing data",
+        autoHide: false,
+      })
       const csvString = await readAsStringAsync(fileInfo?.uri)
       if(isOldImportFile) {
         await importLegacyCSV(csvString, values.clearExisting)
       } else {
 
       }
+      Toast.show({
+        type: "success",
+        text1: "Data imported",
+      })
       router.navigate("/")
     }
   })
@@ -293,7 +305,7 @@ export default function Page() {
           headerLeft: makeHeaderBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button disabled={!fileInfo} onPress={() => form.handleSubmit()}>
+              <Button onPressIn={() => form.handleSubmit()} disabled={!fileInfo || !form.canSubmit.value}>
                 Start import
               </Button>
             </HeaderButtons>

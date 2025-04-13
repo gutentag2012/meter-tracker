@@ -12,6 +12,7 @@ import { useComputed } from '@preact/signals-react'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
 import { LangKey } from '@/modules/general/translations/en'
+import { useSignals } from '@preact/signals-react/runtime'
 
 type TextFieldProps = Omit<TextInputProps, 'defaultValue'> & {
   label?: string
@@ -129,6 +130,7 @@ export function FormTextField({
   hint,
   ...props
 }: TextFieldProps & { useTransformed?: boolean }) {
+  useSignals()
   const field = useFieldContext<string, ''>()
   const data = useComputed(() =>
     useTransformed ? field.transformedData.value : field.data.value,

@@ -5,18 +5,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { reloadAppAsync } from 'expo'
 import { StorageKeys } from '@/modules/general/constants'
 import { numberOfSettingsLoaded } from './settings.signals'
-import { translate, Translator } from '@/modules/general/translations'
+import { changeLocale, translate } from '@/modules/general/translations'
 
 const locales = getLocales()
 
 let oldLanguage = locales[0]?.languageCode ?? 'en'
 export const language = signal(oldLanguage)
 
+effect(() => {
+  console.log("Language is", language.value)
+})
+
 AsyncStorage.getItem(StorageKeys.language)
   .then((languageFromStorage) => {
-    console.log('Loaded language')
     oldLanguage = languageFromStorage ?? locales[0]?.languageCode ?? 'en'
-    language.value = oldLanguage as string
+    language.value = languageFromStorage ?? locales[0]?.languageCode ?? 'en'
+    changeLocale(oldLanguage)
     numberOfSettingsLoaded.value++
   })
   .catch((err) => console.error('Error loading language', err))
@@ -29,12 +33,13 @@ effect(() => {
     return
   }
   if (oldLanguage === currentLanguage) return
-  Translator.locale = currentLanguage ?? locales[0]?.languageCode ?? 'en'
-  AsyncStorage.setItem(StorageKeys.language, currentLanguage ?? '').catch(
-    (err) => console.error('Error saving language', err),
-  )
-  reloadAppAsync(translate('settings.languageChangeReloadReason')).catch(
-    (err) => console.error('Error reloading app', err),
-  )
+  changeLocale(currentLanguage ?? locales[0]?.languageCode ?? 'en')
+  AsyncStorage.setItem(StorageKeys.language, currentLanguage ?? '')
+    .catch((err) => console.error('Error saving language', err))
+    .then(() => {
+      reloadAppAsync(translate('settings.languageChangeReloadReason')).catch(
+        (err) => console.error('Error reloading app', err),
+      )
+    })
   oldLanguage = currentLanguage
 })

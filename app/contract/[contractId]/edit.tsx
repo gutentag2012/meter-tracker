@@ -14,13 +14,17 @@ import {
   useContractById,
 } from '@/modules/contracts/contracts.query'
 import { ContractForm } from '@/modules/contracts/components/ContractForm'
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useSignal } from '@preact/signals-react'
 import { Button } from '@/modules/general/components/inputs/Button'
 import { useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
+import { StatusBar } from '@/modules/general/components'
+import { useSignals } from '@preact/signals-react/runtime'
+import Toast from 'react-native-toast-message'
 
 export default function Page() {
+  useSignals()
   const router = useRouter()
   const defaultStyles = useDefaultStyles()
   const { contractId: contractIdRaw } = useLocalSearchParams()
@@ -40,11 +44,11 @@ export default function Page() {
   const maxDateRevisions = contractRevisions.reduce(
     (max, rev) => {
       max ??= rev.startDate
-      if (max < rev.startDate) max = rev.startDate
-      if (rev.endDate && max < rev.endDate) max = rev.endDate
+      if (max && rev.startDate && max < rev.startDate) max = rev.startDate
+      if (max && rev.endDate && max < rev.endDate) max = rev.endDate
       return max
     },
-    undefined as undefined | Date,
+    null as null | Date,
   )
 
   const form = useForm({
@@ -77,7 +81,24 @@ export default function Page() {
       'contract.unitId',
     ],
     {
-      onSubmit: (values) => updateContract(contractId, values.contract),
+      onSubmit: async (values) => {
+        Toast.show({
+          type: 'progress',
+          text1: translate('contracts.toast.updating'),
+          autoHide: false,
+        })
+        updateContract(contractId, values.contract)
+          .then(() => {
+            Toast.show({
+              type: 'success',
+              text1: translate('contracts.toast.didUpdate'),
+            })
+          })
+          .catch((err) => {
+            Toast.hide()
+            console.error(err)
+          })
+      },
     },
   )
   const revisionData = useFieldGroup(
@@ -117,11 +138,12 @@ export default function Page() {
           headerLeft: makeHeaderDialogBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button onPress={onSubmit}>{translate('general.save')}</Button>
+              <Button onPressIn={onSubmit} disabled={!form.canSubmit.value}>
+                {translate('general.save')}
+              </Button>
             </HeaderButtons>
           ),
           animation: 'slide_from_bottom',
-          presentation: 'fullScreenModal',
         }}
       />
 

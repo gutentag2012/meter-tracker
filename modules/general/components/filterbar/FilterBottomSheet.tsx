@@ -1,6 +1,6 @@
-import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet'
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet'
 import { Signal } from '@preact/signals-react'
-import { memo, useMemo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { translate } from '@/modules/general/translations'
@@ -42,10 +42,28 @@ function FilterBottomSheetRaw({
       }),
     [],
   )
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        onPress={() => bottomSheetRef.current?.dismiss()}
+        disappearsOnIndex={-1}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      />
+    ),
+    [],
+  )
 
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
+      backdropComponent={renderBackdrop}
       index={0}
       snapPoints={snapPoints}
       enableDynamicSizing={false}

@@ -27,6 +27,15 @@ export const en = {
     markAsDefault: 'Mark as default',
   },
   readings: {
+    toast: {
+      creating: 'Creating reading...',
+      updating: 'Updating reading...',
+      deleting: 'Deleting reading...',
+      didCreate: 'Reading created',
+      didUpdate: 'Reading updated',
+      didDelete: 'Reading deleted',
+    },
+
     createModalTitle: 'Create reading',
     updateModalTitle: 'Edit reading',
     createLabelValue: 'Value *',
@@ -43,6 +52,19 @@ export const en = {
     noLastReadingHint: 'No last reading available',
   },
   meters: {
+    toast: {
+      creating: 'Creating meter...',
+      updating: 'Updating meter...',
+      deleting: 'Deleting meter...',
+      resetting: 'Resetting meter...',
+      removingReset: 'Removing reset entry...',
+      didCreate: 'Meter created',
+      didUpdate: 'Meter updated',
+      didDelete: 'Meter deleted',
+      didReset: 'Reset entry created',
+      didRemoveReset: 'Reset entry removed',
+    },
+
     selectTitle: 'Select a meter',
     createModalTitle: 'Create meter',
     updateModalTitle: 'Edit meter',
@@ -94,6 +116,15 @@ export const en = {
     },
   },
   contracts: {
+    toast: {
+      creating: 'Creating contract...',
+      updating: 'Updating contract...',
+      deleting: 'Deleting contract...',
+      didCreate: 'Contract created',
+      didUpdate: 'Contract updated',
+      didDelete: 'Contract deleted',
+    },
+
     createModalTitle: 'Create contract',
     updateModalTitle: 'Edit contract',
     createLabelName: 'Name *',

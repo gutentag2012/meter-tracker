@@ -11,7 +11,7 @@ const width = Dimensions.get('window').width - 32 - 16
 const CHART_PADDING_X = 8
 const CHART_PADDING_Y = 0
 const CHART_FOOTER_HEIGHT = 16
-const CHART_HEIGHT = 220
+const CHART_HEIGHT = 180
 const TOTAL_CHART_HEIGHT = CHART_HEIGHT + CHART_FOOTER_HEIGHT
 
 export function UsagePerYear({
@@ -21,8 +21,8 @@ export function UsagePerYear({
 }) {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
-  const font = useFont(require('@/assets/fonts/SpaceMono-Regular.ttf'), 12)
-  const fontBold = useFont(require('@/assets/fonts/SpaceMono-Bold.ttf'), 12)
+  const font = useFont(require('@/assets/fonts/Mona-Sans-Regular.ttf'), 10)
+  const fontBold = useFont(require('@/assets/fonts/Mona-Sans-Bold.ttf'), 11)
   const yearWidth = font && font.measureText('0000').width
 
   const unit = yearlyUsages?.[0]?.unitAbbreviation ?? ''

@@ -3,6 +3,7 @@ import { useDefaultStyles } from '@/modules/general/theme'
 import { View } from 'react-native'
 import { DatePicker } from '@/modules/general/components'
 import { translate } from '@/modules/general/translations'
+import { useSignals } from '@preact/signals-react/runtime'
 
 type DatePickersProps = {
   from: Signal<Date | null>
@@ -11,6 +12,7 @@ type DatePickersProps = {
 }
 
 export function DatePickers({ from, until, selectedYears }: DatePickersProps) {
+  useSignals()
   const defaultStyles = useDefaultStyles()
   return (
     <View style={[defaultStyles.row, { marginBottom: 8 }]}>

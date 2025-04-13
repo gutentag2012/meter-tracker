@@ -12,7 +12,7 @@ const width = Dimensions.get('window').width - 32
 const CHART_PADDING_X = 16
 const CHART_PADDING_Y = 8
 const CHART_FOOTER_HEIGHT = 48
-const CHART_HEIGHT = 188
+const CHART_HEIGHT = 148
 const TOTAL_CHART_HEIGHT = CHART_HEIGHT + CHART_FOOTER_HEIGHT
 const allMonths = Array.from(
   { length: 12 },
@@ -26,7 +26,7 @@ export function UsagePerDay({
 }) {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
-  const font = useFont(require('@/assets/fonts/SpaceMono-Regular.ttf'), 12)
+  const font = useFont(require('@/assets/fonts/Mona-Sans-Regular.ttf'), 10)
 
   const animationLine = useSharedValue(1)
   useEffect(() => {

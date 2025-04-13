@@ -1,5 +1,5 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { Link, Stack } from 'expo-router'
+import { Link, Stack, useRouter } from 'expo-router'
 import { ActiveBuildingSelector } from '@/modules/buildings/components/ActiveBuildingSelector'
 import { translate } from '@/modules/general/translations'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
@@ -18,10 +18,9 @@ import {
 import { PlusIcon } from 'lucide-react-native'
 import { MeterGrid } from '@/modules/meters/components'
 import { ContractList } from '@/modules/contracts/components'
-import {useSeed} from "@/database/seed";
-import { useMetersForBuilding } from '@/modules/meters'
 
 export default function HomeScreen() {
+  const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -50,7 +49,6 @@ export default function HomeScreen() {
     [],
   )
 
-  // useSeed()
   return (
     <GestureHandlerRootView
       style={[
@@ -69,17 +67,15 @@ export default function HomeScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.headerRow}>
-          <Link href="/meter/create" style={styles.pushRight} asChild>
-            <TouchableOpacity style={defaultStyles.ghostButton}>
-              <PlusIcon
-                size={defaultStyles.detail.fontSize}
-                stroke={colors.primary}
-              />
-              <Text style={defaultStyles.detailButton}>
-                {translate('meters.createButton')}
-              </Text>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity style={[defaultStyles.ghostButton, styles.pushRight]} onPress={() => router.push('/meter/create')}>
+            <PlusIcon
+              size={defaultStyles.detail.fontSize}
+              stroke={colors.primary}
+            />
+            <Text style={defaultStyles.detailButton}>
+              {translate('meters.createButton')}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <MeterGrid />
@@ -87,17 +83,15 @@ export default function HomeScreen() {
         <View style={styles.sectionSeparator} />
 
         <View style={styles.headerRow}>
-          <Link href="/contract/create" style={styles.pushRight} asChild>
-            <TouchableOpacity style={defaultStyles.ghostButton}>
-              <PlusIcon
-                size={defaultStyles.detail.fontSize}
-                stroke={colors.primary}
-              />
-              <Text style={defaultStyles.detailButton}>
-                {translate('contracts.createButton')}
-              </Text>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity style={[defaultStyles.ghostButton, styles.pushRight]} onPress={() => router.push('/contract/create')}>
+            <PlusIcon
+              size={defaultStyles.detail.fontSize}
+              stroke={colors.primary}
+            />
+            <Text style={defaultStyles.detailButton}>
+              {translate('contracts.createButton')}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <ContractList />

@@ -41,6 +41,8 @@ import {
   useColors,
   useDefaultStyles,
 } from '@/modules/general/theme'
+import { useSignals } from '@preact/signals-react/runtime'
+import Toast from 'react-native-toast-message'
 
 const ReadingSchema = {
   value: z
@@ -70,6 +72,7 @@ type ReadingFormProps = {
 }
 
 export function ReadingForm({ form, readingId }: ReadingFormProps) {
+  useSignals()
   const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
@@ -102,19 +105,18 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
     label: translate('readings.createLabelMeter'),
     modalTitle: translate('meters.selectTitle'),
     ModalAction: (
-      <Link href="/meter/create" asChild>
-        <Button
-          style={{ marginLeft: 'auto' }}
-          IconStart={
-            <PlusIcon
-              size={defaultStyles.detail.fontSize}
-              stroke={colors.primary}
-            />
-          }
-        >
-          {translate('meters.createButton')}
-        </Button>
-      </Link>
+      <Button
+        onPress={() => router.push('/meter/create')}
+        style={{ marginLeft: 'auto' }}
+        IconStart={
+          <PlusIcon
+            size={defaultStyles.detail.fontSize}
+            stroke={colors.primary}
+          />
+        }
+      >
+        {translate('meters.createButton')}
+      </Button>
     ),
     value: meterField.data,
   })
@@ -207,7 +209,16 @@ export function ReadingForm({ form, readingId }: ReadingFormProps) {
                           text: translate('general.delete'),
                           style: 'destructive',
                           onPress: async () => {
+                            Toast.show({
+                              type: "progress",
+                              text1: translate('readings.toast.deleting'),
+                              autoHide: false
+                            })
                             await deleteReading(readingId)
+                            Toast.show({
+                              type: "success",
+                              text1: translate('readings.toast.didDelete'),
+                            })
                             router.back()
                           },
                         },

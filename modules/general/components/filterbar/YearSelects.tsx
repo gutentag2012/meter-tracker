@@ -2,6 +2,7 @@ import { Signal } from '@preact/signals-react'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { View } from 'react-native'
 import { Button } from '@/modules/general/components'
+import { useSignals } from '@preact/signals-react/runtime'
 
 type YearSelectsProps = {
   allYears: Signal<string[]>
@@ -9,6 +10,7 @@ type YearSelectsProps = {
 }
 
 export function YearSelects({ allYears, selectedYears }: YearSelectsProps) {
+  useSignals()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 

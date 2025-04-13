@@ -19,7 +19,7 @@ export function HeaderBackButton(props: HeaderBackButtonProps) {
     <Button
       {...props}
       variant="icon"
-      onPress={() => router.back()}
+      onPressIn={() => router.back()}
       style={{
         marginRight: 8,
         marginLeft: -8,
@@ -47,7 +47,7 @@ export function HeaderDialogBackButton(props: HeaderBackButtonProps) {
     <Button
       {...props}
       variant="icon"
-      onPress={() => router.back()}
+      onPressIn={() => router.back()}
       style={{
         marginRight: 8,
         marginLeft: -8,

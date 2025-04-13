@@ -20,6 +20,7 @@ import {DocumentPickerAsset, DocumentPickerResult} from "expo-document-picker";
 import * as DocumentPicker from "expo-document-picker";
 import {readAsStringAsync} from "expo-file-system";
 import {parseCSV} from "@/modules/settings/serialization";
+import { useSignals } from '@preact/signals-react/runtime'
 
 type FilePickerProps = Omit<TouchableOpacityProps, 'value' | 'onChange'> & {
   label?: string
@@ -140,6 +141,7 @@ export function FormFilePicker({
   hint,
   ...props
 }: Omit<FilePickerProps, 'value'> & { useTransformed?: boolean }) {
+  useSignals()
   const field = useFieldContext<string, '', string>()
   return (
     <FilePicker

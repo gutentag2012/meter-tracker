@@ -1,4 +1,4 @@
-import { View } from 'react-native'
+import { Text, View } from 'react-native'
 import { Stack } from 'expo-router/stack'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { updateMeter, useMeterById, useMeterResetsById } from '@/modules/meters/meters.query'
@@ -11,8 +11,13 @@ import { makeHeaderDialogBackButton } from '@/modules/general/components/header/
 import { HeaderButtons } from '@/modules/general/components/header/HeaderButtons'
 import { useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
+import { useSignals } from '@preact/signals-react/runtime'
+import { StatusBar } from '@/modules/general/components'
+import React from 'react'
+import Toast from 'react-native-toast-message'
 
 export default function Page() {
+  useSignals()
   const router = useRouter()
   const defaultStyles = useDefaultStyles()
   const { meterId: meterIdRaw } = useLocalSearchParams()
@@ -33,21 +38,38 @@ export default function Page() {
       resets: meterResets
     },
     onSubmit: async (values) => {
-      await updateMeter(meterId, {
-        name: values.name,
-        identifier: values.identifier,
-        precision: values.precision,
-        typeId: values.meterType,
-        unitId: values.unit,
-        contractId: values.contract,
-        buildingId: activeBuilding.value,
-        customUnitConversion: values.customUnitConversion,
-      }, values.resets)
+      Toast.show({
+        type: "progress",
+        text1: translate("meters.toast.updating"),
+        autoHide: false,
+      })
+      
+      await updateMeter(
+        meterId,
+        {
+          name: values.name,
+          identifier: values.identifier,
+          precision: values.precision,
+          typeId: values.meterType,
+          unitId: values.unit,
+          contractId: values.contract,
+          buildingId: activeBuilding.value,
+          customUnitConversion: values.customUnitConversion,
+        },
+        values.resets,
+      )
         .then(() => {
+          Toast.show({
+            type: 'success',
+            text1: translate('meters.toast.didUpdate'),
+          })
           form.reset()
           router.back()
         })
-        .catch((err) => console.error(err))
+        .catch((err) => {
+          Toast.hide()
+          console.error(err)
+        })
     },
   })
 
@@ -60,7 +82,7 @@ export default function Page() {
           headerLeft: makeHeaderDialogBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button onPress={() => form.handleSubmit()}>
+              <Button onPressIn={() => form.handleSubmit()} disabled={!form.canSubmit.value}>
                 {translate('general.save')}
               </Button>
             </HeaderButtons>

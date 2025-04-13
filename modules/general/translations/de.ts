@@ -29,6 +29,15 @@ export const de: Language = {
     markAsDefault: 'Als Standard markieren',
   },
   readings: {
+    toast: {
+      creating: 'Messung wird erstellt...',
+      updating: 'Messung wird aktualisiert...',
+      deleting: 'Messung wird gelöscht...',
+      didCreate: 'Messung erfolgreich erstellt',
+      didUpdate: 'Messung erfolgreich aktualisiert',
+      didDelete: 'Messung erfolgreich gelöscht',
+    },
+
     createModalTitle: 'Messung erstellen',
     updateModalTitle: 'Messung bearbeiten',
     createLabelValue: 'Zählerstand *',
@@ -45,6 +54,19 @@ export const de: Language = {
       'Dieser Eintrag wird dauerhaft gelöscht und diese Aktion kann nicht rückgängig gemacht werden.',
   },
   meters: {
+    toast: {
+      creating: 'Messgerät wird erstellt...',
+      updating: 'Messgerät wird aktualisiert...',
+      deleting: 'Messgerät wird gelöscht...',
+      resetting: 'Messgerät wird zurückgesetzt...',
+      removingReset: 'Zurücksetzung wird entfernt...',
+      didCreate: 'Messgerät erfolgreich erstellt',
+      didUpdate: 'Messgerät erfolgreich aktualisiert',
+      didDelete: 'Messgerät erfolgreich gelöscht',
+      didReset: 'Zurücksetzung erfolgreich erstellt',
+      didRemoveReset: 'Zurücksetzung erfolgreich entfernt',
+    },
+
     selectTitle: 'Messgerät auswählen',
     createModalTitle: 'Messgerät erstellen',
     updateModalTitle: 'Messgerät bearbeiten',
@@ -97,6 +119,15 @@ export const de: Language = {
     },
   },
   contracts: {
+    toast: {
+      creating: 'Vertrag wird erstellt...',
+      updating: 'Vertrag wird aktualisiert...',
+      deleting: 'Vertrag wird gelöscht...',
+      didCreate: 'Vertrag erfolgreich erstellt',
+      didUpdate: 'Vertrag erfolgreich aktualisiert',
+      didDelete: 'Vertrag erfolgreich gelöscht',
+    },
+
     createModalTitle: 'Vertrag erstellen',
     updateModalTitle: 'Vertrag bearbeiten',
     createLabelName: 'Name *',

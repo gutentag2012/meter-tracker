@@ -11,6 +11,9 @@ import { createContract } from '@/modules/contracts/contracts.query'
 import { useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
 import { ContractForm } from '@/modules/contracts/components'
+import { StatusBar } from '@/modules/general/components'
+import React from 'react'
+import Toast from 'react-native-toast-message'
 
 export default function Page() {
   const router = useRouter()
@@ -33,13 +36,26 @@ export default function Page() {
         endDate: null as Date | null,
       },
     },
-    onSubmit: (values) =>
-      createContract(values)
+    onSubmit: async (values) =>{
+      Toast.show({
+        type: "progress",
+        text1: translate("contracts.toast.creating"),
+        autoHide: false,
+      })
+      await createContract(values)
         .then(() => {
+          Toast.show({
+            type: "success",
+            text1: translate("contracts.toast.didCreate"),
+          })
           form.reset()
           router.back()
         })
-        .catch((err) => console.error(err)),
+        .catch((err) => {
+          Toast.hide()
+          console.error(err)
+        })
+    }
   })
 
   return (
@@ -51,17 +67,16 @@ export default function Page() {
           headerLeft: makeHeaderDialogBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button onPress={() => form.handleSubmit()}>
+              <Button onPressIn={() => form.handleSubmit()} disabled={!form.canSubmit.value}>
                 {translate('general.save')}
               </Button>
             </HeaderButtons>
           ),
           animation: 'slide_from_bottom',
-          presentation: 'fullScreenModal',
         }}
       />
 
-      <ContractForm form={form} />
+      <ContractForm form={form} maxDateRevisions={null} />
     </View>
   )
 }

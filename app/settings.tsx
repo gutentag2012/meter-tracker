@@ -11,7 +11,8 @@ import { Stack } from 'expo-router/stack'
 import {
   BellIcon,
   CalendarDaysIcon,
-  CheckSquare2Icon, CloudIcon,
+  CheckSquare2Icon,
+  CloudIcon,
   CoinsIcon,
   DownloadIcon,
   LanguagesIcon,
@@ -29,7 +30,7 @@ import { makeHeaderBackButton } from '@/modules/general/components/header/Header
 import { currencyCode } from '@/modules/settings/currency.signals'
 import { useSelectField } from '@/modules/general/components/inputs/SelectField'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import * as Notifications from 'expo-notifications'
 import {
   BottomSheetBackdrop,
@@ -59,7 +60,9 @@ import { PermissionStatus } from 'expo-notifications'
 import { language } from '@/modules/settings/language.signals'
 import { translateInterval } from '@/modules/settings/notifications'
 import { IntervalForm } from '@/modules/settings/components/IntervalForm'
-import { resetDatabase } from '@/modules/general/general.query'
+import { resetDatabase } from '@/database/db'
+import { useSignals } from '@preact/signals-react/runtime'
+import { Checkbox } from '@/modules/general/components/inputs/Checkbox'
 
 const languageOptions = [
   {
@@ -88,6 +91,8 @@ const currencyOptions = [
 ]
 
 export default function Page() {
+  useSignals()
+  const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -251,65 +256,63 @@ export default function Page() {
             </Button>
           )}
         />
-        <themeSelect.SelectField
-          renderField={({ selectedValue, onOpen }) => (
-            <Button
-              size="large"
-              onPress={onOpen}
-              IconStart={<SunIcon size={16} stroke={colors.textMuted} />}
-              variant="text"
-            >
-              <View>
-                <Text style={defaultStyles.bodyText}>
-                  {translate('settings.themeOptionTitle')}
-                </Text>
-                <Text style={defaultStyles.detailSmall}>
-                  {translate('settings.themeOptionDescription', {
-                    theme: translate(
-                      `settings.themeSelectValues.${selectedValue?.value}` as LangKey,
-                    ),
-                  })}
-                </Text>
-              </View>
-            </Button>
-          )}
-        />
+        {/*<themeSelect.SelectField*/}
+        {/*  renderField={({ selectedValue, onOpen }) => (*/}
+        {/*    <Button*/}
+        {/*      size="large"*/}
+        {/*      onPress={onOpen}*/}
+        {/*      IconStart={<SunIcon size={16} stroke={colors.textMuted} />}*/}
+        {/*      variant="text"*/}
+        {/*    >*/}
+        {/*      <View>*/}
+        {/*        <Text style={defaultStyles.bodyText}>*/}
+        {/*          {translate('settings.themeOptionTitle')}*/}
+        {/*        </Text>*/}
+        {/*        <Text style={defaultStyles.detailSmall}>*/}
+        {/*          {translate('settings.themeOptionDescription', {*/}
+        {/*            theme: translate(*/}
+        {/*              `settings.themeSelectValues.${selectedValue?.value}` as LangKey,*/}
+        {/*            ),*/}
+        {/*          })}*/}
+        {/*        </Text>*/}
+        {/*      </View>*/}
+        {/*    </Button>*/}
+        {/*  )}*/}
+        {/*/>*/}
 
         <Text style={styles.sectionTitle}>
           {translate('settings.headerData')}
         </Text>
-        <Link href="/export" asChild>
-          <Button
-            size="large"
-            IconStart={<UploadIcon size={16} stroke={colors.textMuted} />}
-            variant="text"
-          >
-            <View>
-              <Text style={defaultStyles.bodyText}>
-                {translate('settings.exportOptionTitle')}
-              </Text>
-              <Text style={defaultStyles.detailSmall}>
-                {translate('settings.exportOptionDescription')}
-              </Text>
-            </View>
-          </Button>
-        </Link>
-        <Link href="/import" asChild>
-          <Button
-            size="large"
-            IconStart={<DownloadIcon size={16} stroke={colors.textMuted} />}
-            variant="text"
-          >
-            <View>
-              <Text style={defaultStyles.bodyText}>
-                {translate('settings.importOptionTitle')}
-              </Text>
-              <Text style={defaultStyles.detailSmall}>
-                {translate('settings.importOptionDescription')}
-              </Text>
-            </View>
-          </Button>
-        </Link>
+        <Button
+          onPress={() => router.push('/export')}
+          size="large"
+          IconStart={<UploadIcon size={16} stroke={colors.textMuted} />}
+          variant="text"
+        >
+          <View>
+            <Text style={defaultStyles.bodyText}>
+              {translate('settings.exportOptionTitle')}
+            </Text>
+            <Text style={defaultStyles.detailSmall}>
+              {translate('settings.exportOptionDescription')}
+            </Text>
+          </View>
+        </Button>
+        <Button
+          onPress={() => router.push('/import')}
+          size="large"
+          IconStart={<DownloadIcon size={16} stroke={colors.textMuted} />}
+          variant="text"
+        >
+          <View>
+            <Text style={defaultStyles.bodyText}>
+              {translate('settings.importOptionTitle')}
+            </Text>
+            <Text style={defaultStyles.detailSmall}>
+              {translate('settings.importOptionDescription')}
+            </Text>
+          </View>
+        </Button>
         {/*<Button*/}
         {/*  size='large'*/}
         {/*  IconStart={<CloudIcon size={16} stroke={colors.textMuted} />}*/}
@@ -381,11 +384,7 @@ export default function Page() {
                 {translate('settings.enableReminderDescription')}
               </Text>
             </View>
-            {reminderEnabled.value ? (
-              <CheckSquare2Icon color={colors.text} size={24} />
-            ) : (
-              <SquareIcon color={colors.text} size={24} />
-            )}
+            <Checkbox isChecked={reminderEnabled.value} />
           </View>
         </Button>
         <Button
@@ -444,75 +443,75 @@ export default function Page() {
         {/*    </Text>*/}
         {/*  </View>*/}
         {/*</Button>*/}
-        <Text style={styles.sectionTitle}>
-          {translate('settings.headerDangerZone')}
-        </Text>
-        <Button
-          size="large"
-          onPress={() => {
-            if (dangerZoneActive) {
-              setDangerZoneActive(false)
-              return
-            }
-            Alert.alert(
-              translate('settings.dangerZoneAlertTitle'),
-              translate('settings.dangerZoneAlertDescription'),
-              [
-                {
-                  text: translate('general.cancel'),
-                  style: 'cancel',
-                },
-                {
-                  text: translate('general.activate'),
-                  style: 'destructive',
-                  onPress: () => {
-                    setDangerZoneActive(true)
-                  },
-                },
-              ],
-            )
-          }}
-          IconStart={<ShieldAlertIcon size={16} stroke={colors.negative} />}
-          variant="text"
-        >
-          <View>
-            <Text style={[defaultStyles.bodyText, { color: colors.negative }]}>
-              {!dangerZoneActive
-                ? translate('settings.activateDangerZoneTitle')
-                : translate('settings.activateDangerZoneTitleDisable')}
-            </Text>
-            <Text style={[defaultStyles.detailSmall, { maxWidth: '95%' }]}>
-              {translate('settings.activateDangerZoneDescription')}
-            </Text>
-          </View>
-        </Button>
-        <Button
-          size="large"
-          disabled={!dangerZoneActive}
-          IconStart={
-            <RefreshCcwIcon
-              size={16}
-              stroke={colors.textMuted}
-              opacity={!dangerZoneActive ? 0.6 : 1}
-            />
-          }
-          variant="text"
-          onPress={() => resetDatabase()}
-        >
-          <View style={[!dangerZoneActive && { opacity: 0.6 }]}>
-            <Text
-              style={[
-                defaultStyles.bodyText,
-                !dangerZoneActive && { color: colors.textMuted },
-              ]}
-            >
-              {translate('settings.resetOptionTitle')}
-            </Text>
-            <Text style={[defaultStyles.detailSmall, { maxWidth: '95%' }]}>
-              {translate('settings.resetOptionDescription')}
-            </Text>
-          </View>
-        </Button>
+        {/*<Text style={styles.sectionTitle}>*/}
+        {/*  {translate('settings.headerDangerZone')}*/}
+        {/*</Text>*/}
+        {/*<Button*/}
+        {/*  size="large"*/}
+        {/*  onPress={() => {*/}
+        {/*    if (dangerZoneActive) {*/}
+        {/*      setDangerZoneActive(false)*/}
+        {/*      return*/}
+        {/*    }*/}
+        {/*    Alert.alert(*/}
+        {/*      translate('settings.dangerZoneAlertTitle'),*/}
+        {/*      translate('settings.dangerZoneAlertDescription'),*/}
+        {/*      [*/}
+        {/*        {*/}
+        {/*          text: translate('general.cancel'),*/}
+        {/*          style: 'cancel',*/}
+        {/*        },*/}
+        {/*        {*/}
+        {/*          text: translate('general.activate'),*/}
+        {/*          style: 'destructive',*/}
+        {/*          onPress: () => {*/}
+        {/*            setDangerZoneActive(true)*/}
+        {/*          },*/}
+        {/*        },*/}
+        {/*      ],*/}
+        {/*    )*/}
+        {/*  }}*/}
+        {/*  IconStart={<ShieldAlertIcon size={16} stroke={colors.negative} />}*/}
+        {/*  variant="text"*/}
+        {/*>*/}
+        {/*  <View>*/}
+        {/*    <Text style={[defaultStyles.bodyText, { color: colors.negative }]}>*/}
+        {/*      {!dangerZoneActive*/}
+        {/*        ? translate('settings.activateDangerZoneTitle')*/}
+        {/*        : translate('settings.activateDangerZoneTitleDisable')}*/}
+        {/*    </Text>*/}
+        {/*    <Text style={[defaultStyles.detailSmall, { maxWidth: '95%' }]}>*/}
+        {/*      {translate('settings.activateDangerZoneDescription')}*/}
+        {/*    </Text>*/}
+        {/*  </View>*/}
+        {/*</Button>*/}
+        {/*<Button*/}
+        {/*  size="large"*/}
+        {/*  disabled={!dangerZoneActive}*/}
+        {/*  IconStart={*/}
+        {/*    <RefreshCcwIcon*/}
+        {/*      size={16}*/}
+        {/*      stroke={colors.textMuted}*/}
+        {/*      opacity={!dangerZoneActive ? 0.6 : 1}*/}
+        {/*    />*/}
+        {/*  }*/}
+        {/*  variant="text"*/}
+        {/*  onPress={() => resetDatabase()}*/}
+        {/*>*/}
+        {/*  <View style={[!dangerZoneActive && { opacity: 0.6 }]}>*/}
+        {/*    <Text*/}
+        {/*      style={[*/}
+        {/*        defaultStyles.bodyText,*/}
+        {/*        !dangerZoneActive && { color: colors.textMuted },*/}
+        {/*      ]}*/}
+        {/*    >*/}
+        {/*      {translate('settings.resetOptionTitle')}*/}
+        {/*    </Text>*/}
+        {/*    <Text style={[defaultStyles.detailSmall, { maxWidth: '95%' }]}>*/}
+        {/*      {translate('settings.resetOptionDescription')}*/}
+        {/*    </Text>*/}
+        {/*  </View>*/}
+        {/*</Button>*/}
       </ScrollView>
 
       <languageSelect.SelectFieldSheet
@@ -574,6 +573,7 @@ export default function Page() {
                 {translate('settings.reminderIntervalTitle')}
               </Text>
               <TouchableOpacity
+                disabled={!intervalForm.canSubmit.value}
                 style={[defaultStyles.ghostButton, { marginLeft: 'auto' }]}
                 onPress={() => {
                   void intervalForm.handleSubmit()

@@ -8,6 +8,7 @@ import { forwardRef, PropsWithChildren, ReactNode, useMemo } from 'react'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import {CheckIcon, XIcon} from "lucide-react-native";
 import {useFieldContext} from "@formsignals/form-react";
+import { useSignals } from '@preact/signals-react/runtime'
 
 type CheckboxProps = Omit<TouchableOpacityProps, "children"> & {
   label?: string
@@ -59,7 +60,7 @@ export const Checkbox = function (
       onPress={() => onChange && onChange(!isChecked)}
     >
       <View style={styles.checkboxOuter}>
-        {isChecked && <XIcon size={defaultStyles.bodyText.fontSize} stroke={colors.primary} />}
+        {isChecked && <XIcon size={defaultStyles.bodyText.fontSize} stroke={colors.text} />}
       </View>
       <Text style={styles.label}>{label}</Text>
     </TouchableOpacity>
@@ -68,6 +69,7 @@ export const Checkbox = function (
 Checkbox.displayName = 'Checkbox'
 
 export function CheckboxForm(props: Omit<CheckboxProps, "isChecked" | "onChange">) {
+  useSignals()
   const field = useFieldContext<boolean, "">()
   return (
     <Checkbox

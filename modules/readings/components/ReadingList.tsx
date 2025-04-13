@@ -6,12 +6,14 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { formatDate, formatNumber } from '@/modules/general/translations'
+import { useSignals } from '@preact/signals-react/runtime'
 
 export function ReadingList({
   readings,
 }: {
   readings: Awaited<ReturnType<typeof getAllReadingsForMeter>>
 }) {
+  useSignals()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -111,6 +113,7 @@ export function ReadingList({
       data={readingsWithHeadings}
       stickyHeaderIndices={stickyIndices}
       renderItem={({ item }) => {
+        if(!item) return null
         if ('type' in item && item.type === 'header') {
           return (
             <View

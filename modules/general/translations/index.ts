@@ -17,6 +17,10 @@ const locale = locales[0]?.languageCode ?? 'en'
 Translator.locale = locale
 Translator.enableFallback = true
 
+export function changeLocale(newLocale: string) {
+  Translator.locale = newLocale
+}
+
 export function translate(key: LangKey, options?: TranslateOptions) {
   return Translator.t(key, options)
 }

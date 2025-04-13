@@ -6,11 +6,12 @@ import {
   PlusIcon,
 } from 'lucide-react-native'
 import {
+  BottomSheetBackdrop,
   BottomSheetModal,
   BottomSheetModalProvider,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet'
-import {useMemo, useRef} from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import {
   markBuildingAsDefault,
   useActiveBuilding,
@@ -48,6 +49,23 @@ export function ActiveBuildingSelector() {
   )
 
   const bottomSheetRef = useRef<BottomSheetModal>(null)
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        onPress={() => bottomSheetRef.current?.dismiss()}
+        disappearsOnIndex={-1}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      />
+    ),
+    [],
+  )
 
   return (
     <BottomSheetModalProvider>
@@ -82,6 +100,7 @@ export function ActiveBuildingSelector() {
 
       <BottomSheetModal
         ref={bottomSheetRef}
+        backdropComponent={renderBackdrop}
         index={0}
         snapPoints={snapPoints}
         enableDynamicSizing={false}

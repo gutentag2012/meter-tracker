@@ -19,6 +19,7 @@ import { Signal } from '@preact/signals-core'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
 import { LangKey } from '@/modules/general/translations/en'
+import { useSignals } from '@preact/signals-react/runtime'
 
 export type SelectOption<T = string | number | null> = {
   value: T
@@ -68,12 +69,9 @@ export function SelectField<T = string | number | null>({
   snapPoints: _3,
   ...props
 }: SelectFieldPropsInternal<T>) {
+  useSignals()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
-
-  const selectedValueOption = options.find(
-    (option) => option.value === value.value,
-  )
 
   const styles = useMemo(
     () =>
@@ -104,12 +102,15 @@ export function SelectField<T = string | number | null>({
     [colors, defaultStyles],
   )
 
+  const selectedValue = options.find(
+    (option) => option.value === value.value,
+  )
   const hintValue = typeof hint === 'string' ? hint : hint?.value
 
   if (renderField) {
     return renderField({
       label: label ?? '',
-      selectedValue: selectedValueOption!,
+      selectedValue: selectedValue!,
       hintValue: hintValue ?? '',
       onOpen: () => bottomSheetRef.current?.present(),
     })
@@ -126,7 +127,7 @@ export function SelectField<T = string | number | null>({
         onPress={() => bottomSheetRef.current?.present()}
       >
         <Text style={[styles.inputBase, style]} {...props}>
-          {selectedValueOption?.label ?? '-'}
+          {selectedValue?.label ?? '-'}
         </Text>
         <ChevronDownIcon size={16} stroke={colors.text} />
       </TouchableOpacity>
@@ -154,14 +155,11 @@ export function SelectFieldSheet<T = string | number | null>({
   ListHeaderComponent,
 }: SelectFieldPropsInternal<T>) {
   const colors = useColors()
-  const defaultStyles = useDefaultStyles()
-
-  const selectedValue = value.value
-
   const renderBackdrop = useCallback(
     (props: any) => (
       <BottomSheetBackdrop
         {...props}
+        onPress={() => bottomSheetRef.current?.dismiss()}
         disappearsOnIndex={-1}
         style={{
           position: 'absolute',
@@ -172,21 +170,6 @@ export function SelectFieldSheet<T = string | number | null>({
         }}
       />
     ),
-    [],
-  )
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        headerRow: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingRight: 4,
-          gap: 8,
-          marginTop: 8,
-          marginBottom: 16,
-        },
-      }),
     [],
   )
 
@@ -205,6 +188,50 @@ export function SelectFieldSheet<T = string | number | null>({
           style={{ flex: 1, paddingHorizontal: 16 }}
           contentContainerStyle={{ paddingBottom: 48 }}
         >
+          <SelectFieldSheetContent
+            options={options}
+            bottomSheetRef={bottomSheetRef}
+            modalTitle={modalTitle}
+            ModalAction={ModalAction}
+            value={value}
+            ListHeaderComponent={ListHeaderComponent}
+          />
+        </BottomSheetScrollView>
+      </BottomSheetModal>
+    </BottomSheetModalProvider>
+  )
+}
+export function SelectFieldSheetContent<T = string | number | null>({
+  options,
+  bottomSheetRef,
+  modalTitle,
+  ModalAction,
+  value,
+  ListHeaderComponent,
+}: SelectFieldPropsInternal<T>) {
+  useSignals()
+  const colors = useColors()
+  const defaultStyles = useDefaultStyles()
+
+  const selectedValue = value.value
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        headerRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingRight: 4,
+          gap: 8,
+          marginTop: 8,
+          marginBottom: 16,
+        },
+      }),
+    [],
+  )
+
+  return (
+        <>
           <View
             style={[
               styles.headerRow,
@@ -253,9 +280,7 @@ export function SelectFieldSheet<T = string | number | null>({
               </Text>
             </TouchableOpacity>
           ))}
-        </BottomSheetScrollView>
-      </BottomSheetModal>
-    </BottomSheetModalProvider>
+        </>
   )
 }
 

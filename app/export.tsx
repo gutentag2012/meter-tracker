@@ -24,8 +24,10 @@ import {FilePicker} from "@/modules/general/components/inputs/FilePicker";
 import {importLegacyCSV} from "@/database/import";
 import {Signal} from "@preact/signals-core";
 import {useSignalEffect} from "@preact/signals-react";
+import { useSignals } from '@preact/signals-react/runtime'
 
 export default function Page() {
+  useSignals()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -104,7 +106,7 @@ export default function Page() {
           headerLeft: makeHeaderBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button onPress={() => form.handleSubmit()}>
+              <Button onPressIn={() => form.handleSubmit()} disabled={!form.canSubmit.value}>
                 Start export
               </Button>
             </HeaderButtons>
@@ -159,20 +161,14 @@ export default function Page() {
 }
 
 function IncludeToggle({label, value}: {label: string, value: Signal<boolean>}) {
-  const colors = useColors()
+  useSignals()
   const defaultStyles = useDefaultStyles()
 
   return (
     <Button
       size="large"
       onPress={() => value.value = !value.value}
-      IconEnd={value.value ? <CheckSquareIcon
-        size={16}
-        stroke={colors.textMuted}
-      /> : <SquareIcon
-        size={16}
-        stroke={colors.textMuted}
-      />}
+      IconEnd={<Checkbox isChecked={value.value} />}
       variant="text"
     >
     <Text style={[defaultStyles.bodyText, {flex: 1}]}>

@@ -38,6 +38,7 @@ import {
 import { useAllUnits } from '@/modules/units'
 import { translate } from '@/modules/general/translations'
 import { LangKey } from '@/modules/general/translations/en'
+import Toast from 'react-native-toast-message'
 
 // TODO Either add a confirm alert for the delete action or add a checkbox to enable the delete button
 
@@ -111,7 +112,7 @@ type ContractFormProps = {
   contractId?: number
   form: FormContextType<FormValues, ValidatorAdapter>
   onSubmit?: () => void
-  maxDateRevisions?: Date
+  maxDateRevisions: Date | null
   revisionIds?: number[]
   selectedRevision?: number
   selectedRevisionId?: Signal<number | undefined>
@@ -440,7 +441,16 @@ export function ContractForm({
                           text: translate('general.delete'),
                           style: 'destructive',
                           onPress: async () => {
+                            Toast.show({
+                              type: 'progress',
+                              text1: translate('contracts.toast.deleting'),
+                              autoHide: false,
+                            })
                             await deleteContract(contractId)
+                            Toast.show({
+                              type: 'success',
+                              text1: translate('contracts.toast.didDelete'),
+                            })
                             router.navigate('/')
                           },
                         },

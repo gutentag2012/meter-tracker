@@ -15,7 +15,7 @@ AsyncStorage.getItem(StorageKeys.didMigrateOldDB)
     }
 
     await migrateOldDb()
-    // TODO Store that we migrated the old db
+    await AsyncStorage.setItem(StorageKeys.didMigrateOldDB, 'true')
     numberOfSettingsLoaded.value++
   })
   .catch((err) => console.error('Error loading dbMigrateOldDB', err))

@@ -47,7 +47,7 @@ export function PaginatedGraphs({
     <View style={{backgroundColor: colors.card, borderRadius: 4}}>
       <AnimatedPagerView
         ref={pagerRef}
-        style={{ height: 260 }}
+        style={{ height: 220 }}
         initialPage={indexWithProgress.value}
         onPageScroll={pageScrollHandler}
       >

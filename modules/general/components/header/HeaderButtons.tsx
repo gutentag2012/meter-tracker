@@ -1,8 +1,8 @@
 import React from 'react'
 import { View } from 'react-native'
-import { Href, Link } from 'expo-router'
+import { Href, Link, useRouter } from 'expo-router'
 import { Button } from '@/modules/general/components/inputs/Button'
-import { PencilIcon, Settings2Icon } from 'lucide-react-native'
+import { CogIcon, PencilIcon, Settings2Icon, SettingsIcon } from 'lucide-react-native'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 
 type HeaderButtonsProps = {
@@ -16,6 +16,7 @@ export function HeaderButtons({
   editUrl,
   hideSettings,
 }: HeaderButtonsProps) {
+  const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -23,17 +24,14 @@ export function HeaderButtons({
     <View style={[defaultStyles.row, { gap: 0, marginRight: -8 }]}>
       {children}
       {editUrl && (
-        <Link href={editUrl} asChild>
-          <Button variant="icon">
-            <PencilIcon color={colors.text} />
-          </Button>
-        </Link>
+        <Button variant="icon" onPressIn={() => router.push(editUrl)}>
+          <PencilIcon color={colors.text} />
+        </Button>
       )}
-      {/* TODO Navigation not working */}
       {!hideSettings && (
-        <Link href="/settings" asChild>
-            <Settings2Icon color={colors.text} />
-        </Link>
+        <Button variant="icon" onPressIn={() => router.push("/settings")}>
+          <Settings2Icon color={colors.text} />
+        </Button>
       )}
     </View>
   )

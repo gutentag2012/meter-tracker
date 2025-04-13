@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { CalendarIcon, DiffIcon, PlusIcon } from 'lucide-react-native'
 import { isToday } from 'date-fns'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import { useMemo } from 'react'
 import Animated, {
   runOnJS,
@@ -33,6 +33,7 @@ interface Props {
 }
 
 export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
+  const router = useRouter()
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
@@ -138,100 +139,88 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
     <Animated.View style={[styles.meterContainer, animatedStyle]}>
       <GestureDetector gesture={panGestureHandler}>
         <Animated.View style={{ flex: 1 }}>
-          <Link
-            key={meter.meterId}
-            href={`/meter/${meter.meterId}` as any}
-            asChild
-          >
-            <TouchableOpacity style={styles.meterContainerInner}>
-              {hasLongTitle && (
-                <Text style={[defaultStyles.cardTitle, { marginBottom: 0 }]}>
-                  {meter.meterName}
-                </Text>
-              )}
-              <View style={[defaultStyles.row, { alignItems: 'flex-start' }]}>
-                <View style={{ flex: 1 }}>
-                  {!hasLongTitle && (
-                    <Text
-                      style={[defaultStyles.cardTitle, { marginBottom: 0 }]}
-                    >
-                      {meter.meterName}
-                    </Text>
-                  )}
-                  {meter.identifier && (
-                    <Text style={[defaultStyles.detailSmall]}>
-                      {meter.identifier}
-                    </Text>
-                  )}
+          <TouchableOpacity style={styles.meterContainerInner} onPress={() => router.push(`/meter/${meter.meterId}`)}>
+            {hasLongTitle && (
+              <Text style={[defaultStyles.cardTitle, { marginBottom: 0 }]}>
+                {meter.meterName}
+              </Text>
+            )}
+            <View style={[defaultStyles.row, { alignItems: 'flex-start' }]}>
+              <View style={{ flex: 1 }}>
+                {!hasLongTitle && (
+                  <Text
+                    style={[defaultStyles.cardTitle, { marginBottom: 0 }]}
+                  >
+                    {meter.meterName}
+                  </Text>
+                )}
+                {meter.identifier && (
+                  <Text style={[defaultStyles.detailSmall]}>
+                    {meter.identifier}
+                  </Text>
+                )}
+              </View>
+              {!isNaN(meter.percentileChange ?? 0) && (
+                <View style={defaultStyles.iconText}>
+                  <ChangeIndicatorIcon change={meter.percentileChange ?? 0} />
+                  <Text
+                    style={[
+                      defaultStyles.detail,
+                      {
+                        color: changeColor,
+                      },
+                    ]}
+                  >
+                    {formatNumber(
+                      meter.percentileChange ?? 0,
+                      meter.meterPrecision,
+                    )}{' '}
+                    %
+                  </Text>
                 </View>
-                {!isNaN(meter.percentileChange ?? 0) && (
+              )}
+            </View>
+
+            <View style={[defaultStyles.row, { marginTop: 'auto' }]}>
+              <View>
+                {meter.lastDifferencePerDay !== null && (
                   <View style={defaultStyles.iconText}>
-                    <ChangeIndicatorIcon change={meter.percentileChange ?? 0} />
-                    <Text
-                      style={[
-                        defaultStyles.detail,
-                        {
-                          color: changeColor,
-                        },
-                      ]}
-                    >
+                    <DiffIcon
+                      size={defaultStyles.detail.fontSize}
+                      stroke={colors.textMuted}
+                    />
+                    <Text style={defaultStyles.detail}>
                       {formatNumber(
-                        meter.percentileChange ?? 0,
+                        meter.lastDifferencePerDay,
                         meter.meterPrecision,
                       )}{' '}
-                      %
+                      <Text style={defaultStyles.detailSmall}>
+                        {meter.meterUnit}
+                        {translate('general.perDay')}
+                      </Text>
+                    </Text>
+                  </View>
+                )}
+                {meter.lastReadingDate && (
+                  <View style={defaultStyles.iconText}>
+                    <CalendarIcon
+                      size={defaultStyles.detail.fontSize}
+                      stroke={colors.textMuted}
+                    />
+                    <Text style={defaultStyles.detail}>
+                      {formatDate(meter.lastReadingDate, 'PP')}
                     </Text>
                   </View>
                 )}
               </View>
-
-              <View style={[defaultStyles.row, { marginTop: 'auto' }]}>
-                <View>
-                  {meter.lastDifferencePerDay !== null && (
-                    <View style={defaultStyles.iconText}>
-                      <DiffIcon
-                        size={defaultStyles.detail.fontSize}
-                        stroke={colors.textMuted}
-                      />
-                      <Text style={defaultStyles.detail}>
-                        {formatNumber(
-                          meter.lastDifferencePerDay,
-                          meter.meterPrecision,
-                        )}{' '}
-                        <Text style={defaultStyles.detailSmall}>
-                          {meter.meterUnit}
-                          {translate('general.perDay')}
-                        </Text>
-                      </Text>
-                    </View>
-                  )}
-                  {meter.lastReadingDate && (
-                    <View style={defaultStyles.iconText}>
-                      <CalendarIcon
-                        size={defaultStyles.detail.fontSize}
-                        stroke={colors.textMuted}
-                      />
-                      <Text style={defaultStyles.detail}>
-                        {formatDate(meter.lastReadingDate, 'PP')}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                {(!meter.lastReadingDate ||
-                  !isToday(meter.lastReadingDate)) && (
-                  <Link
-                    href={`/meter/${meter.meterId}/reading`}
-                    asChild
-                    style={[defaultStyles.fab, { marginLeft: 'auto' }]}
-                  >
-                    <TouchableOpacity>
-                      <PlusIcon size={16} stroke={colors.onPrimaryContainer} />
-                    </TouchableOpacity>
-                  </Link>
-                )}
-              </View>
-            </TouchableOpacity>
-          </Link>
+              {(!meter.lastReadingDate ||
+                !isToday(meter.lastReadingDate)) && (
+                <TouchableOpacity style={[defaultStyles.fab, { marginLeft: 'auto' }]} onPress={() => router.push(`/meter/${meter.meterId}/reading`)}>
+                  <PlusIcon size={16} stroke={colors.onPrimaryContainer} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </TouchableOpacity>
         </Animated.View>
       </GestureDetector>
     </Animated.View>

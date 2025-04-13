@@ -11,11 +11,15 @@ import {
 } from '@/modules/readings/readings.query'
 import { makeHeaderDialogBackButton } from '@/modules/general/components/header/HeaderBackButton'
 import { HeaderButtons } from '@/modules/general/components/header/HeaderButtons'
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useDefaultStyles } from '@/modules/general/theme'
 import { translate } from '@/modules/general/translations'
+import { useSignals } from '@preact/signals-react/runtime'
+import { StatusBar } from '@/modules/general/components'
+import Toast from 'react-native-toast-message'
 
 export default function Page() {
+  useSignals()
   const router = useRouter()
   const defaultStyles = useDefaultStyles()
   const { readingId: readingIdRaw } = useLocalSearchParams()
@@ -32,11 +36,26 @@ export default function Page() {
       meter: reading?.meterId ?? 1,
     },
     onSubmit: async (values) => {
+      Toast.show({
+        type: "progress",
+        text1: translate("readings.toast.updating"),
+        autoHide: false,
+      })
       await updateReading(readingId, {
         meterId: values.meter,
         timestamp: values.timestamp,
         value: values.value,
-      }).catch((err) => console.error(err))
+      })
+        .then(() => {
+          Toast.show({
+            type: 'success',
+            text1: translate('readings.toast.didUpdate'),
+          })
+        })
+        .catch((err) => {
+          Toast.hide()
+          console.error(err)
+        })
       form.reset()
       router.back()
     },
@@ -51,13 +70,12 @@ export default function Page() {
           headerLeft: makeHeaderDialogBackButton(true),
           headerRight: () => (
             <HeaderButtons hideSettings>
-              <Button onPress={() => form.handleSubmit()}>
+              <Button onPressIn={() => form.handleSubmit()} disabled={!form.canSubmit.value}>
                 {translate('general.save')}
               </Button>
             </HeaderButtons>
           ),
           animation: 'slide_from_bottom',
-          presentation: 'fullScreenModal',
         }}
       />
 
