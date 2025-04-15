@@ -294,6 +294,57 @@ export const en = {
     permissionDialogDescription:
       'We need permission to send you reminders. You can change this in the settings.',
     goToSettings: 'Go to Settings',
+
+    export: {
+      pageTitle: 'Export',
+      startButton: "Start export",
+      headerBuildings: "Buildings",
+      buildings: {
+        id: 'ID',
+        name: 'Name',
+        address: 'Address',
+        notes: 'Notes',
+        isDefault: 'Is Default',
+      },
+      headerContracts: "Contracts",
+      contracts: {
+        id: 'ID',
+        name: 'Name',
+        identifier: 'Identifier',
+        unit: 'Unit',
+        buildingId: 'Building ID',
+      },
+      headerContractRevision: "Contract Revisions",
+      contractRevision: {
+        pricePerUnit: 'Price per Unit',
+        basePayment: 'Base Payment',
+        monthlyPayment: 'Monthly Payment',
+        startDate: 'Start Date',
+        endDate: 'End Date',
+        contractId: 'Contract ID',
+      },
+      headerMeters: "Meters",
+      meters: {
+        id: 'ID',
+        name: 'Name',
+        identifier: 'Identifier',
+        precision: 'Precision',
+        sortOrder: 'Sort Order',
+        customUnitConversion: 'Custom Unit Conversion',
+        type: 'Type',
+        unit: 'Unit',
+        buildingId: 'Building ID',
+        contractId: 'Contract ID',
+      },
+      headerMeterReadings: "Readings",
+      meterReadings: {
+        id: 'ID',
+        value: 'Value',
+        timestamp: 'Timestamp',
+        valueBeforeReset: 'Value Before Reset',
+        meterId: 'Meter ID',
+      },
+    }
   },
   intervals: {
     daily: 'Daily',

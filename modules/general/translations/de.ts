@@ -300,6 +300,57 @@ export const de: Language = {
     permissionDialogDescription:
       'Um Erinnerungen zu aktivieren, brauchen wir Ihre Erlaubnis. Sie können dies in den Einstellungen tun.',
     goToSettings: 'Zu den Einstellungen',
+
+    export: {
+      pageTitle: "Exportieren",
+      startButton: "Export starten",
+      headerBuildings: "Gebäude",
+      buildings: {
+        id: 'ID',
+        name: 'Name',
+        address: 'Adresse',
+        notes: 'Notizen',
+        isDefault: 'Ist Standard',
+      },
+      headerContracts: "Verträge",
+      contracts: {
+        id: 'ID',
+        name: 'Name',
+        identifier: 'Kennung',
+        unit: 'Messeinheit',
+        buildingId: 'Gebäude ID',
+      },
+      headerContractRevision: "Vertrags-Revisionen",
+      contractRevision: {
+        pricePerUnit: 'Preis pro Einheit',
+        basePayment: 'Grundgebühr',
+        monthlyPayment: 'Monatliche Zahlung',
+        startDate: 'Startdatum',
+        endDate: 'Enddatum',
+        contractId: 'Vertrag ID',
+      },
+      headerMeters: "Messgeräte",
+      meters: {
+        id: 'ID',
+        name: 'Name',
+        identifier: 'Kennung',
+        precision: 'Genauigkeit',
+        sortOrder: 'Sortierung',
+        customUnitConversion: 'Benutzerdefinierte Einheitenumrechnung',
+        type: 'Messart',
+        unit: 'Messeinheit',
+        buildingId: 'Gebäude ID',
+        contractId: 'Vertrag ID',
+      },
+      headerMeterReadings: "Messungen",
+      meterReadings: {
+        id: 'ID',
+        value: 'Zählerstand',
+        timestamp: 'Zeitstempel',
+        valueBeforeReset: 'Wert vor Zurücksetzung',
+        meterId: 'Messgerät ID',
+      },
+    }
   },
   intervals: {
     daily: 'Täglich',

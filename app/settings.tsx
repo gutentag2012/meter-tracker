@@ -63,6 +63,7 @@ import { IntervalForm } from '@/modules/settings/components/IntervalForm'
 import { resetDatabase } from '@/database/db'
 import { useSignals } from '@preact/signals-react/runtime'
 import { Checkbox } from '@/modules/general/components/inputs/Checkbox'
+import { isAvailableAsync } from 'expo-sharing'
 
 const languageOptions = [
   {
@@ -191,6 +192,13 @@ export default function Page() {
     value: colorScheme,
   })
 
+  const [isSharingAvailable, setIsSharingAvailable] = useState(false)
+  useEffect(() => {
+    isAvailableAsync().then(setIsSharingAvailable).catch(() => {
+      setIsSharingAvailable(false)
+    })
+  }, [])
+
   return (
     <GestureHandlerRootView
       style={[defaultStyles.pageContainer, { paddingHorizontal: 0 }]}
@@ -283,21 +291,23 @@ export default function Page() {
         <Text style={styles.sectionTitle}>
           {translate('settings.headerData')}
         </Text>
-        <Button
-          onPress={() => router.push('/export')}
-          size="large"
-          IconStart={<UploadIcon size={16} stroke={colors.textMuted} />}
-          variant="text"
-        >
-          <View>
-            <Text style={defaultStyles.bodyText}>
-              {translate('settings.exportOptionTitle')}
-            </Text>
-            <Text style={defaultStyles.detailSmall}>
-              {translate('settings.exportOptionDescription')}
-            </Text>
-          </View>
-        </Button>
+        {isSharingAvailable &&
+          <Button
+            onPress={() => router.push('/export')}
+            size="large"
+            IconStart={<UploadIcon size={16} stroke={colors.textMuted} />}
+            variant="text"
+          >
+            <View>
+              <Text style={defaultStyles.bodyText}>
+                {translate('settings.exportOptionTitle')}
+              </Text>
+              <Text style={defaultStyles.detailSmall}>
+                {translate('settings.exportOptionDescription')}
+              </Text>
+            </View>
+          </Button>
+        }
         <Button
           onPress={() => router.push('/import')}
           size="large"
@@ -384,9 +394,12 @@ export default function Page() {
                 {translate('settings.enableReminderDescription')}
               </Text>
             </View>
-            <Checkbox isChecked={reminderEnabled.value} onChange={isChecked => {
-              reminderEnabled.value = isChecked
-            }} />
+            <Checkbox
+              isChecked={reminderEnabled.value}
+              onChange={(isChecked) => {
+                reminderEnabled.value = isChecked
+              }}
+            />
           </View>
         </Button>
         <Button

@@ -11,7 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import * as DocumentPicker from 'expo-document-picker'
 import { Fragment, useMemo, useState } from 'react'
-import { readAsStringAsync } from 'expo-file-system'
+import { cacheDirectory, EncodingType, readAsStringAsync, writeAsStringAsync } from 'expo-file-system'
 import { HeaderButtons } from '@/modules/general/components/header'
 import { Button, useSelectField } from '@/modules/general/components'
 import { useFieldContext, useForm } from '@formsignals/form-react'
@@ -36,6 +36,9 @@ import { importLegacyCSV } from '@/database/import'
 import { Signal } from '@preact/signals-core'
 import { useSignalEffect } from '@preact/signals-react'
 import { useSignals } from '@preact/signals-react/runtime'
+import { exportCSV } from '@/database/export'
+import { isAvailableAsync, shareAsync } from 'expo-sharing'
+import { translate } from '@/modules/general/translations'
 
 export default function Page() {
   useSignals()
@@ -61,7 +64,6 @@ export default function Page() {
 
   const form = useForm({
     defaultValues: {
-      clearExisting: true,
       include: {
         buildings: {
           id: true,
@@ -89,7 +91,6 @@ export default function Page() {
           id: true,
           name: true,
           precision: true,
-          valueBeforeReset: true,
           isActive: true,
           sortOrder: true,
           customUnitConversion: true,
@@ -101,12 +102,23 @@ export default function Page() {
         readings: {
           value: true,
           timestamp: true,
+          valueBeforeReset: true,
           meterId: true,
         },
       },
     },
     onSubmit: async (values) => {
-      console.log('Export', values)
+      if(!await isAvailableAsync()) return;
+
+      const csvString = await exportCSV(values)
+      const exportFileName = `meter_tracker-export_${new Date().toISOString()}.csv`
+      const fileUri = `${cacheDirectory}${exportFileName}`
+
+      await writeAsStringAsync(fileUri, csvString, {
+        encoding: EncodingType.UTF8,
+      })
+
+      await shareAsync(fileUri)
     },
   })
 
@@ -119,7 +131,7 @@ export default function Page() {
     >
       <Stack.Screen
         options={{
-          title: 'Export',
+          title: translate('settings.export.pageTitle'),
           headerTitleStyle: defaultStyles.pageHeader,
           headerLeft: makeHeaderBackButton(true),
           headerRight: () => (
@@ -128,7 +140,7 @@ export default function Page() {
                 onPressIn={() => form.handleSubmit()}
                 disabled={!form.canSubmit.value}
               >
-                Start export
+                {translate('settings.export.startButton')}
               </Button>
             </HeaderButtons>
           ),
@@ -136,157 +148,205 @@ export default function Page() {
       />
 
       <ScrollView
-        style={{ marginTop: 16 }}
         contentContainerStyle={[
           { paddingBottom: 24 + 16 },
           defaultStyles.pageContainerPaddingHorizontal,
         ]}
       >
-        <Text style={styles.sectionHeader}>Buildings</Text>
-        <IncludeToggle
-          label="ID"
-          value={form.data.peek().include.peek().buildings.peek().id}
-        />
-        <IncludeToggle
-          label="Name"
-          value={form.data.peek().include.peek().buildings.peek().name}
-        />
-        <IncludeToggle
-          label="Address"
-          value={form.data.peek().include.peek().buildings.peek().address}
-        />
-        <IncludeToggle
-          label="Notes"
-          value={form.data.peek().include.peek().buildings.peek().notes}
-        />
-        <IncludeToggle
-          label="Is Default"
-          value={form.data.peek().include.peek().buildings.peek().isDefault}
-        />
+        <Text style={styles.sectionHeader}>{translate("settings.export.headerBuildings")}</Text>
+        <View
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            flexDirection: 'row',
+            gap: 8,
+          }}
+        >
+          <IncludeToggle
+            label={translate('settings.export.buildings.id')}
+            value={form.data.peek().include.peek().buildings.peek().id}
+          />
+          <IncludeToggle
+            label={translate('settings.export.buildings.name')}
+            value={form.data.peek().include.peek().buildings.peek().name}
+          />
+          <IncludeToggle
+            label={translate('settings.export.buildings.address')}
+            value={form.data.peek().include.peek().buildings.peek().address}
+          />
+          <IncludeToggle
+            label={translate('settings.export.buildings.notes')}
+            value={form.data.peek().include.peek().buildings.peek().notes}
+          />
+          <IncludeToggle
+            label={translate('settings.export.buildings.isDefault')}
+            value={form.data.peek().include.peek().buildings.peek().isDefault}
+          />
+        </View>
 
-        <Text style={styles.sectionHeader}>Contract</Text>
-        <IncludeToggle
-          label="ID"
-          value={form.data.peek().include.peek().contracts.peek().id}
-        />
-        <IncludeToggle
-          label="Name"
-          value={form.data.peek().include.peek().contracts.peek().name}
-        />
-        <IncludeToggle
-          label="Identifier"
-          value={form.data.peek().include.peek().contracts.peek().identifier}
-        />
-        <IncludeToggle
-          label="Unit"
-          value={form.data.peek().include.peek().contracts.peek().unit}
-        />
-        <IncludeToggle
-          label="Building ID"
-          value={form.data.peek().include.peek().contracts.peek().buildingId}
-        />
+        <Text style={styles.sectionHeader}>{translate("settings.export.headerContracts")}</Text>
+        <View
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            flexDirection: 'row',
+            gap: 8,
+          }}
+        >
+          <IncludeToggle
+            label={translate('settings.export.contracts.id')}
+            value={form.data.peek().include.peek().contracts.peek().id}
+          />
+          <IncludeToggle
+            label={translate('settings.export.contracts.name')}
+            value={form.data.peek().include.peek().contracts.peek().name}
+          />
+          <IncludeToggle
+            label={translate('settings.export.contracts.identifier')}
+            value={form.data.peek().include.peek().contracts.peek().identifier}
+          />
+          <IncludeToggle
+            label={translate('settings.export.contracts.unit')}
+            value={form.data.peek().include.peek().contracts.peek().unit}
+          />
+          <IncludeToggle
+            label={translate('settings.export.contracts.buildingId')}
+            value={form.data.peek().include.peek().contracts.peek().buildingId}
+          />
+        </View>
 
-        <Text style={styles.sectionHeader}>Contract Revision</Text>
-        <IncludeToggle
-          label="Price per unit"
-          value={
-            form.data.peek().include.peek().contractRevisions.peek()
-              .pricePerUnit
-          }
-        />
-        <IncludeToggle
-          label="Base payment"
-          value={
-            form.data.peek().include.peek().contractRevisions.peek().basePayment
-          }
-        />
-        <IncludeToggle
-          label="Monthly payment"
-          value={
-            form.data.peek().include.peek().contractRevisions.peek()
-              .monthlyPayment
-          }
-        />
-        <IncludeToggle
-          label="Start date"
-          value={
-            form.data.peek().include.peek().contractRevisions.peek().startDate
-          }
-        />
-        <IncludeToggle
-          label="End date"
-          value={
-            form.data.peek().include.peek().contractRevisions.peek().endDate
-          }
-        />
-        <IncludeToggle
-          label="Contract ID"
-          value={
-            form.data.peek().include.peek().contractRevisions.peek().contractId
-          }
-        />
+        <Text style={styles.sectionHeader}>{translate("settings.export.headerContractRevision")}</Text>
+        <View
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            flexDirection: 'row',
+            gap: 8,
+          }}
+        >
+          <IncludeToggle
+            label={translate('settings.export.contractRevision.pricePerUnit')}
+            value={
+              form.data.peek().include.peek().contractRevisions.peek()
+                .pricePerUnit
+            }
+          />
+          <IncludeToggle
+            label={translate('settings.export.contractRevision.basePayment')}
+            value={
+              form.data.peek().include.peek().contractRevisions.peek()
+                .basePayment
+            }
+          />
+          <IncludeToggle
+            label={translate('settings.export.contractRevision.monthlyPayment')}
+            value={
+              form.data.peek().include.peek().contractRevisions.peek()
+                .monthlyPayment
+            }
+          />
+          <IncludeToggle
+            label={translate('settings.export.contractRevision.startDate')}
+            value={
+              form.data.peek().include.peek().contractRevisions.peek().startDate
+            }
+          />
+          <IncludeToggle
+            label={translate('settings.export.contractRevision.endDate')}
+            value={
+              form.data.peek().include.peek().contractRevisions.peek().endDate
+            }
+          />
+          <IncludeToggle
+            label={translate('settings.export.contractRevision.contractId')}
+            value={
+              form.data.peek().include.peek().contractRevisions.peek()
+                .contractId
+            }
+          />
+        </View>
 
-        <Text style={styles.sectionHeader}>Meter</Text>
-        <IncludeToggle
-          label="ID"
-          value={form.data.peek().include.peek().meters.peek().id}
-        />
-        <IncludeToggle
-          label="Name"
-          value={form.data.peek().include.peek().meters.peek().name}
-        />
-        <IncludeToggle
-          label="Precision"
-          value={form.data.peek().include.peek().meters.peek().precision}
-        />
-        <IncludeToggle
-          label="Value before reset"
-          value={form.data.peek().include.peek().meters.peek().valueBeforeReset}
-        />
-        <IncludeToggle
-          label="isActive"
-          value={form.data.peek().include.peek().meters.peek().isActive}
-        />
-        <IncludeToggle
-          label="Sort Order"
-          value={form.data.peek().include.peek().meters.peek().sortOrder}
-        />
-        <IncludeToggle
-          label="Custom unit conversion"
-          value={
-            form.data.peek().include.peek().meters.peek().customUnitConversion
-          }
-        />
-        <IncludeToggle
-          label="Type"
-          value={form.data.peek().include.peek().meters.peek().type}
-        />
-        <IncludeToggle
-          label="Unit"
-          value={form.data.peek().include.peek().meters.peek().unit}
-        />
-        <IncludeToggle
-          label="Building ID"
-          value={form.data.peek().include.peek().meters.peek().buildingId}
-        />
-        <IncludeToggle
-          label="Contract ID"
-          value={form.data.peek().include.peek().meters.peek().contractId}
-        />
+        <Text style={styles.sectionHeader}>{translate("settings.export.headerMeters")}</Text>
+        <View
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            flexDirection: 'row',
+            gap: 8,
+          }}
+        >
+          <IncludeToggle
+            label={translate('settings.export.meters.id')}
+            value={form.data.peek().include.peek().meters.peek().id}
+          />
+          <IncludeToggle
+            label={translate('settings.export.meters.name')}
+            value={form.data.peek().include.peek().meters.peek().name}
+          />
+          <IncludeToggle
+            label={translate('settings.export.meters.precision')}
+            value={form.data.peek().include.peek().meters.peek().precision}
+          />
+          {/*<IncludeToggle*/}
+          {/*  label="isActive"*/}
+          {/*  value={form.data.peek().include.peek().meters.peek().isActive}*/}
+          {/*/>*/}
+          <IncludeToggle
+            label={translate('settings.export.meters.sortOrder')}
+            value={form.data.peek().include.peek().meters.peek().sortOrder}
+          />
+          <IncludeToggle
+            label={translate('settings.export.meters.customUnitConversion')}
+            value={
+              form.data.peek().include.peek().meters.peek().customUnitConversion
+            }
+          />
+          <IncludeToggle
+            label={translate('settings.export.meters.type')}
+            value={form.data.peek().include.peek().meters.peek().type}
+          />
+          <IncludeToggle
+            label={translate('settings.export.meters.unit')}
+            value={form.data.peek().include.peek().meters.peek().unit}
+          />
+          <IncludeToggle
+            label={translate('settings.export.meters.buildingId')}
+            value={form.data.peek().include.peek().meters.peek().buildingId}
+          />
+          <IncludeToggle
+            label={translate('settings.export.meters.contractId')}
+            value={form.data.peek().include.peek().meters.peek().contractId}
+          />
+        </View>
 
-        <Text style={styles.sectionHeader}>Reading</Text>
-        <IncludeToggle
-          label="Value"
-          value={form.data.peek().include.peek().readings.peek().value}
-        />
-        <IncludeToggle
-          label="Timestamp"
-          value={form.data.peek().include.peek().readings.peek().timestamp}
-        />
-        <IncludeToggle
-          label="Meter ID"
-          value={form.data.peek().include.peek().readings.peek().meterId}
-        />
+        <Text style={styles.sectionHeader}>{translate("settings.export.headerMeterReadings")}</Text>
+        <View
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            flexDirection: 'row',
+            gap: 8,
+          }}
+        >
+          <IncludeToggle
+            label={translate('settings.export.meterReadings.value')}
+            value={form.data.peek().include.peek().readings.peek().value}
+          />
+          <IncludeToggle
+            label={translate('settings.export.meterReadings.timestamp')}
+            value={form.data.peek().include.peek().readings.peek().timestamp}
+          />
+          <IncludeToggle
+            label={translate('settings.export.meterReadings.valueBeforeReset')}
+            value={
+              form.data.peek().include.peek().readings.peek().valueBeforeReset
+            }
+          />
+          <IncludeToggle
+            label={translate('settings.export.meterReadings.meterId')}
+            value={form.data.peek().include.peek().readings.peek().meterId}
+          />
+        </View>
       </ScrollView>
     </GestureHandlerRootView>
   )
@@ -300,23 +360,21 @@ function IncludeToggle({
   value: Signal<boolean>
 }) {
   useSignals()
-  const defaultStyles = useDefaultStyles()
+  const colors = useColors()
 
   return (
     <Button
       size="large"
+      variant="ghost"
+      style={{
+        backgroundColor: colors.card,
+        opacity: value.value ? 1 : 0.4,
+        paddingInline: 8,
+        paddingBlock: 4
+      }}
       onPress={() => (value.value = !value.value)}
-      IconEnd={
-        <Checkbox
-          isChecked={value.value}
-          onChange={(isChecked) => {
-            value.value = isChecked
-          }}
-        />
-      }
-      variant="text"
     >
-      <Text style={[defaultStyles.bodyText, { flex: 1 }]}>{label}</Text>
+      {label + " "}
     </Button>
   )
 }

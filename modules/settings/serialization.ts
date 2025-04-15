@@ -37,3 +37,20 @@ export function parsedCsvToJSON(parsedCsv: string[][]): Record<string, string>[]
     return rowObject
   })
 }
+
+export function convertToCSV(rows: Record<string, any>[]): string {
+  if (rows.length === 0) return "";
+
+  const headers = Object.keys(rows[0]);
+  const escape = (val: any) =>
+    `"${String(val ?? "").replace(/"/g, '""')}"`;
+
+  const lines = [
+    headers.map(escape).join(","), // header row
+    ...rows.map((row) =>
+      headers.map((key) => escape(row[key])).join(",")
+    ),
+  ];
+
+  return lines.join("\n");
+}
