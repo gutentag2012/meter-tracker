@@ -469,7 +469,7 @@ export function ContractForm({
                     >
                       {translate('contracts.actionDelete')}
                     </Text>
-                    <Text style={[defaultStyles.detailSmall]}>
+                    <Text style={[defaultStyles.detailSmall, {paddingRight: 16}]}>
                       {translate('contracts.actionDeleteDescription')}
                     </Text>
                   </View>

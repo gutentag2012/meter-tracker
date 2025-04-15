@@ -22,6 +22,30 @@ export const de: Language = {
     perDay: '/Tag',
   },
   buildings: {
+    toast: {
+      creating: 'Gebäude wird erstellt...',
+      updating: 'Gebäude wird aktualisiert...',
+      deleting: 'Gebäude wird gelöscht...',
+      didCreate: 'Gebäude erfolgreich erstellt',
+      didUpdate: 'Gebäude erfolgreich aktualisiert',
+      didDelete: 'Gebäude erfolgreich gelöscht',
+    },
+
+    createSectionActions: 'Aktionen',
+    createModalTitle: 'Gebäude erstellen',
+    updateModalTitle: 'Gebäude bearbeiten',
+    createLabelName: 'Name *',
+    createLabelAddress: 'Adresse',
+    createLabelNotes: 'Notizen',
+
+    actionDelete: 'Gebäude löschen',
+    actionDeleteDescription:
+      'Alle Daten werden gelöscht, diese Aktion kann nicht rückgängig gemacht werden',
+    alertDeleteTitle: 'Sind Sie sicher?',
+    alertDeleteDescription:
+      'Alle Gebäudedaten werden dauerhaft gelöscht und diese Aktion kann nicht rückgängig gemacht werden.',
+    lastBuildingWarning: 'Sie können das letzte Gebäude nicht löschen',
+
     defaultName: 'Zuhause',
     modalTitle: 'Gebäude auswählen',
     createButton: 'Gebäude erstellen',

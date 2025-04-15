@@ -384,7 +384,9 @@ export default function Page() {
                 {translate('settings.enableReminderDescription')}
               </Text>
             </View>
-            <Checkbox isChecked={reminderEnabled.value} />
+            <Checkbox isChecked={reminderEnabled.value} onChange={isChecked => {
+              reminderEnabled.value = isChecked
+            }} />
           </View>
         </Button>
         <Button

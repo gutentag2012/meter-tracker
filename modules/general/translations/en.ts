@@ -20,6 +20,30 @@ export const en = {
     perDay: '/day',
   },
   buildings: {
+    toast: {
+      creating: 'Creating building...',
+      updating: 'Updating building...',
+      deleting: 'Deleting building...',
+      didCreate: 'Building created',
+      didUpdate: 'Building updated',
+      didDelete: 'Building deleted',
+    },
+
+    createModalTitle: 'Create building',
+    updateModalTitle: 'Edit building',
+    createLabelName: 'Name *',
+    createLabelAddress: 'Address',
+    createLabelNotes: 'Notes',
+
+    createSectionActions: 'Actions',
+    actionDelete: 'Delete building',
+    actionDeleteDescription:
+      'All data will be deleted, this action cannot be undone',
+    alertDeleteTitle: 'Are you sure?',
+    alertDeleteDescription:
+      'All building data will be deleted permanently and this action cannot be undone.',
+    lastBuildingWarning: 'You cannot delete the last building',
+
     defaultName: 'Home',
     modalTitle: 'Select a Building',
     createButton: 'Create building',
