@@ -344,6 +344,15 @@ export const en = {
         valueBeforeReset: 'Value Before Reset',
         meterId: 'Meter ID',
       },
+    },
+
+    toast: {
+      exporting: 'Exporting data...',
+      didExport: 'Data exported successfully',
+      importing: 'Importing data...',
+      importTooLarge: 'File is too large',
+      importTooLargeDescription: 'Please select a smaller file',
+      didImport: 'Data imported successfully',
     }
   },
   intervals: {

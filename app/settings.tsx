@@ -298,18 +298,7 @@ export default function Page() {
         </Text>
         {isSharingAvailable &&
           <Button
-            onPress={async () => {
-              Toast.show({
-                type: 'progress',
-                text1: "Exporting",
-                autoHide: false,
-              })
-              await exportAndShareDatabase()
-              Toast.show({
-                type: 'success',
-                text1: "Exported",
-              })
-            }}
+            onPress={exportAndShareDatabase}
             size="large"
             IconStart={<UploadIcon size={16} stroke={colors.textMuted} />}
             variant="text"

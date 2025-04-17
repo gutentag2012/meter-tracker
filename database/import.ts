@@ -6,6 +6,7 @@ import { readAsStringAsync } from 'expo-file-system'
 import * as DocumentPicker from 'expo-document-picker'
 import Toast from 'react-native-toast-message'
 import { getTableName } from 'drizzle-orm'
+import { translate } from '@/modules/general/translations'
 
 type LegacyBuilding = {
   id: string
@@ -264,7 +265,7 @@ async function importCSV(csv:string, clearExisting=false) {
 export async function readAndImportFile(clearExisting: boolean, maxSize=1_000_000) {
   Toast.show({
     type: 'progress',
-    text1: "Importing...",
+    text1: translate("settings.toast.importing"),
     autoHide: false,
   })
 
@@ -279,8 +280,8 @@ export async function readAndImportFile(clearExisting: boolean, maxSize=1_000_00
         console.error("File too large")
         Toast.show({
           type: 'error',
-          text1: "File too large",
-          text2: "Please select a smaller file.",
+          text1: translate("settings.toast.importTooLarge"),
+          text2: translate("settings.toast.importTooLargeDescription"),
           autoHide: true,
         })
         reject("File too large")
@@ -304,6 +305,6 @@ export async function readAndImportFile(clearExisting: boolean, maxSize=1_000_00
 
   Toast.show({
     type: 'success',
-    text1: "Imported",
+    text1: translate("settings.toast.didImport"),
   })
 }

@@ -1,13 +1,18 @@
 import { convertToCSV } from '@/modules/settings/serialization'
-import {db, Schema} from "@/database/db";
+import { db, Schema } from '@/database/db'
 import { aliasedTable, eq, sql } from 'drizzle-orm'
 import { translate } from '@/modules/general/translations'
 import { isAvailableAsync, shareAsync } from 'expo-sharing'
-import { cacheDirectory, EncodingType, writeAsStringAsync } from 'expo-file-system'
+import {
+  cacheDirectory,
+  EncodingType,
+  writeAsStringAsync,
+} from 'expo-file-system'
+import Toast from 'react-native-toast-message'
 
 async function exportCSV() {
-  const meterUnit = aliasedTable(Schema.unit, "meterUnit");
-  const contractUnit = aliasedTable(Schema.unit, "contractUnit");
+  const meterUnit = aliasedTable(Schema.unit, 'meterUnit')
+  const contractUnit = aliasedTable(Schema.unit, 'contractUnit')
 
   // Execute query with left joins
   const rows = await db
@@ -17,21 +22,21 @@ async function exportCSV() {
       meterType: Schema.meterType,
       meterUnit: meterUnit,
       meterReset: {
-        id: sql<number>`COALESCE((SELECT mr.id FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${Schema.meter.id} ORDER BY mr."timestamp" DESC LIMIT 1), NULL)`.mapWith(Schema.meterReset.id).as(
-          'reset_id',
-        ),
+        id: sql<number>`COALESCE((SELECT mr.id FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${Schema.meter.id} ORDER BY mr."timestamp" DESC LIMIT 1), NULL)`
+          .mapWith(Schema.meterReset.id)
+          .as('reset_id'),
         timestamp:
-          sql<number>`COALESCE((SELECT mr.timestamp FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${Schema.meter.id} ORDER BY mr."timestamp" DESC LIMIT 1), NULL)`.mapWith(Schema.meterReset.timestamp).as(
-            'reset_timestamp',
-          ),
+          sql<number>`COALESCE((SELECT mr.timestamp FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${Schema.meter.id} ORDER BY mr."timestamp" DESC LIMIT 1), NULL)`
+            .mapWith(Schema.meterReset.timestamp)
+            .as('reset_timestamp'),
         value:
-          sql<number>`COALESCE((SELECT mr.value FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${Schema.meter.id} ORDER BY mr."timestamp" DESC LIMIT 1), NULL)`.mapWith(Schema.meterReset.value).as(
-            'reset_value',
-          ),
+          sql<number>`COALESCE((SELECT mr.value FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${Schema.meter.id} ORDER BY mr."timestamp" DESC LIMIT 1), NULL)`
+            .mapWith(Schema.meterReset.value)
+            .as('reset_value'),
         meterId:
-          sql<number>`COALESCE((SELECT mr."meter_id" FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${Schema.meter.id} ORDER BY mr."timestamp" DESC LIMIT 1), NULL)`.mapWith(Schema.meterReset.meterId).as(
-            'reset_meter_id',
-          ),
+          sql<number>`COALESCE((SELECT mr."meter_id" FROM meterReset mr WHERE mr."timestamp" <= "reading".timestamp AND mr."meter_id" = ${Schema.meter.id} ORDER BY mr."timestamp" DESC LIMIT 1), NULL)`
+            .mapWith(Schema.meterReset.meterId)
+            .as('reset_meter_id'),
       },
       contract: Schema.contract,
       contractUnit: contractUnit,
@@ -65,7 +70,10 @@ async function exportCSV() {
                 if (objectKey === 'building' && key === 'name') {
                   val = translate(`buildings.defaultName`)
                 }
-                acc[`${objectKey}.${key}`] = val instanceof Date ? val.getTime().toString() : JSON.stringify(val)
+                acc[`${objectKey}.${key}`] =
+                  val instanceof Date
+                    ? val.getTime().toString()
+                    : JSON.stringify(val)
               })
               return acc
             },
@@ -74,11 +82,16 @@ async function exportCSV() {
       ),
     )
 
-  return convertToCSV(rows);
+  return convertToCSV(rows)
 }
 
 export async function exportAndShareDatabase() {
-  if(!await isAvailableAsync()) return;
+  if (!(await isAvailableAsync())) return
+  Toast.show({
+    type: 'progress',
+    text1: translate('settings.toast.exporting'),
+    autoHide: false,
+  })
 
   const csvString = await exportCSV()
   const exportFileName = `meter_tracker-export_${new Date().toISOString()}.csv`
@@ -89,4 +102,8 @@ export async function exportAndShareDatabase() {
   })
 
   await shareAsync(fileUri)
+  Toast.show({
+    type: 'success',
+    text1: translate('settings.toast.didExport'),
+  })
 }

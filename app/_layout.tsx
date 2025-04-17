@@ -17,7 +17,7 @@ import { useSignals } from '@preact/signals-react/runtime'
 import { translate } from '@/modules/general/translations'
 import { HeaderButtons, makeHeaderDialogBackButton } from '@/modules/general/components/header'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-import { CheckIcon, PlusIcon } from 'lucide-react-native'
+import { CheckIcon, PlusIcon, XIcon } from 'lucide-react-native'
 import Toast from 'react-native-toast-message'
 
 Notifications.setNotificationHandler({
@@ -128,6 +128,33 @@ export default function TabLayout() {
                 ]}
               >
                 <CheckIcon color={colors.positive} />
+                <View>
+                  <Text style={defaultStyles.detail}>
+                    {props.text1}
+                  </Text>
+                  {props.text2 && <Text style={defaultStyles.detailSmall}>{props.text2}</Text>}
+                </View>
+              </View>
+            </View>
+          ),
+          error: (props) => (
+            <View style={{ paddingInline: 8, width: '100%' }}>
+              <View
+                style={[
+                  defaultStyles.row,
+                  {
+                    borderWidth: 1,
+                    borderColor: colors.outline,
+                    backgroundColor: colors.card,
+                    width: '100%',
+                    paddingInline: 16,
+                    paddingBlock: 8,
+                    borderRadius: 4,
+                    gap: 16,
+                  },
+                ]}
+              >
+                <XIcon color={colors.negative} />
                 <View>
                   <Text style={defaultStyles.detail}>
                     {props.text1}
