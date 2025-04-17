@@ -2,48 +2,10 @@ import {parseCSV, parsedCsvToJSON} from "@/modules/settings/serialization";
 import {db, Schema} from "@/database/db";
 import {BuildingInsert, ContractInsert, ContractRevisionInsert, MeterInsert, ReadingInsert} from "@/database/schema";
 import { clearDatabase } from '@/database/utils'
-
-export type ImportMappings = {
-  buildings: {
-    id: string | null,
-    name: string | null,
-    address: string | null,
-    notes: string | null,
-    isDefault: string | null
-  },
-  contracts: {
-    id: string | null,
-    name: string | null,
-    identifier: string | null,
-    unit: string | null,
-    buildingId: string | null
-  },
-  contractRevisions: {
-    pricePerUnit: string | null,
-    basePayment: string | null,
-    monthlyPayment: string | null,
-    startDate: string | null,
-    endDate: string | null,
-    contractId: string | null
-  },
-  meters: {
-    name: string | null,
-    precision: string | null,
-    valueBeforeReset: string | null,
-    isActive: string | null,
-    sortOrder: string | null,
-    customUnitConversion: string | null,
-    buildingId: string | null,
-    contractId: string | null,
-    type: string | null,
-    unit: string | null
-  },
-  readings: {
-    value: string | null,
-    timestamp: string | null,
-    meterId: string | null
-  }
-}
+import { readAsStringAsync } from 'expo-file-system'
+import * as DocumentPicker from 'expo-document-picker'
+import Toast from 'react-native-toast-message'
+import { getTableName } from 'drizzle-orm'
 
 type LegacyBuilding = {
   id: string
@@ -78,7 +40,41 @@ type LegacyReading = {
   createdAt: string
 }
 
-export async function importLegacyCSV(csv:string, clearExisting=false) {
+const oldHeaders = [
+  "measurement_id",
+  "measurement_value",
+  "measurement_meter_id",
+  "measurement_createdAt",
+  "measurement___v",
+  "meter_id",
+  "meter_name",
+  "meter_digits",
+  "meter_unit",
+  "meter_contract_id",
+  "meter_areValuesDepleting",
+  "meter_isActive",
+  "meter_identification",
+  "meter_createdAt",
+  "meter_sortingOrder",
+  "meter_isRefillable",
+  "meter_building_id",
+  "meter___v",
+  "contract_id",
+  "contract_name",
+  "contract_pricePerUnit",
+  "contract_identification",
+  "contract_createdAt",
+  "contract_conversion",
+  "contract___v",
+  "building_id",
+  "building_name",
+  "building_address",
+  "building_notes",
+  "building_createdAt",
+  "building___v",
+]
+
+async function importLegacyCSV(csv:string, clearExisting=false) {
   const parsedCsv = parseCSV(csv)
   const csvJSON = parsedCsvToJSON(parsedCsv)
 
@@ -132,7 +128,6 @@ export async function importLegacyCSV(csv:string, clearExisting=false) {
   console.log("Importing Readings", readings.length)
 
   if(clearExisting) {
-    console.log("Clearing existing database")
     await clearDatabase()
   }
 
@@ -215,10 +210,100 @@ export async function importLegacyCSV(csv:string, clearExisting=false) {
   console.log("Inserted readings", resReadings)
 }
 
-export async function importCSV(csv:string, options: { mapping: ImportMappings, clearExisting: false }) {
+async function importCSV(csv:string, clearExisting=false) {
   const parsedCsv = parseCSV(csv)
+  const csvJSON = parsedCsvToJSON(parsedCsv)
 
-  if(options.clearExisting) {
+  const uniqueObjects = csvJSON.reduce((acc, element) => {
+    const elements = Object.entries(element).reduce((acc, [key, value]) => {
+      const [objectKey, fieldKey] = key.split('.')
+      if (!acc[objectKey]) acc[objectKey] = {}
+
+      if(objectKey === "meterReset" && value !== "null") console.log("MeterReset", fieldKey, value)
+
+      acc[objectKey][fieldKey] = JSON.parse(value)
+      if(acc[objectKey][fieldKey] && (["startDate", "endDate", "timestamp"].includes(fieldKey))) {
+        acc[objectKey][fieldKey] = new Date(acc[objectKey][fieldKey])
+      }
+
+      return acc
+    }, {} as Record<string, Record<string, string | Date | null>>)
+    Object.entries(elements).forEach(([key, value]) => {
+      if(!value.id) return
+      if (!acc[key]) acc[key] = {}
+      acc[key][value.id as string] = value
+    })
+    return acc
+  }, {} as Record<string, Record<string, Record<string, string | Date | null>>>)
+
+  if(clearExisting) {
     await clearDatabase()
   }
+
+  const inserts = [
+    [Schema.building, uniqueObjects.building],
+    [Schema.contract, uniqueObjects.contract],
+    [Schema.contractRevision, uniqueObjects.contractRevision],
+    [Schema.meter, uniqueObjects.meter],
+    [Schema.meterReset, uniqueObjects.meterReset],
+    [Schema.reading, uniqueObjects.reading],
+  ] as const
+
+  for (const [table, objects] of inserts) {
+    if(!objects) continue
+    try {
+    console.log("Importing", getTableName(table), Object.keys(objects).length)
+    const res = await db.insert(table).values(Object.values(objects)).catch(err => console.error("Error importing", getTableName(table), err))
+    console.log("Inserted", getTableName(table), res)
+    } catch (e) {
+      console.error("Error importing", getTableName(table), e, objects)
+    }
+  }
+}
+
+export async function readAndImportFile(clearExisting: boolean, maxSize=1_000_000) {
+  Toast.show({
+    type: 'progress',
+    text1: "Importing...",
+    autoHide: false,
+  })
+
+  const file = await new Promise<DocumentPicker.DocumentPickerAsset>((resolve, reject) => {
+    DocumentPicker.getDocumentAsync({
+      type: ["text/csv", 'text/comma-separated-values'],
+    }).then(async res => {
+      if (res.canceled || !res.assets[0]) return Toast.hide()
+      const file = res.assets[0]
+
+      if (!file.size || file.size > maxSize) {
+        console.error("File too large")
+        Toast.show({
+          type: 'error',
+          text1: "File too large",
+          text2: "Please select a smaller file.",
+          autoHide: true,
+        })
+        reject("File too large")
+      }
+
+      resolve(file)
+    })
+  })
+
+  const csvString = await readAsStringAsync(file.uri, {
+    length: 200
+  })
+  const [headers] = parseCSV(csvString)
+
+  const isLegacy = headers.length === oldHeaders.length && headers.every((header) => oldHeaders.includes(header))
+  if(isLegacy) {
+    await importLegacyCSV(csvString, clearExisting)
+  } else {
+    await importCSV(csvString, clearExisting)
+  }
+
+  Toast.show({
+    type: 'success',
+    text1: "Imported",
+  })
 }

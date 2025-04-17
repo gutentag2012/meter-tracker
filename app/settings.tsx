@@ -63,7 +63,12 @@ import { IntervalForm } from '@/modules/settings/components/IntervalForm'
 import { resetDatabase } from '@/database/db'
 import { useSignals } from '@preact/signals-react/runtime'
 import { Checkbox } from '@/modules/general/components/inputs/Checkbox'
-import { isAvailableAsync } from 'expo-sharing'
+import { isAvailableAsync, shareAsync } from 'expo-sharing'
+import { cacheDirectory, EncodingType, writeAsStringAsync } from 'expo-file-system'
+import { exportAndShareDatabase } from '@/database/export'
+import Toast from 'react-native-toast-message'
+import { deleteBuilding } from '@/modules/buildings'
+import { readAndImportFile } from '@/database/import'
 
 const languageOptions = [
   {
@@ -293,7 +298,18 @@ export default function Page() {
         </Text>
         {isSharingAvailable &&
           <Button
-            onPress={() => router.push('/export')}
+            onPress={async () => {
+              Toast.show({
+                type: 'progress',
+                text1: "Exporting",
+                autoHide: false,
+              })
+              await exportAndShareDatabase()
+              Toast.show({
+                type: 'success',
+                text1: "Exported",
+              })
+            }}
             size="large"
             IconStart={<UploadIcon size={16} stroke={colors.textMuted} />}
             variant="text"
@@ -309,7 +325,34 @@ export default function Page() {
           </Button>
         }
         <Button
-          onPress={() => router.push('/import')}
+          onPress={async () => {
+            const deleteData = await new Promise<boolean | null>(resolve => {
+              Alert.alert(
+                "Importing File",
+                "Do you want to delete the old data before importing?",
+                [
+                  {
+                    text: "Delete Data",
+                    style: 'destructive',
+                    onPress: () => resolve(true),
+                  },
+                  {
+                    text: "Import",
+                    style: 'default',
+                    onPress: () => resolve(false),
+                  },
+                  {
+                    text: "Cancel",
+                    style: 'cancel',
+                    onPress: () => resolve(null),
+                  },
+                ],
+              )
+            })
+
+            if(deleteData === null) return
+            await readAndImportFile(deleteData)
+          }}
           size="large"
           IconStart={<DownloadIcon size={16} stroke={colors.textMuted} />}
           variant="text"

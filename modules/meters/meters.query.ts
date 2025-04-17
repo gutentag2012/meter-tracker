@@ -87,10 +87,6 @@ export async function deleteMeterReset(meterResetId: number) {
   return db.delete(meterReset).where(eq(meterReset.id, meterResetId)).execute()
 }
 
-export async function updateMeterReset(meterResetId: number, values: MeterResetInsert) {
-  return db.update(meterReset).set(values).where(eq(meterReset.id, meterResetId)).execute()
-}
-
 export function getAllMeterTypes() {
   return db.query.meterType.findMany()
 }
