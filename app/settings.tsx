@@ -561,7 +561,7 @@ export default function Page() {
         {/*  </View>*/}
         {/*</Button>*/}
 
-        {!Updates.isEnabled && (
+        {Updates.isEnabled && (
           <View style={{backgroundColor: colors.card, padding: 8, borderRadius: 4, marginTop: 48}}>
             <Text style={defaultStyles.detail}>{translate("settings.version")}: <Text style={defaultStyles.detailSmall}>{Updates.runtimeVersion || "-"}</Text></Text>
             <Text style={defaultStyles.detail}>{translate("settings.lastUpdate")}: <Text style={defaultStyles.detailSmall}>{Updates.createdAt ? formatDate(Updates.createdAt) : "-"}</Text></Text>
