@@ -226,6 +226,11 @@ export const en = {
     timeMinute: 'Must be between 0 and 59',
   },
   settings: {
+    version: 'Version',
+    lastUpdate: 'Last update',
+    updateChannel: 'Update channel',
+    updateId: 'Update ID',
+
     headerGeneral: 'General',
     currencyOptionTitle: 'Currency',
     currencyOptionDescription: 'Selected: {{currency}}',

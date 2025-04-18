@@ -40,7 +40,7 @@ import {
 } from '@gorhom/bottom-sheet'
 import { useForm } from '@formsignals/form-react'
 import { configureZodAdapter } from '@formsignals/validation-adapter-zod'
-import { translate } from '@/modules/general/translations'
+import { formatDate, translate } from '@/modules/general/translations'
 import { LangKey } from '@/modules/general/translations/en'
 import {
   Currencies,
@@ -69,6 +69,7 @@ import { exportAndShareDatabase } from '@/database/export'
 import Toast from 'react-native-toast-message'
 import { deleteBuilding } from '@/modules/buildings'
 import { readAndImportFile } from '@/database/import'
+import * as Updates from 'expo-updates'
 
 const languageOptions = [
   {
@@ -559,6 +560,15 @@ export default function Page() {
         {/*    </Text>*/}
         {/*  </View>*/}
         {/*</Button>*/}
+
+        {!Updates.isEnabled && (
+          <View style={{backgroundColor: colors.card, padding: 8, borderRadius: 4, marginTop: 48}}>
+            <Text style={defaultStyles.detail}>{translate("settings.version")}: <Text style={defaultStyles.detailSmall}>{Updates.runtimeVersion || "-"}</Text></Text>
+            <Text style={defaultStyles.detail}>{translate("settings.lastUpdate")}: <Text style={defaultStyles.detailSmall}>{Updates.createdAt ? formatDate(Updates.createdAt) : "-"}</Text></Text>
+            <Text style={defaultStyles.detail}>{translate("settings.updateChannel")}: <Text style={defaultStyles.detailSmall}>{Updates.channel || "-"}</Text></Text>
+            <Text style={defaultStyles.detail}>{translate("settings.updateId")}: <Text style={defaultStyles.detailSmall}>{Updates.updateId || "-"}</Text></Text>
+          </View>
+        )}
       </ScrollView>
 
       <languageSelect.SelectFieldSheet

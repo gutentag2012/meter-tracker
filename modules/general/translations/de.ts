@@ -230,6 +230,11 @@ export const de: Language = {
     timeMinute: 'Muss zwischen 0 und 59 liegen',
   },
   settings: {
+    version: 'Version',
+    lastUpdate: 'Letztes Update',
+    updateChannel: 'Update Kanal',
+    updateId: 'Update ID',
+
     headerGeneral: 'Allgemein',
     currencyOptionTitle: 'Währung',
     currencyOptionDescription: `Ausgewählt: {{currency}}`,
