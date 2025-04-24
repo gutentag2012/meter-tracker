@@ -328,8 +328,8 @@ export async function getContractMonthEntries(
         contractId: contract.id,
         date: datesInRange.date,
         basePayment: contractRevision.basePayment,
-        partialBasePayment: sql`(${contractRevision.basePayment} * 1.0 / ${daysBetween.length} * 1.0)`.as("partialBasePayment"),
-        partialMonthlyPayment: sql`(${contractRevision.monthlyPayment} * 1.0 / CAST(strftime('%d', datetime(${datesInRange.date}, 'unixepoch', 'start of month', '+1 month', '-1 day')) AS INTEGER) * 1.0)`.as("partialMonthlyPayment"),
+        partialBasePayment: sql`COALESCE(${contractRevision.basePayment} * 1.0 / CAST(strftime('%j', datetime(${datesInRange.date}, 'unixepoch', 'start of year', '+1 year', '-1 day')) AS INTEGER) * 1.0, 0)`.as("partialBasePayment"),
+        partialMonthlyPayment: sql`COALESCE(${contractRevision.monthlyPayment} * 1.0 / CAST(strftime('%d', datetime(${datesInRange.date}, 'unixepoch', 'start of month', '+1 month', '-1 day')) AS INTEGER) * 1.0, 0)`.as("partialMonthlyPayment"),
       })
       .from(datesInRange)
       .leftJoin(contractRevision, and(
@@ -422,10 +422,10 @@ export async function getContractMonthEntries(
       contractRangeDays: accumulatedContractData.daysBetween,
       contractPrice: accumulatedContractData.basePayment,
       contractValue: accumulatedContractData.fullBasePayment,
-      readingUsage: accumulatedReadingData.usage,
-      readingPrice: accumulatedReadingData.pricePerUnit,
-      readingValue: accumulatedReadingData.totalPayment,
-      totalCost: sql<number>`(${accumulatedContractData.fullBasePayment} + ${accumulatedReadingData.totalPayment})`.as("totalCost"),
+      readingUsage: sql<number>`IFNULL(${accumulatedReadingData.usage}, 0)`.as("usage"),
+      readingPrice: sql<number>`IFNULL(${accumulatedReadingData.pricePerUnit}, 0)`.as("pricePerUnit"),
+      readingValue: sql<number>`IFNULL(${accumulatedReadingData.totalPayment}, 0)`.as("readingValue"),
+      totalCost: sql<number>`(IFNULL(${accumulatedContractData.fullBasePayment}, 0) + IFNULL(${accumulatedReadingData.totalPayment}, 0))`.as("totalCost"),
       contractValuePayed: accumulatedContractData.fullMonthlyPayment,
     })
     .from(accumulatedContractData)

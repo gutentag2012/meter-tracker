@@ -39,7 +39,7 @@ export default function Page() {
   )
   const allYears = useSignal<string[]>([])
 
-  const [data, error] = useContractMonthEntries(contractId, filters as any)
+  const [data] = useContractMonthEntries(contractId, filters as any)
 
   const totalCost = data.reduce((acc, curr) => acc + curr.totalCost, 0)
   const totalCostTaxed = data.reduce(
@@ -129,7 +129,7 @@ export default function Page() {
                 </Text>
               </Text>
               <Text style={[defaultStyles.bodyText, { marginLeft: 'auto' }]}>
-                {entry.contractValue.toFixed(2)} {currency.value.currencySymbol}
+                {entry.contractValue?.toFixed(2)} {currency.value.currencySymbol}
               </Text>
             </View>
             <View style={[defaultStyles.row, { marginBottom: 4 }]}>
@@ -145,19 +145,19 @@ export default function Page() {
                   },
                 ]}
               >
-                {entry.readingUsage.toFixed(2)} {contract?.unit?.abbreviation}
+                {entry.readingUsage?.toFixed(2)} {contract?.unit?.abbreviation}
                 <Text style={defaultStyles.detailSmall}>
                   ({entry.readingPrice} {currency.value.currencySymbol}/
                   {contract?.unit?.abbreviation})
                 </Text>
               </Text>
               <Text style={[defaultStyles.bodyText, { marginLeft: 'auto' }]}>
-                {entry.readingValue.toFixed(2)} {currency.value.currencySymbol}
+                {entry.readingValue?.toFixed(2)} {currency.value.currencySymbol}
               </Text>
             </View>
             <View style={defaultStyles.row}>
               <Text style={[defaultStyles.bodyText, { marginLeft: 'auto' }]}>
-                {entry.totalCost.toFixed(2)} {currency.value.currencySymbol}
+                {entry.totalCost?.toFixed(2)} {currency.value.currencySymbol}
               </Text>
             </View>
           </View>
@@ -171,18 +171,18 @@ export default function Page() {
               {translate('contracts.detail.net')}
             </Text>
             <Text style={[defaultStyles.bodyText, { marginLeft: 'auto' }]}>
-              {totalCost.toFixed(2)} {currency.value.currencySymbol}
+              {totalCost?.toFixed(2)} {currency.value.currencySymbol}
             </Text>
           </View>
           <View style={[defaultStyles.row]}>
             <Text style={[defaultStyles.detail, { minWidth: 64 }]}>
               {translate('contracts.detail.gross')}
               <Text style={defaultStyles.detailSmall}>
-                ({((tax.value ?? 0) * 100).toFixed(0)} %)
+                ({((tax.value ?? 0) * 100)?.toFixed(0)} %)
               </Text>
             </Text>
             <Text style={[defaultStyles.bodyText, { marginLeft: 'auto' }]}>
-              {totalCostTaxed.toFixed(2)} {currency.value.currencySymbol}
+              {totalCostTaxed?.toFixed(2)} {currency.value.currencySymbol}
             </Text>
           </View>
           <View style={[defaultStyles.row, { marginBottom: 4 }]}>
@@ -190,7 +190,7 @@ export default function Page() {
               {translate('contracts.detail.payed')}
             </Text>
             <Text style={[defaultStyles.bodyText, { marginLeft: 'auto' }]}>
-              - {totalPayed.toFixed(2)} {currency.value.currencySymbol}
+              - {totalPayed?.toFixed(2)} {currency.value.currencySymbol}
             </Text>
           </View>
           <View style={[defaultStyles.row]}>
@@ -198,7 +198,7 @@ export default function Page() {
               {translate('contracts.detail.total')}
             </Text>
             <Text style={[defaultStyles.bodyText, { marginLeft: 'auto' }]}>
-              {(totalCostTaxed - totalPayed).toFixed(2)}{' '}
+              {(totalCostTaxed - totalPayed)?.toFixed(2)}{' '}
               {currency.value.currencySymbol}
             </Text>
           </View>
