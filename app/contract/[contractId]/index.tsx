@@ -35,7 +35,6 @@ export default function Page() {
   const allYears = useSignal<string[]>([])
 
   const [data, error] = useContractMonthEntries(contractId, filters as any)
-  console.log(JSON.stringify(data, null, 2), error)
 
   const totalCost = data.reduce((acc, curr) => acc + curr.totalCost, 0)
   const totalCostTaxed = data.reduce((acc, curr) => acc + curr.totalCost * (1 + tax.value), 0)

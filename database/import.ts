@@ -220,8 +220,6 @@ async function importCSV(csv:string, clearExisting=false) {
       const [objectKey, fieldKey] = key.split('.')
       if (!acc[objectKey]) acc[objectKey] = {}
 
-      if(objectKey === "meterReset" && value !== "null") console.log("MeterReset", fieldKey, value)
-
       acc[objectKey][fieldKey] = JSON.parse(value)
       if(acc[objectKey][fieldKey] && (["startDate", "endDate", "timestamp"].includes(fieldKey))) {
         acc[objectKey][fieldKey] = new Date(acc[objectKey][fieldKey])
