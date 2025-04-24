@@ -10,7 +10,7 @@ import {
   BottomSheetModal,
   BottomSheetModalProvider,
 } from '@gorhom/bottom-sheet'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useSignal } from '@preact/signals-react'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import {
@@ -22,6 +22,7 @@ import { PaginatedGraphs } from '@/modules/meters/components/graphs'
 import { ReadingList } from '@/modules/readings/components'
 import { useFilterBar } from '@/modules/general/components/filterbar/useFilterBar'
 import { useSignals } from '@preact/signals-react/runtime'
+import { endOfDay, startOfDay } from 'date-fns'
 
 export default function Page() {
   useSignals()
@@ -33,7 +34,9 @@ export default function Page() {
   const meterId = parseInt(meterIdRaw as string)
   const [meter] = useMeterById(meterId)
 
-  const { filters, openFilter, FilterBottomSheet } = useFilterBar()
+  const defaultFrom = useMemo(() => startOfDay(new Date(2023, 5, 14)), [])
+  const defaultUntil = useMemo(() => endOfDay(new Date(2024, 5, 12)), [])
+  const { filters, openFilter, FilterBottomSheet } = useFilterBar(defaultFrom, defaultUntil)
 
   const [readings] = useReadingsForMeterFiltered(
     meterId,

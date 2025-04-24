@@ -109,7 +109,7 @@ export function ReadingList({
 
   return (
     <FlashList
-      contentContainerStyle={{ paddingBottom: 16 }}
+      contentContainerStyle={{ paddingBottom: 32 }}
       data={readingsWithHeadings}
       stickyHeaderIndices={stickyIndices}
       renderItem={({ item }) => {

@@ -1,6 +1,6 @@
-import { db } from '@/database/db'
+import { db, Schema } from '@/database/db'
 import {
-  contract,
+  contract, contractRelations,
   contractRevision,
   meter,
   reading,
@@ -9,16 +9,31 @@ import {
 import {
   aliasedTable,
   and,
+  or,
   desc,
   eq,
-  getTableName,
-  isNotNull,
-  sql,
+  getTableName, gt, gte,
+  isNotNull, lte,
+  sql, isNull,
 } from 'drizzle-orm'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
 import { useSignalEffect } from '@preact/signals-react'
 import { activeBuilding } from '@/modules/buildings/buildings.signals'
+import { Signal } from '@preact/signals-core'
+import { addDays, intervalToDuration, interval, differenceInMonths, differenceInCalendarMonths } from 'date-fns'
+
+function getDaysBetween(from: Date, until: Date): number[] {
+  const months: number[] = [];
+  let current = from;
+
+  while (current <= until) {
+    months.push(current.getTime()); // YYYY-MM-01
+    current = addDays(current, 1)
+  }
+
+  return months;
+}
 
 export async function getAllContractsForBuilding(buildingId: number) {
   const monthlyReadings = db.$with('monthlyReadings').as(
@@ -284,6 +299,155 @@ export async function getAllContractsForBuilding(buildingId: number) {
     .orderBy(contract.name)
 }
 
+export async function getContractMonthEntries(
+  contractId: number,
+  resolvedFilter: {
+    from: Date
+    until: Date
+    selectedYears: string[]
+  },
+) {
+  const meterUnit = aliasedTable(unit, 'meterUnit')
+  const contractUnit = aliasedTable(unit, 'contractUnit')
+
+  const daysBetween = getDaysBetween(resolvedFilter.from, resolvedFilter.until);
+  const datesInRange = db.$with("datesInRange").as(
+    db
+      .select({
+        date: sql`selected_months."column1"`.mapWith(contractRevision.startDate).as("date"),
+      })
+      .from(
+        sql`(VALUES ${sql.raw(
+          daysBetween.map((d) => `(${d / 1000})`).join(", ")
+        )}) AS selected_months`
+      )
+  )
+  const dailyContractRevisionData = db.$with("dailyContractRevisionData").as(
+    db
+      .select({
+        contractId: contract.id,
+        date: datesInRange.date,
+        basePayment: contractRevision.basePayment,
+        partialBasePayment: sql`(${contractRevision.basePayment} * 1.0 / ${daysBetween.length} * 1.0)`.as("partialBasePayment"),
+        partialMonthlyPayment: sql`(${contractRevision.monthlyPayment} * 1.0 / CAST(strftime('%d', datetime(${datesInRange.date}, 'unixepoch', 'start of month', '+1 month', '-1 day')) AS INTEGER) * 1.0)`.as("partialMonthlyPayment"),
+      })
+      .from(datesInRange)
+      .leftJoin(contractRevision, and(
+        gte(datesInRange.date, contractRevision.startDate),
+        or(
+          isNull(contractRevision.endDate),
+          lte(datesInRange.date, contractRevision.endDate),
+        ),
+        eq(contractRevision.contractId, contractId)
+      ))
+      .leftJoin(contract, eq(contract.id, contractRevision.contractId))
+      .leftJoin(unit, eq(contract.unitId, unit.id))
+  )
+
+  const prevTimestamp = sql<number>`COALESCE(LAG(${reading.timestamp}, 1) OVER (PARTITION BY ${reading.meterId} ORDER BY ${reading.timestamp}), ${reading.timestamp})`
+  const nextTimestamp = sql<number>`COALESCE(LEAD(${reading.timestamp}, 1) OVER (PARTITION BY ${reading.meterId} ORDER BY ${reading.timestamp}), ${reading.timestamp})`
+  const timeBetweenPrevAndCurrent = sql<number>`(${reading.timestamp} - ${prevTimestamp})`
+  const timeBetweenNextAndCurrent = sql<number>`(${nextTimestamp} - ${reading.timestamp})`
+  const timeBetweenStart = sql<number>`(${reading.timestamp} - ${resolvedFilter.from.getTime() / 1000})`
+  const timeBetweenEnd = sql<number>`(${resolvedFilter.until.getTime() / 1000} - ${reading.timestamp})`
+  const timeBetweenPartial = sql`(MIN(${timeBetweenStart}, ${timeBetweenPrevAndCurrent}))`
+  const timeBetweenPartialEnd = sql`(MIN(${timeBetweenEnd}, ${timeBetweenNextAndCurrent}))`
+  const differencePercentStart = sql<number>`((${timeBetweenPartial} * 1.0) / (${timeBetweenPrevAndCurrent} * 1.0))`
+  const differencePercentEnd = sql<number>`((${timeBetweenPartialEnd} * 1.0) / (${timeBetweenNextAndCurrent} * 1.0))`
+  const differencePercent = sql<number>`(${differencePercentStart} * ${differencePercentEnd})`
+
+  const readingData = db.$with("readingData").as(
+    db
+    .select({
+      value: reading.value,
+      timestamp: reading.timestamp,
+      difference: sql<number>`((${reading.value} - LAG(${reading.value}, 1) OVER (PARTITION BY ${reading.meterId} ORDER BY ${reading.timestamp})) * ${differencePercent})`.as("difference"),
+      convertedDifference: sql<number>`(((${reading.value} - LAG(${reading.value}, 1) OVER (PARTITION BY ${reading.meterId} ORDER BY ${reading.timestamp})) * IFNULL(${meter.customUnitConversion}, ${meterUnit.conversionFactor}) / ${contractUnit.conversionFactor}) * ${differencePercent})`.as("differenceConverted"),
+      pricePerUnit: contractRevision.pricePerUnit,
+    })
+    .from(reading)
+    .leftJoin(meter, eq(reading.meterId, meter.id))
+    .leftJoin(meterUnit, eq(meter.unitId, meterUnit.id))
+    .leftJoin(contractRevision, and(
+      gte(datesInRange.date, contractRevision.startDate),
+      or(
+        isNull(contractRevision.endDate),
+        lte(datesInRange.date, contractRevision.endDate),
+      ),
+      eq(contractRevision.contractId, contractId)
+    ))
+    .leftJoin(contract, eq(meter.contractId, contract.id))
+    .leftJoin(contractUnit, eq(contract.unitId, contractUnit.id))
+    .where(
+        eq(meter.contractId, contractId),
+    )
+  )
+  const accumulatedContractData = db.$with("accumulatedContractData").as(
+    db
+      .select({
+        year: sql<number>`strftime('%Y', ${datesInRange.date}, 'unixepoch')`.as("yearContract"),
+        daysBetween: sql<number>`(max(${datesInRange.date}) - min(${datesInRange.date})) / (60 * 60 * 24) + 1`.as("daysBetween"),
+        basePayment: dailyContractRevisionData.basePayment,
+        fullBasePayment: sql<number>`SUM(${dailyContractRevisionData.partialBasePayment})`.as("fullBasePayment"),
+        fullMonthlyPayment: sql<number>`SUM(${dailyContractRevisionData.partialMonthlyPayment})`.as("fullMonthlyPayment"),
+      })
+      .from(dailyContractRevisionData)
+      .groupBy(
+        sql<number>`strftime('%Y', ${datesInRange.date}, 'unixepoch')`,
+        dailyContractRevisionData.basePayment
+      )
+  )
+  const accumulatedReadingData = db.$with("accumulatedReadingData").as(
+    db
+      .select({
+        year: sql<number>`strftime('%Y', ${readingData.timestamp}, 'unixepoch')`.as("yearReading"),
+        usage: sql<number>`SUM(${readingData.convertedDifference})`.as("usage"),
+        pricePerUnit: readingData.pricePerUnit,
+        totalPayment: sql<number>`SUM(${readingData.convertedDifference}) * ${readingData.pricePerUnit}`.as("totalPayment"),
+      })
+      .from(readingData)
+      .where(
+        and(
+          gte(readingData.timestamp, resolvedFilter.from),
+          lte(readingData.timestamp, resolvedFilter.until)
+        )
+      )
+      .groupBy(sql<number>`strftime('%Y', ${readingData.timestamp}, 'unixepoch')`, readingData.pricePerUnit)
+  )
+
+  const query = db
+    .with(datesInRange, dailyContractRevisionData, accumulatedContractData, readingData, accumulatedReadingData)
+    .select({
+      year: accumulatedContractData.year,
+      contractRangeDays: accumulatedContractData.daysBetween,
+      contractPrice: accumulatedContractData.basePayment,
+      contractValue: accumulatedContractData.fullBasePayment,
+      readingUsage: accumulatedReadingData.usage,
+      readingPrice: accumulatedReadingData.pricePerUnit,
+      readingValue: accumulatedReadingData.totalPayment,
+      totalCost: sql<number>`(${accumulatedContractData.fullBasePayment} + ${accumulatedReadingData.totalPayment})`.as("totalCost"),
+      contractValuePayed: accumulatedContractData.fullMonthlyPayment,
+    })
+    .from(accumulatedContractData)
+    .leftJoin(accumulatedReadingData, eq(accumulatedContractData.year, accumulatedReadingData.year))
+
+  // TODO Add Taxes
+
+  // const query = db
+  //   .with(datesInRange, dailyContractRevisionData, accumulatedContractData, readingData, accumulatedReadingData)
+  //   .select()
+  //   .from(readingData)
+  //   .where(
+  //     and(
+  //       gte(readingData.timestamp, resolvedFilter.from),
+  //       lte(readingData.timestamp, resolvedFilter.until)
+  //     )
+  //   )
+  // .orderBy(desc(readingData.timestamp))
+
+  return query
+}
+
 export function getAllContracts() {
   return db
     .select()
@@ -364,12 +528,7 @@ export async function getContractById(contractId: number) {
     .leftJoin(unit, eq(contract.unitId, unit.id))
     .where(eq(contract.id, contractId))
     .orderBy(desc(contractRevision.startDate))
-  return res[0] as
-    | {
-        contract: typeof contract.$inferSelect
-        contractRevision: typeof contractRevision.$inferSelect
-      }
-    | undefined
+  return res[0]!
 }
 
 export async function getAllContractRevisionsForContract(contractId: number) {
@@ -403,6 +562,47 @@ export function useContractsForBuilding() {
         return
       }
       getAllContractsForBuilding(activeBuilding.value)
+        .then((res) => {
+          setData(res)
+          setError(null)
+        })
+        .catch(setError)
+    })
+
+    return () => {
+      listener.remove()
+    }
+  })
+  return [data, error] as const
+}
+
+export function useContractMonthEntries(contractId: number, filters: { from: Signal<Date>; until: Signal<Date>; selectedYears: Signal<string[]> }) {
+  const [data, setData] = useState<
+    Awaited<ReturnType<typeof getContractMonthEntries>>
+  >([])
+  const [error, setError] = useState<string | null>(null)
+
+  useSignalEffect(() => {
+    const resolvedFilter = {
+      from: filters.from.value,
+      until: filters.until.value,
+      selectedYears: filters.selectedYears.value,
+    }
+    getContractMonthEntries(contractId, resolvedFilter)
+      .then((res) => {
+        setData(res)
+        setError(null)
+      })
+      .catch(setError)
+
+    const listener = addDatabaseChangeListener((change) => {
+      if (
+        change.tableName !== getTableName(contract) &&
+        change.tableName !== getTableName(contractRevision)
+      ) {
+        return
+      }
+      getContractMonthEntries(contractId, resolvedFilter)
         .then((res) => {
           setData(res)
           setError(null)

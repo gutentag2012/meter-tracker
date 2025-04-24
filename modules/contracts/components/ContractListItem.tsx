@@ -6,6 +6,7 @@ import { Fragment } from 'react'
 import { useColors, useDefaultStyles } from '@/modules/general/theme'
 import { formatNumber } from '@/modules/general/translations'
 import { useSignals } from '@preact/signals-react/runtime'
+import { useContractMonthEntries } from '@/modules/contracts'
 
 type ContractListItemProps = {
   contract: {
@@ -28,9 +29,8 @@ export function ContractListItem({ contract }: ContractListItemProps) {
 
   const costCurrentMonth = contract.totalCostCurrentMonth ?? 0
   return (
-    // TODO Link to detail page
     <TouchableOpacity
-      onPress={() => router.push(`/contract/${contract.contractId}/edit`)}
+      onPress={() => router.push(`/contract/${contract.contractId}`)}
       style={{
         backgroundColor: colors.card,
         padding: 8,

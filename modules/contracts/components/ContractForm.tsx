@@ -200,7 +200,7 @@ export function ContractForm({
                 </Text>
               </Text>
               {revisionSectionSaveAction && revisionSectionCancelAction && (
-                <View style={{ paddingVertical: 4, flexDirection: 'row' }}>
+                <View style={{ paddingVertical: 4, flexDirection: 'row', height: 36 }}>
                   <Button variant="ghost" onPress={revisionSectionCancelAction}>
                     {translate('general.cancel')}
                   </Button>
@@ -212,7 +212,7 @@ export function ContractForm({
               {!revisionSectionSaveAction &&
                 !revisionSectionCancelAction &&
                 selectedRevisionId && (
-                  <View style={defaultStyles.row}>
+                  <View style={[defaultStyles.row, {height: 36}]}>
                     <Button
                       variant="icon"
                       disabled={!isPrevEnabled}
@@ -255,34 +255,34 @@ export function ContractForm({
                   </View>
                 )}
             </View>
-            {!!selectedRevisionId?.value &&
-              revisionSectionSaveAction &&
-              revisionSectionCancelAction && (
-                <View
-                  style={[
-                    defaultStyles.row,
-                    {
-                      marginTop: 4,
-                      marginBottom: 4,
-                      borderLeftWidth: 1,
-                      borderColor: colors.warning,
-                      paddingRight: 32,
-                      paddingLeft: 8,
-                      gap: 8,
-                    },
-                  ]}
-                >
-                  <TriangleAlertIcon size={16} stroke={colors.warning} />
-                  <Text
-                    style={[
-                      defaultStyles.detailSmall,
-                      { color: colors.warning, lineHeight: 14 },
-                    ]}
-                  >
-                    {translate('contracts.warningEditingExistingRevision')}
-                  </Text>
-                </View>
-              )}
+            {/*{!!selectedRevisionId?.value &&*/}
+            {/*  revisionSectionSaveAction &&*/}
+            {/*  revisionSectionCancelAction && (*/}
+            {/*    <View*/}
+            {/*      style={[*/}
+            {/*        defaultStyles.row,*/}
+            {/*        {*/}
+            {/*          marginTop: 4,*/}
+            {/*          marginBottom: 4,*/}
+            {/*          borderLeftWidth: 1,*/}
+            {/*          borderColor: colors.warning,*/}
+            {/*          paddingRight: 32,*/}
+            {/*          paddingLeft: 8,*/}
+            {/*          gap: 8,*/}
+            {/*        },*/}
+            {/*      ]}*/}
+            {/*    >*/}
+            {/*      <TriangleAlertIcon size={16} stroke={colors.warning} />*/}
+            {/*      <Text*/}
+            {/*        style={[*/}
+            {/*          defaultStyles.detailSmall,*/}
+            {/*          { color: colors.warning, lineHeight: 14 },*/}
+            {/*        ]}*/}
+            {/*      >*/}
+            {/*        {translate('contracts.warningEditingExistingRevision')}*/}
+            {/*      </Text>*/}
+            {/*    </View>*/}
+            {/*  )}*/}
           </View>
 
           <form.FieldProvider

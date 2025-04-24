@@ -111,7 +111,8 @@ export const en = {
       'Given the unit of the contract and this meters unit, this is how the price would be calculated',
 
     createSectionResets: 'Resets',
-    createSectionDescriptionResets: "If your meter is reset to 0 you can record this here. The last value will be added to all new readings.",
+    createSectionDescriptionResets:
+      'If your meter is reset to 0 you can record this here. The last value will be added to all new readings.',
 
     createSectionActions: 'Actions',
     actionReset: 'Reset meter',
@@ -147,6 +148,18 @@ export const en = {
       didCreate: 'Contract created',
       didUpdate: 'Contract updated',
       didDelete: 'Contract deleted',
+    },
+
+    detail: {
+      partialYear: 'Partial {{year}}',
+      basePaymentHeader: 'Base',
+      usageHeader: 'Usage',
+      daysSuffix: 'days',
+      perYearSuffix: "/year",
+      gross: 'Gross',
+      net: 'Net',
+      payed: 'Payed',
+      total: 'Total',
     },
 
     createModalTitle: 'Create contract',
@@ -251,6 +264,9 @@ export const en = {
       en: 'English',
       de: 'German',
     },
+    taxOptionTitle: 'Tax',
+    taxOptionDescription: 'Selected tax: {{tax}} %',
+    taxSelectTitle: 'Select a tax',
     languageChangeWarning: 'Changing the language will reload the app',
     languageChangeReloadReason: 'Language changed',
     themeOptionTitle: 'Theme',
@@ -302,8 +318,8 @@ export const en = {
 
     export: {
       pageTitle: 'Export',
-      startButton: "Start export",
-      headerBuildings: "Buildings",
+      startButton: 'Start export',
+      headerBuildings: 'Buildings',
       buildings: {
         id: 'ID',
         name: 'Name',
@@ -311,7 +327,7 @@ export const en = {
         notes: 'Notes',
         isDefault: 'Is Default',
       },
-      headerContracts: "Contracts",
+      headerContracts: 'Contracts',
       contracts: {
         id: 'ID',
         name: 'Name',
@@ -319,7 +335,7 @@ export const en = {
         unit: 'Unit',
         buildingId: 'Building ID',
       },
-      headerContractRevision: "Contract Revisions",
+      headerContractRevision: 'Contract Revisions',
       contractRevision: {
         pricePerUnit: 'Price per Unit',
         basePayment: 'Base Payment',
@@ -328,7 +344,7 @@ export const en = {
         endDate: 'End Date',
         contractId: 'Contract ID',
       },
-      headerMeters: "Meters",
+      headerMeters: 'Meters',
       meters: {
         id: 'ID',
         name: 'Name',
@@ -341,7 +357,7 @@ export const en = {
         buildingId: 'Building ID',
         contractId: 'Contract ID',
       },
-      headerMeterReadings: "Readings",
+      headerMeterReadings: 'Readings',
       meterReadings: {
         id: 'ID',
         value: 'Value',
@@ -358,7 +374,7 @@ export const en = {
       importTooLarge: 'File is too large',
       importTooLargeDescription: 'Please select a smaller file',
       didImport: 'Data imported successfully',
-    }
+    },
   },
   intervals: {
     daily: 'Daily',

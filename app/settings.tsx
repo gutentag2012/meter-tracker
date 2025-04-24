@@ -14,7 +14,7 @@ import {
   CheckSquare2Icon,
   CloudIcon,
   CoinsIcon,
-  DownloadIcon,
+  DownloadIcon, HandCoinsIcon,
   LanguagesIcon,
   RefreshCcwIcon,
   ShieldAlertIcon,
@@ -70,6 +70,7 @@ import Toast from 'react-native-toast-message'
 import { deleteBuilding } from '@/modules/buildings'
 import { readAndImportFile } from '@/database/import'
 import * as Updates from 'expo-updates'
+import { tax } from '@/modules/settings/tax.signals'
 
 const languageOptions = [
   {
@@ -95,6 +96,20 @@ const currencyOptions = [
     textRight: value.currencySymbol,
     value: value.currencyCode,
   })),
+]
+const taxOptions = [
+  {
+    label: "19 %",
+    value: 0.19,
+  },
+  {
+    label: "7 %",
+    value: 0.07,
+  },
+  {
+    label: "0 %",
+    value: 0,
+  },
 ]
 
 export default function Page() {
@@ -168,6 +183,11 @@ export default function Page() {
     [defaultStyles],
   )
 
+  const taxSelect = useSelectField<number>({
+    modalTitle: translate('settings.taxSelectTitle'),
+    options: taxOptions,
+    value: tax,
+  })
   const languageSelect = useSelectField<string | undefined>({
     modalTitle: translate('settings.languageSelectTitle'),
     options: languageOptions,
@@ -265,6 +285,25 @@ export default function Page() {
                       `settings.currencySelectValues.${selectedValue?.value}` as LangKey,
                     ),
                   })}
+                </Text>
+              </View>
+            </Button>
+          )}
+        />
+        <taxSelect.SelectField
+          renderField={({ selectedValue, onOpen }) => (
+            <Button
+              size="large"
+              onPress={onOpen}
+              IconStart={<HandCoinsIcon size={16} stroke={colors.textMuted} />}
+              variant="text"
+            >
+              <View>
+                <Text style={defaultStyles.bodyText}>
+                  {translate('settings.taxOptionTitle')}
+                </Text>
+                <Text style={defaultStyles.detailSmall}>
+                  {((selectedValue?.value ?? 0) * 100).toFixed(0)} %
                 </Text>
               </View>
             </Button>
@@ -600,6 +639,7 @@ export default function Page() {
         }
       />
       <currencySelect.SelectFieldSheet />
+      <taxSelect.SelectFieldSheet />
       <themeSelect.SelectFieldSheet />
 
       <BottomSheetModalProvider>

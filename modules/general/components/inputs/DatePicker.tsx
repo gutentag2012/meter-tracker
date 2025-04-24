@@ -26,9 +26,9 @@ type DatePickerProps = Omit<AndroidNativeProps, 'value' | 'onChange'> & {
   hint?: string
   withTime?: boolean
   disabled?: boolean
+  nonOptional?: boolean
 }
 
-// TODO Make support iOS once necessary
 export function DatePicker({
   style,
   label,
@@ -38,6 +38,7 @@ export function DatePicker({
   withTime,
   isError,
   disabled,
+  nonOptional,
   ...props
 }: DatePickerProps) {
   const colors = useColors()
@@ -87,7 +88,7 @@ export function DatePicker({
           DateTimePickerAndroid.open({
             mode: 'date',
             is24Hour: true,
-            neutralButton: {
+            neutralButton: nonOptional ? undefined : {
               label: translate('general.clear'),
               textColor: colors.negative,
             },

@@ -4,7 +4,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { Signal } from '@preact/signals-core'
 import { FilterBottomSheet } from '@/modules/general/components/filterbar'
 
-export function useFilterBar(defaultFrom: Date | null = null, defaultUntil: Date | null = null) {
+export function useFilterBar(defaultFrom: Date | null = null, defaultUntil: Date | null = null, options: {disableYear?: boolean, nonOptional?: boolean} = {}) {
   const from = useSignal<Date | null>(defaultFrom)
   const until = useSignal<Date | null>(defaultUntil)
   const selectedYears = useSignal<string[]>([])
@@ -28,6 +28,8 @@ export function useFilterBar(defaultFrom: Date | null = null, defaultUntil: Date
           until={until}
           selectedYears={selectedYears}
           allYears={allYears}
+          disableYear={options.disableYear}
+          nonOptional={options.nonOptional}
         />
       )
     }

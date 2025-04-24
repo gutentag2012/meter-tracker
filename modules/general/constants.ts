@@ -1,5 +1,6 @@
 export const StorageKeys = {
   language: 'language',
+  tax: 'tax',
   currency: 'currency',
   theme: 'theme',
   notifications: 'notifications',

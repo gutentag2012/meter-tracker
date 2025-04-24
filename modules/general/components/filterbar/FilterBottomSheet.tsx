@@ -13,6 +13,8 @@ type FilterBottomSheetProps = {
   until: Signal<Date | null>
   selectedYears: Signal<string[]>
   allYears: Signal<string[]>
+  disableYear?: boolean
+  nonOptional?: boolean
 }
 
 export const FilterBottomSheet = memo(FilterBottomSheetRaw)
@@ -24,6 +26,8 @@ function FilterBottomSheetRaw({
                                 until,
                                 selectedYears,
                                 allYears,
+                                disableYear = false,
+                                nonOptional = false,
                               }: FilterBottomSheetProps) {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
@@ -84,35 +88,39 @@ function FilterBottomSheetRaw({
           <Text style={defaultStyles.cardTitle}>
             {translate('meters.graphs.filter')}
           </Text>
-          <TouchableOpacity
-            style={[defaultStyles.ghostButton, { marginLeft: 'auto' }]}
-            onPress={() => {
-              from.value = null
-              until.value = null
-              selectedYears.value = []
-              bottomSheetRef.current?.dismiss()
-            }}
-          >
-            <Text style={[defaultStyles.detail, { color: colors.primary }]}>
-              {translate('general.reset')}
-            </Text>
-          </TouchableOpacity>
+          {!nonOptional && (
+            <TouchableOpacity
+              style={[defaultStyles.ghostButton, { marginLeft: 'auto' }]}
+              onPress={() => {
+                from.value = null
+                until.value = null
+                selectedYears.value = []
+                bottomSheetRef.current?.dismiss()
+              }}
+            >
+              <Text style={[defaultStyles.detail, { color: colors.primary }]}>
+                {translate('general.reset')}
+              </Text>
+            </TouchableOpacity>
+            )}
         </View>
         <DatePickers
           from={from}
           until={until}
           selectedYears={selectedYears}
+          nonOptional={nonOptional}
         />
-        <Text style={defaultStyles.detail}>
-          {translate('meters.graphs.yearSelectionTitle')}
-        </Text>
-        <Text style={defaultStyles.detailSmall}>
-          {translate('meters.graphs.yearSelectionTitleHint')}
-        </Text>
-        <YearSelects
-          allYears={allYears}
-          selectedYears={selectedYears}
-        />
+        {!disableYear && (
+          <>
+            <Text style={defaultStyles.detail}>
+              {translate('meters.graphs.yearSelectionTitle')}
+            </Text>
+            <Text style={defaultStyles.detailSmall}>
+              {translate('meters.graphs.yearSelectionTitleHint')}
+            </Text>
+            <YearSelects allYears={allYears} selectedYears={selectedYears} />
+          </>
+        )}
       </BottomSheetScrollView>
     </BottomSheetModal>
   )

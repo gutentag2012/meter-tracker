@@ -152,6 +152,18 @@ export const de: Language = {
       didDelete: 'Vertrag erfolgreich gelöscht',
     },
 
+    detail: {
+      partialYear: 'Teiljahr {{year}}',
+      basePaymentHeader: 'Grundgebühr',
+      usageHeader: 'Verbrauch',
+      daysSuffix: 'Tage',
+      perYearSuffix: '/Jahr',
+      gross: 'Brutto',
+      net: 'Netto',
+      payed: 'Bezahlt',
+      total: 'Gesamt',
+    },
+
     createModalTitle: 'Vertrag erstellen',
     updateModalTitle: 'Vertrag bearbeiten',
     createLabelName: 'Name *',
@@ -255,6 +267,10 @@ export const de: Language = {
       en: 'Englisch',
       de: 'Deutsch',
     },
+    taxOptionTitle: 'Steuer',
+    taxOptionDescription:
+      'Ausgewählte Steuer: {{tax}} %',
+    taxSelectTitle: 'Steuer auswählen',
     languageChangeWarning: 'Das Ändern der Sprache wird die App neu laden',
     languageChangeReloadReason: 'Sprache geändert',
     themeOptionTitle: 'Darstellung',
