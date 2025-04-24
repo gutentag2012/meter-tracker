@@ -124,7 +124,7 @@ export default function Page() {
                 {entry.contractRangeDays}{' '}
                 {translate('contracts.detail.daysSuffix')}
                 <Text style={defaultStyles.detailSmall}>
-                  ({entry.contractPrice} {currency.value.currencySymbol}
+                  {" "}({entry.contractPrice} {currency.value.currencySymbol}
                   {translate('contracts.detail.perYearSuffix')})
                 </Text>
               </Text>
@@ -147,7 +147,7 @@ export default function Page() {
               >
                 {entry.readingUsage?.toFixed(2)} {contract?.unit?.abbreviation}
                 <Text style={defaultStyles.detailSmall}>
-                  ({entry.readingPrice} {currency.value.currencySymbol}/
+                  {" "}({entry.readingPrice} {currency.value.currencySymbol}/
                   {contract?.unit?.abbreviation})
                 </Text>
               </Text>
