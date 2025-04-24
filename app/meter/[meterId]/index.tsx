@@ -34,9 +34,7 @@ export default function Page() {
   const meterId = parseInt(meterIdRaw as string)
   const [meter] = useMeterById(meterId)
 
-  const defaultFrom = useMemo(() => startOfDay(new Date(2023, 5, 14)), [])
-  const defaultUntil = useMemo(() => endOfDay(new Date(2024, 5, 12)), [])
-  const { filters, openFilter, FilterBottomSheet } = useFilterBar(defaultFrom, defaultUntil)
+  const { filters, openFilter, FilterBottomSheet } = useFilterBar()
 
   const [readings] = useReadingsForMeterFiltered(
     meterId,
