@@ -132,7 +132,8 @@ async function importLegacyCSV(csv:string, clearExisting=false) {
     await clearDatabase()
   }
 
-  const buildingsToInsert = buildings.map((building): BuildingInsert => {
+  const buildingsToInsert = buildings.filter(Boolean).map((building): BuildingInsert => {
+    if(!building.id || building.id === "null") return null as unknown as BuildingInsert
     if(building.name === "default") {
       return {
         id: 1,
@@ -146,69 +147,83 @@ async function importLegacyCSV(csv:string, clearExisting=false) {
       id: parseInt(building.id),
       isDefault: false,
       name: building.name,
-      address: building.address,
-      notes: building.notes
+      address: building.address === "null" ? null : building.address,
+      notes: building.notes === "null" ? null : building.notes
     }
-  })
-  const resBuilding = await db.insert(Schema.building).values(buildingsToInsert).catch(err => console.error("Error importing buildings", err))
-  console.log("Inserted buildings", resBuilding)
+  }).filter(Boolean)
+  if(buildingsToInsert.length) {
+    const resBuilding = await db.insert(Schema.building).values(buildingsToInsert).catch(err => console.error("Error importing buildings", err))
+    console.log("Inserted buildings", resBuilding)
+  }
 
   const kwhUnitId = 1
   const m3UnitId = 7
 
-  const contractsToInsert = contracts.map((contract): ContractInsert => {
+  const contractsToInsert = contracts.filter(Boolean).map((contract): ContractInsert => {
+    if(!contract.id || contract.id === "null") return null as unknown as ContractInsert
     const buildingId = meters.find(meter => meter.contract_id === contract.id)?.building_id
     return {
       id: parseInt(contract.id),
       name: contract.name,
-      identifier: contract.identification,
+      identifier: contract.identification === "null" ? null : contract.identification,
       unitId: kwhUnitId,
       buildingId: buildingId ? parseInt(buildingId) : 1
     }
-  })
-  const resContract = await db.insert(Schema.contract).values(contractsToInsert).catch(err => console.error("Error importing contracts", err))
-  console.log("Inserted contracts", resContract)
+  }).filter(Boolean)
+  if(contractsToInsert.length) {
+    const resContract = await db.insert(Schema.contract).values(contractsToInsert).catch(err => console.error("Error importing contracts", err))
+    console.log("Inserted contracts", resContract)
+  }
 
-  const contractRevisionsToInsert = contracts.map((contract): ContractRevisionInsert => {
+  const contractRevisionsToInsert = contracts.filter(Boolean).map((contract): ContractRevisionInsert => {
+    if(!contract.id || contract.id === "null") return null as unknown as ContractRevisionInsert
     return {
-      pricePerUnit: parseFloat(contract.pricePerUnit) / 100,
+      pricePerUnit: contract.pricePerUnit ? parseFloat(contract.pricePerUnit) / 100 : 0,
       contractId: parseInt(contract.id)
     }
-  })
-  const resRevision = await db.insert(Schema.contractRevision).values(contractRevisionsToInsert).catch(err => console.error("Error importing contractRevisions", err))
-  console.log("Inserted revisions", resRevision)
+  }).filter(Boolean)
+  if(contractRevisionsToInsert.length) {
+    const resRevision = await db.insert(Schema.contractRevision).values(contractRevisionsToInsert).catch(err => console.error("Error importing contractRevisions", err))
+    console.log("Inserted revisions", resRevision)
+  }
 
   const consumptionMeterTypeId = 1
   const generationMeterTypeId = 2
   const consumptionTankMeterTypeId = 3
 
-  const metersToInsert = meters.map((meter): MeterInsert => {
+  const metersToInsert = meters.filter(Boolean).map((meter): MeterInsert => {
+    if(!meter.id && meter.id === "null") return null as unknown as MeterInsert
     const contract = contracts.find(contract => contract.id === meter.contract_id)
     const typeId = meter.isRefillable ? consumptionTankMeterTypeId : meter.areValuesDepleting ? generationMeterTypeId : consumptionMeterTypeId
     return {
       id: parseInt(meter.id),
       name: meter.name,
-      identifier: meter.identification,
-      precision: parseInt(meter.digits),
-      sortOrder: parseInt(meter.sortingOrder),
-      buildingId: parseInt(meter.building_id),
-      contractId: parseInt(meter.contract_id),
+      identifier: meter.identification === "null" ? null : meter.identification,
+      precision: meter.digits ? parseInt(meter.digits) : 2,
+      sortOrder: meter.sortingOrder ? parseInt(meter.sortingOrder) : 1,
+      buildingId: meter.building_id ? parseInt(meter.building_id) : 1,
+      contractId: meter.contract_id ? parseInt(meter.contract_id) : null,
       typeId,
       unitId: contract?.conversion === "10" ? m3UnitId : kwhUnitId
     }
-  })
-  const resMeters = await db.insert(Schema.meter).values(metersToInsert).catch(err => console.error("Error importing meters", err))
-  console.log("Inserted meters", resMeters)
+  }).filter(Boolean)
+  if(metersToInsert.length) {
+    const resMeters = await db.insert(Schema.meter).values(metersToInsert).catch(err => console.error("Error importing meters", err))
+    console.log("Inserted meters", resMeters)
+  }
 
-  const readingsToInsert = readings.map((reading): ReadingInsert => {
+  const readingsToInsert = readings.filter(Boolean).map((reading): ReadingInsert => {
+    if(!reading.meter_id || reading.meter_id === "null" || reading.value === "null" || reading.value === null) return null as unknown as ReadingInsert
     return {
-      value: parseFloat(reading.value),
+      value: reading.value ? parseFloat(reading.value) : 0,
       timestamp: new Date(parseInt(reading.createdAt)),
       meterId: parseInt(reading.meter_id)
     }
-  })
-  const resReadings = await db.insert(Schema.reading).values(readingsToInsert).catch(err => console.error("Error importing readings", err))
-  console.log("Inserted readings", resReadings)
+  }).filter(Boolean)
+  if(readingsToInsert.length) {
+    const resReadings = await db.insert(Schema.reading).values(readingsToInsert).catch(err => console.error("Error importing readings", err))
+    console.log("Inserted readings", resReadings)
+  }
 }
 
 async function importCSV(csv:string, clearExisting=false) {

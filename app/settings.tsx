@@ -357,21 +357,21 @@ export default function Page() {
           onPress={async () => {
             const deleteData = await new Promise<boolean | null>(resolve => {
               Alert.alert(
-                "Importing File",
-                "Do you want to delete the old data before importing?",
+                translate("settings.importDialogTitle"),
+                translate("settings.importDialogDescription"),
                 [
                   {
-                    text: "Delete Data",
+                    text: translate("settings.importDialogDeleteButton"),
                     style: 'destructive',
                     onPress: () => resolve(true),
                   },
                   {
-                    text: "Import",
+                    text: translate("settings.importDialogKeepButton"),
                     style: 'default',
                     onPress: () => resolve(false),
                   },
                   {
-                    text: "Cancel",
+                    text: translate("general.cancel"),
                     style: 'cancel',
                     onPress: () => resolve(null),
                   },

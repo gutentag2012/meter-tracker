@@ -46,6 +46,10 @@ export async function migrateOldDb() {
     const meters = await oldDatabase.getAllAsync("SELECT * FROM meter") as OldMeter[]
     const measurements = await oldDatabase.getAllAsync("SELECT * FROM measurement") as OldMeasurement[]
 
+    if(!measurements?.length) {
+      return
+    }
+
     await clearDatabase()
 
     const kwhUnitId = 1
@@ -55,7 +59,7 @@ export async function migrateOldDb() {
     const generationMeterTypeId = 2
     const consumptionTankMeterTypeId = 3
 
-    const buildingsToInsert = buildings.map((building): BuildingInsert => {
+    const buildingsToInsert = buildings.filter(Boolean).map((building): BuildingInsert => {
       if(building.name === "default") {
         return {
           id: 1,
@@ -73,10 +77,15 @@ export async function migrateOldDb() {
         notes: building.notes
       }
     })
-    const resBuilding = await db.insert(Schema.building).values(buildingsToInsert).catch(err => console.error("Error migrating old buildings", err))
-    console.log("Inserted buildings", resBuilding)
+    if(buildingsToInsert.length) {
+      const resBuilding = await db.insert(Schema.building).values(buildingsToInsert).catch(err => console.error("Error migrating old buildings", err))
+      console.log("Inserted buildings", resBuilding)
+    }
 
-    const contractsToInsert = contracts.map((contract): ContractInsert => {
+    const contractsToInsert = contracts.filter(Boolean).map((contract): ContractInsert => {
+      if(!contract.id) {
+        return null as unknown as ContractInsert
+      }
       const buildingId = meters.find(meter => meter.contract_id === contract.id)?.building_id
       return {
         id: contract.id,
@@ -85,21 +94,31 @@ export async function migrateOldDb() {
         unitId: kwhUnitId,
         buildingId: buildingId ? buildingId : 1
       }
-    })
-    const resContract = await db.insert(Schema.contract).values(contractsToInsert).catch(err => console.error("Error migrating old contracts", err))
-    console.log("Inserted contracts", resContract)
+    }).filter(Boolean)
+    if(contractsToInsert.length) {
+      const resContract = await db.insert(Schema.contract).values(contractsToInsert).catch(err => console.error("Error migrating old contracts", err))
+      console.log("Inserted contracts", resContract)
+    }
 
-    const contractRevisionsToInsert = contracts.map((contract): ContractRevisionInsert => {
+    const contractRevisionsToInsert = contracts.filter(Boolean).map((contract): ContractRevisionInsert => {
+      if(!contract.id) {
+        return null as unknown as ContractRevisionInsert
+      }
       return {
         startDate: new Date(contract.createdAt),
         pricePerUnit: contract.pricePerUnit / 100,
         contractId: contract.id
       }
-    })
-    const resRevision = await db.insert(Schema.contractRevision).values(contractRevisionsToInsert).catch(err => console.error("Error migrating old contractRevisions", err))
-    console.log("Inserted revisions", resRevision)
+    }).filter(Boolean)
+    if(contractRevisionsToInsert.length) {
+      const resRevision = await db.insert(Schema.contractRevision).values(contractRevisionsToInsert).catch(err => console.error("Error migrating old contractRevisions", err))
+      console.log("Inserted revisions", resRevision)
+    }
 
-    const metersToInsert = meters.map((meter): MeterInsert => {
+    const metersToInsert = meters.filter(Boolean).map((meter): MeterInsert => {
+      if(!meter.id) {
+        return null as unknown as MeterInsert
+      }
       const contract = contracts.find(contract => contract.id === meter.contract_id)
       const typeId = meter.isRefillable ? consumptionTankMeterTypeId : meter.areValuesDepleting ? generationMeterTypeId : consumptionMeterTypeId
       return {
@@ -113,19 +132,26 @@ export async function migrateOldDb() {
         typeId,
         unitId: contract?.conversion === 10 ? m3UnitId : kwhUnitId
       }
-    })
-    const resMeters = await db.insert(Schema.meter).values(metersToInsert).catch(err => console.error("Error migrating old meters", err))
-    console.log("Inserted meters", resMeters)
+    }).filter(Boolean)
+    if(metersToInsert.length) {
+      const resMeters = await db.insert(Schema.meter).values(metersToInsert).catch(err => console.error("Error migrating old meters", err))
+      console.log("Inserted meters", resMeters)
+    }
 
-    const readingsToInsert = measurements.map((reading): ReadingInsert => {
+    const readingsToInsert = measurements.filter(Boolean).map((reading): ReadingInsert => {
+      if(!reading.id) {
+        return null as unknown as ReadingInsert
+      }
       return {
-        value: reading.value,
+        value: reading.value ? reading.value : 0,
         timestamp: new Date(reading.createdAt),
         meterId: reading.meter_id
       }
-    })
-    const resReadings = await db.insert(Schema.reading).values(readingsToInsert).catch(err => console.error("Error migrating old readings", err))
-    console.log("Inserted readings", resReadings)
+    }).filter(Boolean)
+    if(readingsToInsert.length) {
+      const resReadings = await db.insert(Schema.reading).values(readingsToInsert).catch(err => console.error("Error migrating old readings", err))
+      console.log("Inserted readings", resReadings)
+    }
 
   } catch (e) {
     console.error('Error migrating old database', e)

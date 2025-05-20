@@ -196,14 +196,20 @@ function BuildingList({ bottomSheetRef }: BuildingListProps) {
             bottomSheetRef.current?.dismiss()
           }}
         >
-          <Text
-            style={[
-              defaultStyles.bodyText,
-              { marginLeft: 8, marginRight: 'auto' },
-            ]}
-          >
-            {getBuildingName(building.name)}
-          </Text>
+          <View style={{
+            marginLeft: 8, marginRight: 'auto'
+          }}>
+            <Text
+              style={defaultStyles.bodyText}
+            >
+              {getBuildingName(building.name)}
+            </Text>
+            <Text
+              style={defaultStyles.detail}
+            >
+              {building.address}
+            </Text>
+          </View>
 
           {building.isDefault ? (
             <Text style={[defaultStyles.detailSmall, { padding: 8 }]}>

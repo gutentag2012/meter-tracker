@@ -322,6 +322,11 @@ export const de: Language = {
       'Um Erinnerungen zu aktivieren, brauchen wir Ihre Erlaubnis. Sie können dies in den Einstellungen tun.',
     goToSettings: 'Zu den Einstellungen',
 
+    importDialogTitle: "Daten importieren",
+    importDialogDescription: "Möchten Sie die alle Daten löschen und neue Daten importieren?",
+    importDialogDeleteButton: "Löschen",
+    importDialogKeepButton: "Behalten",
+
     export: {
       pageTitle: "Exportieren",
       startButton: "Export starten",

@@ -126,11 +126,15 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
     }
   })
 
+  const percentileChange = (meter.percentileChange ?? 0)
+  const shouldSwapColors = meter.meterType === 'generation'
+  const colorNegative = shouldSwapColors ? colors.positive : colors.negative
+  const colorPositive = shouldSwapColors ? colors.negative : colors.positive
   const changeColor =
-    (meter.percentileChange ?? 0) > 0
-      ? colors.negative
-      : (meter.percentileChange ?? 0) < 0
-        ? colors.positive
+    (percentileChange ?? 0) > 0
+      ? colorNegative
+      : (percentileChange ?? 0) < 0
+        ? colorPositive
         : colors.textMuted
 
   const hasLongTitle = (meter.meterName?.length ?? 0) > 9
@@ -160,9 +164,9 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                   </Text>
                 )}
               </View>
-              {!isNaN(meter.percentileChange ?? 0) && (
+              {!isNaN(percentileChange ?? 0) && (
                 <View style={defaultStyles.iconText}>
-                  <ChangeIndicatorIcon change={meter.percentileChange ?? 0} />
+                  <ChangeIndicatorIcon change={percentileChange ?? 0} meterType={meter.meterType} />
                   <Text
                     style={[
                       defaultStyles.detail,
@@ -172,7 +176,7 @@ export const MeterGridItem = ({ meter, positions, onFinishSort }: Props) => {
                     ]}
                   >
                     {formatNumber(
-                      meter.percentileChange ?? 0,
+                      percentileChange ?? 0,
                       meter.meterPrecision,
                     )}{' '}
                     %

@@ -176,7 +176,7 @@ export default function Page() {
           </View>
           <View style={[defaultStyles.row]}>
             <Text style={[defaultStyles.detail, { minWidth: 64 }]}>
-              {translate('contracts.detail.gross')}
+              {translate('contracts.detail.gross')}{' '}
               <Text style={defaultStyles.detailSmall}>
                 ({((tax.value ?? 0) * 100)?.toFixed(0)} %)
               </Text>

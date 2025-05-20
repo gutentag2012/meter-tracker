@@ -316,6 +316,12 @@ export const en = {
       'We need permission to send you reminders. You can change this in the settings.',
     goToSettings: 'Go to Settings',
 
+    importDialogTitle: 'Import File',
+    importDialogDescription:
+      'Do you want to delete all existing data and import the new data?',
+    importDialogDeleteButton: 'Delete data',
+    importDialogKeepButton: 'Keep data',
+
     export: {
       pageTitle: 'Export',
       startButton: 'Start export',

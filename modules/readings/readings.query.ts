@@ -1,5 +1,5 @@
 import {db, Schema} from '@/database/db'
-import {meter, meterReset, reading, unit} from '@/database/schema'
+import { meter, meterReset, meterType, reading, unit } from '@/database/schema'
 import {and, or, desc, eq, getTableName, gte, lt, sql, gt, lte} from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { addDatabaseChangeListener } from 'expo-sqlite'
@@ -99,6 +99,7 @@ export async function getAllReadingsForMeter(
     .select({
       realValue: readingDifferences.realValue,
       readingId: readingDifferences.readingId,
+      meterType: meterType.category,
       unitAbbreviation: unit.abbreviation,
       precision: meter.precision,
       readingValue: readingDifferences.readingValue,
@@ -116,6 +117,7 @@ export async function getAllReadingsForMeter(
     })
     .from(readingDifferences)
     .leftJoin(meter, eq(readingDifferences.meterId, meter.id))
+    .leftJoin(meterType, eq(meter.typeId, meterType.id))
     .leftJoin(unit, eq(meter.unitId, unit.id))
     .orderBy(desc(readingDifferences.readingTimestamp))
 }

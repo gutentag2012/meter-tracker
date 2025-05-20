@@ -1,7 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { ChangeIndicatorIcon } from '@/modules/general/components/interface/ChangeIndicatorIcon'
 import { CalendarIcon, DiffIcon, EyeIcon } from 'lucide-react-native'
-import { Link, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { Fragment } from 'react'
 import { useDefaultStyles, useColors } from '@/modules/general/theme'
 import {
@@ -20,11 +20,15 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
   const colors = useColors()
   const defaultStyles = useDefaultStyles()
 
+  const shouldSwapColors = reading.meterType === 'generation'
+  const percentileChange = (reading.percentileChange ?? 0)
+  const colorNegative = shouldSwapColors ? colors.positive : colors.negative
+  const colorPositive = shouldSwapColors ? colors.negative : colors.positive
   const changeColor =
-    (reading.percentileChange ?? 0) > 0
-      ? colors.negative
-      : (reading.percentileChange ?? 0) < 0
-        ? colors.positive
+    (percentileChange ?? 0) > 0
+      ? colorNegative
+      : (percentileChange ?? 0) < 0
+        ? colorPositive
         : colors.textMuted
 
   return (
@@ -55,10 +59,10 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
             {reading.unitAbbreviation}
           </Text>
         </Text>
-        {reading.percentileChange !== null && (
+        {percentileChange !== null && (
           <View style={{ flex: 1, alignItems: 'flex-end' }}>
             <View style={[defaultStyles.iconText, { flex: 1 }]}>
-              <ChangeIndicatorIcon change={reading.percentileChange ?? 0} />
+              <ChangeIndicatorIcon change={percentileChange} meterType={reading.meterType} />
               <Text
                 style={[
                   defaultStyles.detail,
@@ -68,7 +72,7 @@ export function ReadingListItem({ reading }: ReadingListItemProps) {
                   },
                 ]}
               >
-                {formatNumber(reading.percentileChange)} %{' '}
+                {formatNumber(percentileChange)} %{' '}
                 {/*This is a workaround, since the % for some reason is hidden for larger numbers*/}
               </Text>
             </View>

@@ -57,6 +57,7 @@ export async function getAllMetersForBuilding(buildingId: number) {
     .select({
       meterId: readingDifferences.meterId,
       meterName: meter.name,
+      meterType: meterType.category,
       meterPrecision: meter.precision,
       identifier: meter.identifier,
       meterUnit: unit.abbreviation,
@@ -71,6 +72,7 @@ export async function getAllMetersForBuilding(buildingId: number) {
     })
     .from(readingDifferences)
     .leftJoin(meter, eq(readingDifferences.meterId, meter.id))
+    .leftJoin(meterType, eq(meter.typeId, meterType.id))
     .leftJoin(unit, eq(meter.unitId, unit.id))
     .orderBy(meter.sortOrder, desc(meter.id))
 }
