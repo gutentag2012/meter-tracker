@@ -376,6 +376,7 @@ export const en = {
     toast: {
       exporting: 'Exporting data...',
       didExport: 'Data exported successfully',
+      exportError: 'Error exporting data',
       importing: 'Importing data...',
       importTooLarge: 'File is too large',
       importTooLargeDescription: 'Please select a smaller file',

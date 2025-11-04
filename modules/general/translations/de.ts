@@ -381,6 +381,7 @@ export const de: Language = {
     toast: {
       exporting: 'Exportiere Daten...',
       didExport: 'Daten erfolgreich exportiert',
+      exportError: 'Fehler beim Exportieren der Daten',
       importing: 'Importiere Daten...',
       importTooLarge: 'Import Datei zu groß',
       importTooLargeDescription: 'Bitte wählen Sie eine kleinere Datei',

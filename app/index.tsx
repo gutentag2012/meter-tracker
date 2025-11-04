@@ -18,6 +18,7 @@ import {
 import { PlusIcon } from 'lucide-react-native'
 import { MeterGrid } from '@/modules/meters/components'
 import { ContractList } from '@/modules/contracts/components'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -48,6 +49,8 @@ export default function HomeScreen() {
       }),
     [],
   )
+
+  const margins = useSafeAreaInsets()
 
   return (
     <GestureHandlerRootView
@@ -97,7 +100,9 @@ export default function HomeScreen() {
         <ContractList />
       </ScrollView>
 
-      <ActiveBuildingSelector />
+      <View style={{paddingBlock: margins.bottom + 8}}>
+        <ActiveBuildingSelector />
+      </View>
     </GestureHandlerRootView>
   )
 }

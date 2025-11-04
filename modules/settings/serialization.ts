@@ -39,16 +39,21 @@ export function parsedCsvToJSON(parsedCsv: string[][]): Record<string, string>[]
 }
 
 export function convertToCSV(rows: Record<string, any>[]): string {
-  if (rows.length === 0) return "";
+  if (!rows?.length) return "";
 
-  const headers = Object.keys(rows[0]);
+  const uniqueHeaders = new Set<string>();
+  rows.forEach(row => {
+    Object.keys(row).forEach(key => uniqueHeaders.add(key));
+  });
+  const headers = Array.from(uniqueHeaders);
+
   const escape = (val: any) =>
     `"${String(val ?? "").replace(/"/g, '""')}"`;
 
   const lines = [
     headers.map(escape).join(","), // header row
     ...rows.map((row) =>
-      headers.map((key) => escape(row[key])).join(",")
+      headers.map((key) => !row ? "" : escape(row[key])).join(",")
     ),
   ];
 

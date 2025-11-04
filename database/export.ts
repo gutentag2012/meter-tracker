@@ -61,49 +61,65 @@ async function exportCSV() {
       console.error('Error exporting data', e)
       return []
     })
-    .then((res: any[]) =>
-      res.map(
-        (e: any): Record<string, string> =>
-          Object.entries(e).reduce(
+    .then((res: any[]) => {
+      return res?.map(
+        (e: any): Record<string, string> => {
+          return Object.entries(e).reduce(
             (acc, [objectKey, value]) => {
+              if (value === null || value === undefined) {
+                return acc
+              }
               Object.entries(value as any).forEach(([key, val]) => {
                 if (objectKey === 'building' && key === 'name') {
                   val = translate(`buildings.defaultName`)
                 }
                 acc[`${objectKey}.${key}`] =
-                  val instanceof Date
-                    ? val.getTime().toString()
-                    : JSON.stringify(val)
+                  val === undefined || val === null
+                    ? ''
+                    : val instanceof Date
+                      ? val.getTime().toString()
+                      : JSON.stringify(val)
               })
               return acc
             },
             {} as Record<string, string>,
-          ),
-      ),
-    )
+          )
+        }
+      )
+    })
 
   return convertToCSV(rows)
 }
 
 export async function exportAndShareDatabase() {
-  if (!(await isAvailableAsync())) return
-  Toast.show({
-    type: 'progress',
-    text1: translate('settings.toast.exporting'),
-    autoHide: false,
-  })
+  const available = await isAvailableAsync();
+  if (!available) {
+    Toast.show({ type: 'error', text1: 'Sharing not available' });
+    return;
+  }
 
-  const csvString = await exportCSV()
-  const exportFileName = `meter_tracker-export_${new Date().toISOString()}.csv`
-  const fileUri = `${cacheDirectory}${exportFileName}`
+  Toast.show({ type: 'progress', text1: 'Exporting...', autoHide: false });
 
-  await writeAsStringAsync(fileUri, csvString, {
-    encoding: EncodingType.UTF8,
-  })
+  try {
+    console.log('Starting export...');
+    const csvString = await exportCSV();
+    console.log('CSV string generated (length:', csvString.length, ')');
+    if (!csvString) throw new Error('Empty CSV');
 
-  await shareAsync(fileUri)
-  Toast.show({
-    type: 'success',
-    text1: translate('settings.toast.didExport'),
-  })
+    const exportFileName = `meter_tracker-export_${new Date().toISOString()}.csv`;
+    const cacheFileUri = `${cacheDirectory}${exportFileName}`;
+
+    console.log('Writing CSV to cache file:', cacheFileUri);
+    await writeAsStringAsync(cacheFileUri, csvString, {
+      encoding: EncodingType.UTF8,
+    });
+
+    console.log('Sharing local file:', cacheFileUri);
+    await shareAsync(cacheFileUri); // <- file:// URI, funktioniert!
+
+    Toast.show({ type: 'success', text1: 'Export successful!' });
+  } catch (e) {
+    console.error('Export failed:', e);
+    Toast.show({ type: 'error', text1: 'Export failed' });
+  }
 }
