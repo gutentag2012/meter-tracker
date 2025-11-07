@@ -41,10 +41,10 @@ type OldMeasurement = {
 export async function migrateOldDb() {
   console.log("Migrating old database")
   try {
-    const buildings = await oldDatabase.getAllAsync("SELECT * FROM building") as OldBuilding[]
-    const contracts = await oldDatabase.getAllAsync("SELECT * FROM contract") as OldContract[]
-    const meters = await oldDatabase.getAllAsync("SELECT * FROM meter") as OldMeter[]
-    const measurements = await oldDatabase.getAllAsync("SELECT * FROM measurement") as OldMeasurement[]
+    const buildings = await oldDatabase.getAllAsync("SELECT * FROM building").catch(() => []) as OldBuilding[]
+    const contracts = await oldDatabase.getAllAsync("SELECT * FROM contract").catch(() => []) as OldContract[]
+    const meters = await oldDatabase.getAllAsync("SELECT * FROM meter").catch(() => []) as OldMeter[]
+    const measurements = await oldDatabase.getAllAsync("SELECT * FROM measurement").catch(() => []) as OldMeasurement[]
 
     if(!measurements?.length) {
       return
