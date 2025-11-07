@@ -172,6 +172,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
     ModalAction: (
       <Button
         style={{ marginLeft: 'auto' }}
+        onPress={() => router.push('/contract/create')}
         IconStart={
           <PlusIcon
             size={defaultStyles.detail.fontSize}
@@ -260,7 +261,7 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
 
           <contractSelect.SelectField />
 
-          <Button
+          {selectedContract && <Button
             IconStart={
               showAdvancedContract.value ? (
                 <ChevronDownIcon size={16} stroke={colors.primary} />
@@ -269,12 +270,12 @@ export function MeterForm({ meterId, form }: MeterFormProps) {
               )
             }
             style={{ marginBottom: 4 }}
-            onPress={() =>
-              (showAdvancedContract.value = !showAdvancedContract.peek())
-            }
+            onPress={() => {
+              showAdvancedContract.value = !showAdvancedContract.value
+            }}
           >
             {translate('meters.advancedContractOptions')}
-          </Button>
+          </Button>}
 
           {showAdvancedContract.value && (
             <View>
