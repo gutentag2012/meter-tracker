@@ -12,7 +12,6 @@
       "supportsTablet": true
     },
     "android": {
-      "edgeToEdgeEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -204,7 +203,8 @@
         }
       ],
       "expo-localization",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
